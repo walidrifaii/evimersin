@@ -25,11 +25,11 @@ export function HotDeals() {
           </Link>
         </div>
 
-        <div className="-mr-4 flex snap-x snap-mandatory gap-5 overflow-x-auto pr-4 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mr-6 sm:pr-6 md:-mr-4 md:pr-4 xl:mr-0 xl:grid xl:grid-cols-3 xl:overflow-visible xl:pr-0 xl:snap-none">
+        <div className="grid grid-cols-2 gap-4 sm:gap-5 xl:grid-cols-4">
           {hotDeals.map((item, index) => (
             <div
               key={item.id}
-              className="w-[min(320px,84vw)] shrink-0 snap-start animate-[fadeUp_600ms_ease-out] [animation-fill-mode:both] xl:w-auto xl:shrink"
+              className="min-w-0 animate-[fadeUp_600ms_ease-out] [animation-fill-mode:both]"
               style={{ animationDelay: `${100 + index * 120}ms` }}
             >
               <HotDealCard item={item} />

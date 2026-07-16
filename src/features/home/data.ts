@@ -106,6 +106,16 @@ export const hotDeals: HotDealItem[] = [
     image: featuredPropertyImage,
     href: routes.property("erdemli-land"),
   },
+  {
+    id: "tarsus-villa-deal",
+    discount: "-12%",
+    title: "Family Villa with Garden",
+    location: "Tarsus, Mersin",
+    originalPrice: "$312,000",
+    salePrice: "$275,000",
+    image: featuredPropertyImage,
+    href: routes.property("tarsus-villa"),
+  },
 ];
 
 export const featuredProperties: FeaturedPropertyItem[] = [

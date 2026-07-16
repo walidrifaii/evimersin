@@ -8,22 +8,22 @@ export function WhyChooseUs() {
           Why Choose EviMersin?
         </h2>
 
-        <div className="mt-12 -mr-4 flex snap-x snap-mandatory gap-5 overflow-x-auto pr-4 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mr-6 sm:pr-6 md:-mr-4 md:pr-4 lg:mr-0 lg:mt-14 lg:grid lg:grid-cols-4 lg:gap-0 lg:overflow-visible lg:pr-0 lg:snap-none">
+        <div className="mt-10 grid grid-cols-2 gap-4 sm:mt-12 sm:gap-5 lg:mt-14 lg:grid-cols-4 lg:gap-0">
           {whyChooseUsItems.map((item, index) => {
             const { Icon, title, description } = item;
 
             return (
               <div
                 key={item.id}
-                className={`flex w-[min(260px,78vw)] shrink-0 snap-start flex-col items-center rounded-2xl bg-white px-6 py-8 text-center shadow-[0_4px_20px_rgba(15,23,42,0.06)] lg:w-auto lg:rounded-none lg:bg-transparent lg:px-6 lg:py-0 lg:shadow-none ${
+                className={`flex flex-col items-center rounded-2xl bg-white px-4 py-6 text-center shadow-[0_4px_20px_rgba(15,23,42,0.06)] sm:px-6 sm:py-8 lg:rounded-none lg:bg-transparent lg:px-6 lg:py-0 lg:shadow-none ${
                   index > 0 ? "lg:border-l lg:border-[#dbe1ea]" : ""
                 }`}
               >
-                <Icon className="h-12 w-12 text-[var(--brand-navy)]" />
-                <h3 className="mt-5 text-[17px] font-bold text-[var(--brand-navy)] sm:text-[18px]">
+                <Icon className="h-10 w-10 text-[var(--brand-navy)] sm:h-12 sm:w-12" />
+                <h3 className="mt-4 text-[15px] font-bold text-[var(--brand-navy)] sm:mt-5 sm:text-[17px] lg:text-[18px]">
                   {title}
                 </h3>
-                <p className="mt-2 max-w-[220px] text-[14px] font-normal leading-relaxed text-[var(--muted)]">
+                <p className="mt-2 max-w-[220px] text-[13px] font-normal leading-relaxed text-[var(--muted)] sm:text-[14px]">
                   {description}
                 </p>
               </div>
