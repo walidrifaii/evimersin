@@ -1,0 +1,249 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #1a1a1a;
+  --brand-red: #e31c23;
+  --brand-navy: #1b2a4a;
+  --brand-blue: #2563eb;
+  --brand-gold: #c9a84c;
+  --brand-gold-light: #e8d08a;
+  --nav-text: #2b2b2b;
+  --muted: #6b7280;
+  --featured-bg: #0f172a;
+  --card-bg: rgba(255, 255, 255, 0.06);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-brand-red: var(--brand-red);
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-gold: var(--brand-gold);
+  --font-sans: var(--font-poppins);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+}
+
+@keyframes heroFade {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes heroRise {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Site preloader — brand letter drawer reveal */
+@keyframes preloaderFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes preloaderRiseIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes preloaderLetterDrawer {
+  from {
+    transform: translateY(110%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes preloaderUnderline {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+  to {
+    width: min(72vw, 11.5rem);
+    opacity: 1;
+  }
+}
+
+@keyframes preloaderProgress {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes preloaderShimmer {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+@keyframes preloaderOrbA {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translate(18px, -12px) scale(1.08);
+    opacity: 0.55;
+  }
+}
+
+@keyframes preloaderOrbB {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.28;
+  }
+  50% {
+    transform: translate(-16px, 14px) scale(1.1);
+    opacity: 0.48;
+  }
+}
+
+@keyframes preloaderGridPulse {
+  0%,
+  100% {
+    opacity: 0.05;
+  }
+  50% {
+    opacity: 0.1;
+  }
+}
+
+.preloader-letter-drawer {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+
+.preloader-letter-inner {
+  display: inline-block;
+  transform: translateY(110%);
+  animation: preloaderLetterDrawer 0.72s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.preloader-tagline {
+  opacity: 0;
+  animation: preloaderRiseIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.15s forwards;
+}
+
+.preloader-subtitle {
+  opacity: 0;
+  animation: preloaderRiseIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) 1.35s forwards;
+}
+
+.preloader-underline {
+  animation: preloaderUnderline 0.7s cubic-bezier(0.22, 1, 0.36, 1) 1.15s forwards;
+}
+
+.preloader-bar-wrap {
+  opacity: 0;
+  animation: preloaderFadeIn 0.4s ease-out 0.55s forwards;
+}
+
+.preloader-progress {
+  transform: scaleX(0);
+  animation: preloaderProgress 1.9s cubic-bezier(0.22, 1, 0.36, 1) 0.45s forwards;
+}
+
+.preloader-shimmer {
+  animation: preloaderShimmer 1.4s ease-in-out 0.8s infinite;
+}
+
+.preloader-orb-a {
+  animation: preloaderOrbA 5.5s ease-in-out infinite;
+}
+
+.preloader-orb-b {
+  animation: preloaderOrbB 6.5s ease-in-out infinite;
+}
+
+.preloader-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(circle at center, black 20%, transparent 72%);
+  animation: preloaderGridPulse 4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preloader-letter-drawer,
+  .preloader-letter-inner,
+  .preloader-tagline,
+  .preloader-subtitle,
+  .preloader-underline,
+  .preloader-bar-wrap,
+  .preloader-progress,
+  .preloader-shimmer,
+  .preloader-orb-a,
+  .preloader-orb-b,
+  .preloader-grid {
+    animation: none;
+  }
+
+  .preloader-tagline,
+  .preloader-subtitle,
+  .preloader-bar-wrap {
+    opacity: 1;
+  }
+
+  .preloader-letter-inner {
+    transform: none;
+  }
+
+  .preloader-underline {
+    width: min(72vw, 11.5rem);
+    opacity: 1;
+  }
+
+  .preloader-progress {
+    transform: scaleX(1);
+  }
+}
