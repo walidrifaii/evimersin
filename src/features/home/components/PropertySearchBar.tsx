@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useRef, useEffect, type ReactNode } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "@/components/icons/ChevronDown";
 import { homeData } from "@/features/home/data";
 import { routes } from "@/constants/routes";
@@ -37,22 +37,28 @@ function FilterDropdown({
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
+    if (!isOpen) return;
+
+    function handlePointerDown(e: PointerEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         onClose();
       }
     }
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, [isOpen, onClose]);
 
   return (
     <div ref={ref} className="relative flex w-full min-w-0 items-stretch">
       <button
         type="button"
-        onClick={onToggle}
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle();
+        }}
         className="flex h-full min-h-[60px] w-full min-w-0 flex-col justify-center gap-3 px-8 py-4 text-left transition-colors hover:bg-black/[0.02] lg:min-h-[68px] lg:gap-4 lg:px-12 lg:py-5"
       >
         <span className="text-[14px] font-medium leading-none text-[#9ca3af] lg:text-[15px]">
@@ -68,12 +74,17 @@ function FilterDropdown({
         </span>
       </button>
 
-      {isOpen && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-[#e5e7eb] bg-white shadow-[0_12px_32px_rgba(0,0,0,0.12)]">
+      {isOpen ? (
+        <div
+          role="listbox"
+          className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-[#e5e7eb] bg-white shadow-[0_12px_32px_rgba(0,0,0,0.12)]"
+        >
           {field.options.map((opt) => (
             <button
               key={opt}
               type="button"
+              role="option"
+              aria-selected={opt === value}
               onClick={() => {
                 onChange(opt);
                 onClose();
@@ -88,7 +99,7 @@ function FilterDropdown({
             </button>
           ))}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -101,12 +112,12 @@ export function PropertySearchBar() {
 
   return (
     <div className="flex w-full flex-col gap-2 rounded-2xl bg-white p-3 text-left shadow-[0_12px_32px_rgba(0,0,0,0.14)] lg:flex-row lg:items-stretch lg:gap-0 lg:rounded-[20px] lg:p-4">
-      <div className="hidden min-w-0 flex-1 lg:grid lg:grid-cols-4 lg:items-stretch">
+      <div className="grid min-w-0 flex-1 grid-cols-1 divide-y divide-[#e5e7eb] lg:grid-cols-4 lg:items-stretch lg:divide-y-0">
         {fields.map((field, index) => (
           <div
             key={field.key}
             className={`flex w-full min-w-0 items-stretch ${
-              index < fields.length - 1 ? "border-r border-[#e5e7eb]" : ""
+              index < fields.length - 1 ? "lg:border-r lg:border-[#e5e7eb]" : ""
             }`}
           >
             <FilterDropdown
@@ -122,24 +133,6 @@ export function PropertySearchBar() {
               onClose={() => setOpenDropdown(null)}
             />
           </div>
-        ))}
-      </div>
-
-      <div className="grid min-w-0 flex-1 grid-cols-1 divide-y divide-[#e5e7eb] lg:hidden">
-        {fields.map((field) => (
-          <FilterDropdown
-            key={field.key}
-            field={field}
-            value={values[field.key]}
-            onChange={(v) => setValues((prev) => ({ ...prev, [field.key]: v }))}
-            isOpen={openDropdown === field.key}
-            onToggle={() =>
-              setOpenDropdown((prev) =>
-                prev === field.key ? null : field.key,
-              )
-            }
-            onClose={() => setOpenDropdown(null)}
-          />
         ))}
       </div>
 
