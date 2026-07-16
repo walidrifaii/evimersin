@@ -13,8 +13,16 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: config.appName,
+  title: {
+    default: `${config.appName} | ${config.tagline}`,
+    template: `%s | ${config.appName}`,
+  },
   description: `${config.appName} — ${config.tagline}`,
+  applicationName: config.appName,
+  icons: {
+    icon: [{ url: "/icon", type: "image/png" }],
+    apple: [{ url: "/apple-icon", sizes: "180x180", type: "image/png" }],
+  },
 };
 
 export default function RootLayout({
