@@ -1,15 +1,20 @@
 import { SignJWT, jwtVerify } from "jose";
 import type { AuthTokenPayload } from "@/server/types/admin.types";
+import { AppError } from "@/server/utils/errors";
 
 function getAccessSecret() {
   const secret = process.env.JWT_SECRET;
-  if (!secret) throw new Error("JWT_SECRET is not configured");
+  if (!secret) {
+    throw new AppError("JWT_SECRET is not configured", 500);
+  }
   return new TextEncoder().encode(secret);
 }
 
 function getRefreshSecret() {
   const secret = process.env.JWT_REFRESH_SECRET ?? process.env.JWT_SECRET;
-  if (!secret) throw new Error("JWT_REFRESH_SECRET is not configured");
+  if (!secret) {
+    throw new AppError("JWT_REFRESH_SECRET is not configured", 500);
+  }
   return new TextEncoder().encode(secret);
 }
 
