@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PropertyDetailsView } from "@/features/products/components/PropertyDetailsView";
-import {
-  getPropertyListingById,
-  getPropertyListings,
-} from "@/features/products/server-data";
+import { getPropertyListingById } from "@/features/products/server-data";
 import { config } from "@/constants/config";
 
 type PropertyPageProps = {
@@ -12,11 +9,6 @@ type PropertyPageProps = {
 };
 
 export const dynamic = "force-dynamic";
-
-export async function generateStaticParams() {
-  const listings = await getPropertyListings();
-  return listings.map((item) => ({ id: item.id }));
-}
 
 export async function generateMetadata({
   params,
