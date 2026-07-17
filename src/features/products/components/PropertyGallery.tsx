@@ -1,12 +1,13 @@
 "use client";
 
-import Image, { type StaticImageData } from "next/image";
+import Image from "next/image";
 import { useRef, useState } from "react";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
+import type { PropertyImage } from "@/features/products/types";
 
 type PropertyGalleryProps = {
   title: string;
-  images: StaticImageData[];
+  images: PropertyImage[];
 };
 
 export function PropertyGallery({ title, images }: PropertyGalleryProps) {

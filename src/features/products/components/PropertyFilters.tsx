@@ -4,13 +4,17 @@ import { useEffect, useRef, useState } from "react";
 import { HiChevronDown } from "react-icons/hi";
 import {
   defaultPropertyFilters,
-  formatPriceLabel,
+  formatPriceLabelForOptions,
   propertyFilterOptions,
 } from "@/features/products/data";
-import type { PropertyFiltersState } from "@/features/products/types";
+import type {
+  PropertyFilterOptions,
+  PropertyFiltersState,
+} from "@/features/products/types";
 
 type PropertyFiltersProps = {
   value: PropertyFiltersState;
+  options: PropertyFilterOptions;
   onChange: (next: PropertyFiltersState) => void;
   onApply: () => void;
 };
@@ -81,7 +85,12 @@ function FilterSelect({
   );
 }
 
-export function PropertyFilters({ value, onChange, onApply }: PropertyFiltersProps) {
+export function PropertyFilters({
+  value,
+  options,
+  onChange,
+  onApply,
+}: PropertyFiltersProps) {
   function update<K extends keyof PropertyFiltersState>(
     key: K,
     nextValue: PropertyFiltersState[K],
@@ -90,16 +99,23 @@ export function PropertyFilters({ value, onChange, onApply }: PropertyFiltersPro
   }
 
   function clearAll() {
-    onChange({ ...defaultPropertyFilters, sort: value.sort });
+    onChange({
+      city: options.city[0] ?? defaultPropertyFilters.city,
+      propertyType: options.propertyType[0] ?? defaultPropertyFilters.propertyType,
+      purpose: options.purpose[0] ?? defaultPropertyFilters.purpose,
+      priceMin: options.priceMin,
+      priceMax: options.priceMax,
+      sort: value.sort,
+    });
   }
 
   const minPercent =
-    ((value.priceMin - propertyFilterOptions.priceMin) /
-      (propertyFilterOptions.priceMax - propertyFilterOptions.priceMin)) *
+    ((value.priceMin - options.priceMin) /
+      Math.max(1, options.priceMax - options.priceMin)) *
     100;
   const maxPercent =
-    ((value.priceMax - propertyFilterOptions.priceMin) /
-      (propertyFilterOptions.priceMax - propertyFilterOptions.priceMin)) *
+    ((value.priceMax - options.priceMin) /
+      Math.max(1, options.priceMax - options.priceMin)) *
     100;
 
   return (
@@ -118,19 +134,19 @@ export function PropertyFilters({ value, onChange, onApply }: PropertyFiltersPro
       <div className="space-y-4">
         <FilterSelect
           label="City"
-          options={propertyFilterOptions.city}
+          options={options.city}
           value={value.city}
           onChange={(city) => update("city", city)}
         />
         <FilterSelect
           label="Property Type"
-          options={propertyFilterOptions.propertyType}
+          options={options.propertyType}
           value={value.propertyType}
           onChange={(propertyType) => update("propertyType", propertyType)}
         />
         <FilterSelect
           label="Purpose"
-          options={propertyFilterOptions.purpose}
+          options={options.purpose}
           value={value.purpose}
           onChange={(purpose) => update("purpose", purpose)}
         />
@@ -141,7 +157,8 @@ export function PropertyFilters({ value, onChange, onApply }: PropertyFiltersPro
               Price Range
             </label>
             <span className="text-[12px] font-medium text-[var(--muted)]">
-              {formatPriceLabel(value.priceMin)} – {formatPriceLabel(value.priceMax)}
+              {formatPriceLabelForOptions(value.priceMin, options)} –{" "}
+              {formatPriceLabelForOptions(value.priceMax, options)}
             </span>
           </div>
 
@@ -153,8 +170,8 @@ export function PropertyFilters({ value, onChange, onApply }: PropertyFiltersPro
             />
             <input
               type="range"
-              min={propertyFilterOptions.priceMin}
-              max={propertyFilterOptions.priceMax}
+              min={options.priceMin}
+              max={options.priceMax}
               step={10000}
               value={value.priceMin}
               onChange={(e) => {
@@ -166,8 +183,8 @@ export function PropertyFilters({ value, onChange, onApply }: PropertyFiltersPro
             />
             <input
               type="range"
-              min={propertyFilterOptions.priceMin}
-              max={propertyFilterOptions.priceMax}
+              min={options.priceMin}
+              max={options.priceMax}
               step={10000}
               value={value.priceMax}
               onChange={(e) => {
@@ -180,8 +197,8 @@ export function PropertyFilters({ value, onChange, onApply }: PropertyFiltersPro
           </div>
 
           <div className="mt-1 flex items-center justify-between text-[12px] font-medium text-[var(--muted)]">
-            <span>$0</span>
-            <span>$1,000,000+</span>
+            <span>{formatPriceLabelForOptions(options.priceMin, options)}</span>
+            <span>{formatPriceLabelForOptions(options.priceMax, options)}</span>
           </div>
         </div>
       </div>

@@ -3,8 +3,13 @@ import heroImage from "@/assets/images/hero.png";
 import { PropertySearchBar } from "@/features/home/components/PropertySearchBar";
 import { PropertyTypeCard } from "@/features/home/components/PropertyTypeCard";
 import { homeData, propertyTypeCards } from "@/features/home/data";
+import type { PropertyFilterOptions } from "@/features/products/types";
 
-export function HeroBanner() {
+type HeroBannerProps = {
+  filterOptions: PropertyFilterOptions;
+};
+
+export function HeroBanner({ filterOptions }: HeroBannerProps) {
   const tabletCards = propertyTypeCards.filter((item) => item.id !== "more");
   const moreCard = propertyTypeCards.find((item) => item.id === "more");
   const mobileCards = [
@@ -40,7 +45,7 @@ export function HeroBanner() {
           </div>
 
           <div className="mt-8 w-full self-start animate-[heroFade_900ms_ease-out] sm:mt-10">
-            <PropertySearchBar />
+            <PropertySearchBar filterOptions={filterOptions} />
           </div>
         </div>
       </div>

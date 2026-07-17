@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { PropertyCard } from "@/features/home/components/PropertyCard";
-import { featuredProperties } from "@/features/home/data";
 import { routes } from "@/constants/routes";
+import type { PropertyListing } from "@/features/products/types";
 
 function SectionArrow() {
   return (
@@ -22,7 +22,13 @@ function SectionArrow() {
   );
 }
 
-export function FeaturedProperties() {
+type FeaturedPropertiesProps = {
+  listings: PropertyListing[];
+};
+
+export function FeaturedProperties({ listings }: FeaturedPropertiesProps) {
+  if (listings.length === 0) return null;
+
   return (
     <section className="w-full bg-white">
       <div className="mx-auto w-full px-4 py-20 sm:px-6 md:px-4 lg:px-[100px] lg:py-24">
@@ -46,7 +52,7 @@ export function FeaturedProperties() {
         </div>
 
         <div className="-mr-4 flex snap-x snap-mandatory gap-6 overflow-x-auto pr-4 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mr-6 sm:pr-6 md:-mr-4 md:pr-4 xl:mr-0 xl:grid xl:grid-cols-4 xl:overflow-visible xl:pr-0 xl:snap-none">
-          {featuredProperties.map((item, index) => (
+          {listings.map((item, index) => (
             <div
               key={item.id}
               className="w-[min(300px,82vw)] shrink-0 snap-start animate-[fadeUp_600ms_ease-out] [animation-fill-mode:both] xl:w-auto xl:shrink"

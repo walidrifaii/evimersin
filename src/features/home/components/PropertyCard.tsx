@@ -3,18 +3,11 @@ import Link from "next/link";
 import { BedIcon } from "@/components/icons/BedIcon";
 import { BathIcon } from "@/components/icons/BathIcon";
 import { SquareMeterIcon } from "@/components/icons/SquareMeterIcon";
-import type { FeaturedPropertyItem } from "@/features/home/data";
+import type { PropertyListing } from "@/features/products/types";
 
 type PropertyCardProps = {
-  item: FeaturedPropertyItem;
+  item: PropertyListing;
   index?: number;
-};
-
-const badgeStyles: Record<string, string> = {
-  FEATURED: "bg-[var(--brand-red)]",
-  APARTMENT: "bg-[var(--brand-blue)]",
-  STUDIO: "bg-[var(--brand-red)]",
-  LAND: "bg-[var(--brand-blue)]",
 };
 
 export function PropertyCard({ item }: PropertyCardProps) {
@@ -31,11 +24,11 @@ export function PropertyCard({ item }: PropertyCardProps) {
           sizes="(max-width: 1280px) 82vw, 25vw"
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <span
-          className={`absolute left-4 top-4 rounded-md px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.06em] text-white ${badgeStyles[item.badge] || badgeStyles.FEATURED}`}
-        >
-          {item.badge}
-        </span>
+        <div className="absolute left-4 top-4 flex flex-wrap gap-2">
+          <span className="rounded-md bg-[var(--brand-blue)] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.06em] text-white">
+            {item.propertyType}
+          </span>
+        </div>
       </div>
 
       <div className="flex flex-1 flex-col gap-4 p-5">
@@ -48,9 +41,16 @@ export function PropertyCard({ item }: PropertyCardProps) {
           </p>
         </div>
 
-        <p className="text-[20px] font-bold leading-none text-[var(--brand-blue)]">
-          {item.price}
-        </p>
+        <div>
+          <p className="text-[20px] font-bold leading-none text-[var(--brand-blue)]">
+            {item.price}
+          </p>
+          {item.originalPrice ? (
+            <p className="mt-1 text-[13px] font-medium text-[var(--muted)] line-through">
+              {item.originalPrice}
+            </p>
+          ) : null}
+        </div>
 
         <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-[#eef2f7] pt-4 text-[13px] font-medium text-[var(--muted)]">
           {item.beds > 0 && (
@@ -65,10 +65,12 @@ export function PropertyCard({ item }: PropertyCardProps) {
               {item.baths} Baths
             </span>
           )}
-          <span className="inline-flex items-center gap-1.5">
-            <SquareMeterIcon className="h-4 w-4" />
-            {item.sqm} sqm
-          </span>
+          {item.sqm > 0 ? (
+            <span className="inline-flex items-center gap-1.5">
+              <SquareMeterIcon className="h-4 w-4" />
+              {item.sqm} sqm
+            </span>
+          ) : null}
         </div>
       </div>
     </Link>

@@ -1,9 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { HotDealItem } from "@/features/home/data";
+import type { PropertyListing } from "@/features/products/types";
 
 type HotDealCardProps = {
-  item: HotDealItem;
+  item: PropertyListing;
 };
 
 export function HotDealCard({ item }: HotDealCardProps) {
@@ -21,7 +21,7 @@ export function HotDealCard({ item }: HotDealCardProps) {
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <span className="absolute left-2 top-2 rounded-md bg-[var(--brand-red)] px-2 py-0.5 text-[10px] font-bold text-white sm:left-3 sm:top-3 sm:px-2.5 sm:py-1 sm:text-[11px]">
-          {item.discount}
+          {item.discountLabel ?? "Hot Deal"}
         </span>
       </div>
 
@@ -36,11 +36,13 @@ export function HotDealCard({ item }: HotDealCardProps) {
         </div>
 
         <div className="mt-auto flex min-w-0 flex-col gap-0.5 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-2">
-          <span className="text-[11px] font-medium text-[#9ca3af] line-through sm:text-[13px]">
-            {item.originalPrice}
-          </span>
+          {item.originalPrice ? (
+            <span className="text-[11px] font-medium text-[#9ca3af] line-through sm:text-[13px]">
+              {item.originalPrice}
+            </span>
+          ) : null}
           <span className="text-[15px] font-bold leading-none text-[var(--brand-navy)] sm:text-[17px] lg:text-[18px]">
-            {item.salePrice}
+            {item.price}
           </span>
         </div>
       </div>

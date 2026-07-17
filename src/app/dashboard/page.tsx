@@ -1,3 +1,5 @@
+import { DashboardContent } from "@/features/dashboard/components/DashboardContent";
+
 export default function DashboardPage() {
-  return <h1>Dashboard</h1>;
+  return <DashboardContent />;
 }

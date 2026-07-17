@@ -1,22 +1,28 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PropertyDetailsView } from "@/features/products/components/PropertyDetailsView";
-import { getPropertyById, propertiesListings } from "@/features/products/data";
+import {
+  getPropertyListingById,
+  getPropertyListings,
+} from "@/features/products/server-data";
 import { config } from "@/constants/config";
 
 type PropertyPageProps = {
   params: Promise<{ id: string }>;
 };
 
-export function generateStaticParams() {
-  return propertiesListings.map((item) => ({ id: item.id }));
+export const dynamic = "force-dynamic";
+
+export async function generateStaticParams() {
+  const listings = await getPropertyListings();
+  return listings.map((item) => ({ id: item.id }));
 }
 
 export async function generateMetadata({
   params,
 }: PropertyPageProps): Promise<Metadata> {
   const { id } = await params;
-  const property = getPropertyById(id);
+  const property = await getPropertyListingById(id);
 
   if (!property) {
     return { title: `Property | ${config.appName}` };
@@ -30,7 +36,7 @@ export async function generateMetadata({
 
 export default async function PropertyDetailsPage({ params }: PropertyPageProps) {
   const { id } = await params;
-  const property = getPropertyById(id);
+  const property = await getPropertyListingById(id);
 
   if (!property) notFound();
 

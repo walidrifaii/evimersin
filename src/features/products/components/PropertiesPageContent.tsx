@@ -7,19 +7,32 @@ import {
   defaultPropertyFilters,
   filterProperties,
   filtersFromSearchParams,
-  propertiesListings,
   propertyFilterOptions,
 } from "@/features/products/data";
 import { PropertiesHeader } from "@/features/products/components/PropertiesHeader";
 import { PropertyFilters } from "@/features/products/components/PropertyFilters";
 import { PropertyListingCard } from "@/features/products/components/PropertyListingCard";
-import type { PropertyFiltersState } from "@/features/products/types";
+import type {
+  PropertyFilterOptions,
+  PropertyFiltersState,
+  PropertyListing,
+} from "@/features/products/types";
 
-export function PropertiesPageContent() {
+type PropertiesPageContentProps = {
+  listings: PropertyListing[];
+  filterOptions: PropertyFilterOptions;
+};
+
+export function PropertiesPageContent({
+  listings,
+  filterOptions,
+}: PropertiesPageContentProps) {
   const searchParams = useSearchParams();
   const typeParam = searchParams.get("type");
   const cityParam = searchParams.get("city");
   const purposeParam = searchParams.get("purpose");
+  const priceMinParam = searchParams.get("priceMin");
+  const priceMaxParam = searchParams.get("priceMax");
 
   const filtersFromUrl = useMemo(
     () =>
@@ -27,8 +40,10 @@ export function PropertiesPageContent() {
         type: typeParam,
         city: cityParam,
         purpose: purposeParam,
-      }),
-    [typeParam, cityParam, purposeParam],
+        priceMin: priceMinParam,
+        priceMax: priceMaxParam,
+      }, filterOptions),
+    [typeParam, cityParam, purposeParam, priceMinParam, priceMaxParam, filterOptions],
   );
 
   const [draftFilters, setDraftFilters] =
@@ -44,8 +59,8 @@ export function PropertiesPageContent() {
   }, [filtersFromUrl]);
 
   const filtered = useMemo(
-    () => filterProperties(propertiesListings, appliedFilters),
-    [appliedFilters],
+    () => filterProperties(listings, appliedFilters),
+    [appliedFilters, listings],
   );
 
   const sortLabel =
@@ -82,6 +97,7 @@ export function PropertiesPageContent() {
           <div className="lg:sticky lg:top-28">
             <PropertyFilters
               value={draftFilters}
+                options={filterOptions}
               onChange={setDraftFilters}
               onApply={applyFilters}
             />
@@ -146,8 +162,19 @@ export function PropertiesPageContent() {
                 <button
                   type="button"
                   onClick={() => {
-                    setDraftFilters(defaultPropertyFilters);
-                    setAppliedFilters(defaultPropertyFilters);
+                    const defaults = {
+                      ...defaultPropertyFilters,
+                      city: filterOptions.city[0] ?? defaultPropertyFilters.city,
+                      propertyType:
+                        filterOptions.propertyType[0] ??
+                        defaultPropertyFilters.propertyType,
+                      purpose:
+                        filterOptions.purpose[0] ?? defaultPropertyFilters.purpose,
+                      priceMin: filterOptions.priceMin,
+                      priceMax: filterOptions.priceMax,
+                    };
+                    setDraftFilters(defaults);
+                    setAppliedFilters(defaults);
                   }}
                   className="mt-5 inline-flex h-11 items-center justify-center rounded-xl bg-[var(--brand-blue)] px-5 text-[14px] font-semibold text-white transition-colors hover:bg-[#1d4ed8]"
                 >

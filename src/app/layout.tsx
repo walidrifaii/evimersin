@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
-import { Footer } from "@/components/layout/Footer";
-import { Navbar } from "@/components/layout/Navbar";
 import { SitePreloader } from "@/components/layout/SitePreloader";
 import { config } from "@/constants/config";
+import { StoreProvider } from "@/store/StoreProvider";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -32,11 +31,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${poppins.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col bg-white font-sans text-[var(--foreground)]">
-        <SitePreloader />
-        <Navbar />
-        <main className="flex flex-1 flex-col">{children}</main>
-        <Footer />
+      <body className="min-h-full bg-white font-sans text-[var(--foreground)]">
+        <StoreProvider>
+          <SitePreloader />
+          {children}
+        </StoreProvider>
       </body>
     </html>
   );

@@ -41,9 +41,16 @@ export function PropertyDetailsView({ property }: PropertyDetailsViewProps) {
                 {property.location}
               </p>
 
-              <p className="mt-5 text-[1.7rem] font-bold leading-none text-[var(--brand-blue)] sm:text-[2rem]">
-                {property.price}
-              </p>
+              <div className="mt-5">
+                <p className="text-[1.7rem] font-bold leading-none text-[var(--brand-blue)] sm:text-[2rem]">
+                  {property.price}
+                </p>
+                {property.originalPrice ? (
+                  <p className="mt-1.5 text-[15px] font-medium text-[var(--muted)] line-through">
+                    {property.originalPrice}
+                  </p>
+                ) : null}
+              </div>
 
               <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-y border-[#eef2f7] py-4 text-[13px] font-medium text-[var(--muted)] sm:mt-6 sm:gap-x-6 sm:text-[14px]">
                 {property.beds > 0 ? (
@@ -58,10 +65,12 @@ export function PropertyDetailsView({ property }: PropertyDetailsViewProps) {
                     {property.baths} Baths
                   </span>
                 ) : null}
-                <span className="inline-flex items-center gap-1.5">
-                  <SquareMeterIcon className="h-4 w-4" />
-                  {property.sqm} sqm
-                </span>
+                {property.sqm > 0 ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <SquareMeterIcon className="h-4 w-4" />
+                    {property.sqm} sqm
+                  </span>
+                ) : null}
               </div>
 
               <div className="mt-5 sm:mt-6">

@@ -1,9 +1,15 @@
 import Link from "next/link";
 import { HotDealCard } from "@/features/home/components/HotDealCard";
-import { hotDeals } from "@/features/home/data";
 import { routes } from "@/constants/routes";
+import type { PropertyListing } from "@/features/products/types";
 
-export function HotDeals() {
+type HotDealsProps = {
+  listings: PropertyListing[];
+};
+
+export function HotDeals({ listings }: HotDealsProps) {
+  if (listings.length === 0) return null;
+
   return (
     <section className="w-full overflow-hidden rounded-t-3xl rounded-b-3xl bg-[var(--brand-navy)]">
       <div className="mx-auto w-full px-4 py-12 sm:px-6 md:px-4 lg:px-[100px] lg:py-14">
@@ -26,7 +32,7 @@ export function HotDeals() {
         </div>
 
         <div className="grid grid-cols-2 gap-4 sm:gap-5 xl:grid-cols-4">
-          {hotDeals.map((item, index) => (
+          {listings.map((item, index) => (
             <div
               key={item.id}
               className="min-w-0 animate-[fadeUp_600ms_ease-out] [animation-fill-mode:both]"

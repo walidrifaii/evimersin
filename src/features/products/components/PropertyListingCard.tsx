@@ -11,11 +11,6 @@ type PropertyListingCardProps = {
 
 const badgeStyles: Record<string, string> = {
   FEATURED: "bg-[var(--brand-red)]",
-  APARTMENT: "bg-[var(--brand-blue)]",
-  STUDIO: "bg-[var(--brand-red)]",
-  LAND: "bg-[var(--brand-blue)]",
-  COMMERCIAL: "bg-[var(--brand-navy)]",
-  PENTHOUSE: "bg-[var(--brand-blue)]",
 };
 
 export function PropertyListingCard({ item }: PropertyListingCardProps) {
@@ -29,13 +24,17 @@ export function PropertyListingCard({ item }: PropertyListingCardProps) {
           sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <span
-          className={`absolute left-3 top-3 rounded-md px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.06em] text-white ${
-            badgeStyles[item.badge] || badgeStyles.FEATURED
-          }`}
-        >
-          {item.badge}
-        </span>
+        <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+          <span
+            className={`rounded-md px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.06em] text-white ${
+              item.featured
+                ? badgeStyles.FEATURED
+                : "bg-[var(--brand-blue)]"
+            }`}
+          >
+            {item.featured ? "FEATURED" : item.propertyType}
+          </span>
+        </div>
       </Link>
 
       <div className="relative flex flex-1 flex-col gap-3 p-4 sm:p-5">
@@ -50,9 +49,16 @@ export function PropertyListingCard({ item }: PropertyListingCardProps) {
           </p>
         </div>
 
-        <p className="text-[18px] font-bold leading-none text-[var(--brand-blue)] sm:text-[20px]">
-          {item.price}
-        </p>
+        <div>
+          <p className="text-[18px] font-bold leading-none text-[var(--brand-blue)] sm:text-[20px]">
+            {item.price}
+          </p>
+          {item.originalPrice ? (
+            <p className="mt-1 text-[13px] font-medium text-[var(--muted)] line-through">
+              {item.originalPrice}
+            </p>
+          ) : null}
+        </div>
 
         <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-[#eef2f7] pt-3.5 text-[13px] font-medium text-[var(--muted)]">
           {item.beds > 0 ? (
@@ -67,10 +73,12 @@ export function PropertyListingCard({ item }: PropertyListingCardProps) {
               {item.baths}
             </span>
           ) : null}
-          <span className="inline-flex items-center gap-1.5">
-            <SquareMeterIcon className="h-4 w-4" />
-            {item.sqm} sqm
-          </span>
+          {item.sqm > 0 ? (
+            <span className="inline-flex items-center gap-1.5">
+              <SquareMeterIcon className="h-4 w-4" />
+              {item.sqm} sqm
+            </span>
+          ) : null}
         </div>
       </div>
     </article>

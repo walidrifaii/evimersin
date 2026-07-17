@@ -2,9 +2,13 @@ import featuredPropertyImage from "@/assets/images/featured-property.png";
 import aboutBuildingImage from "@/assets/images/about-building.png";
 import type { StaticImageData } from "next/image";
 import { routes } from "@/constants/routes";
-import type { PropertyFiltersState, PropertyListing } from "./types";
+import type {
+  PropertyFilterOptions,
+  PropertyFiltersState,
+  PropertyListing,
+} from "./types";
 
-export const propertyFilterOptions = {
+export const propertyFilterOptions: PropertyFilterOptions = {
   city: ["All Cities", "Mersin", "Tarsus", "Erdemli", "Silifke", "Anamur", "Mut"],
   propertyType: [
     "All Types",
@@ -24,7 +28,7 @@ export const propertyFilterOptions = {
   ],
   priceMin: 0,
   priceMax: 1_000_000,
-} as const;
+};
 
 export const defaultPropertyFilters: PropertyFiltersState = {
   city: "All Cities",
@@ -34,6 +38,43 @@ export const defaultPropertyFilters: PropertyFiltersState = {
   priceMax: propertyFilterOptions.priceMax,
   sort: "newest",
 };
+
+function uniqueSorted(values: string[]) {
+  return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b));
+}
+
+export function buildPropertyFilterOptions(
+  listings: PropertyListing[],
+): PropertyFilterOptions {
+  const maxPrice = Math.max(
+    propertyFilterOptions.priceMax,
+    ...listings.map((item) => Math.ceil(item.priceValue / 10000) * 10000),
+  );
+
+  return {
+    ...propertyFilterOptions,
+    city: ["All Cities", ...uniqueSorted(listings.map((item) => item.city))],
+    propertyType: [
+      "All Types",
+      ...uniqueSorted(listings.map((item) => item.propertyType)),
+    ],
+    purpose: ["Buy / Rent", ...uniqueSorted(listings.map((item) => item.purpose))],
+    priceMax: maxPrice,
+  };
+}
+
+export function getDefaultPropertyFilters(
+  options: PropertyFilterOptions = propertyFilterOptions,
+): PropertyFiltersState {
+  return {
+    city: options.city[0] ?? "All Cities",
+    propertyType: options.propertyType[0] ?? "All Types",
+    purpose: options.purpose[0] ?? "Buy / Rent",
+    priceMin: options.priceMin,
+    priceMax: options.priceMax,
+    sort: "newest",
+  };
+}
 
 const typeQueryMap: Record<string, string> = {
   villas: "Villa",
@@ -56,35 +97,58 @@ export function getPropertyTypeFromQuery(type?: string | null) {
   return typeQueryMap[normalized] ?? null;
 }
 
+function findOptionMatch(value: string | null | undefined, options: string[]) {
+  if (!value) return null;
+  const normalized = value.trim().toLowerCase();
+  return (
+    options.find((option) => option.toLowerCase() === normalized) ??
+    options.find((option) => option.toLowerCase().replace(/s$/, "") === normalized.replace(/s$/, "")) ??
+    null
+  );
+}
+
 export function filtersFromSearchParams(params: {
   type?: string | null;
   city?: string | null;
   purpose?: string | null;
-}): PropertyFiltersState {
+  priceMin?: string | null;
+  priceMax?: string | null;
+}, options: PropertyFilterOptions = propertyFilterOptions): PropertyFiltersState {
+  const defaults = getDefaultPropertyFilters(options);
+  const propertyTypeAlias = getPropertyTypeFromQuery(params.type);
   const propertyType =
-    getPropertyTypeFromQuery(params.type) ?? defaultPropertyFilters.propertyType;
+    findOptionMatch(propertyTypeAlias, options.propertyType) ??
+    findOptionMatch(params.type, options.propertyType) ??
+    defaults.propertyType;
 
   const city =
     params.city &&
-    propertyFilterOptions.city.includes(
-      params.city as (typeof propertyFilterOptions.city)[number],
-    )
+    options.city.includes(params.city)
       ? params.city
-      : defaultPropertyFilters.city;
+      : defaults.city;
 
   const purpose =
     params.purpose &&
-    propertyFilterOptions.purpose.includes(
-      params.purpose as (typeof propertyFilterOptions.purpose)[number],
-    )
+    options.purpose.includes(params.purpose)
       ? params.purpose
-      : defaultPropertyFilters.purpose;
+      : defaults.purpose;
+
+  const parsedMin = Number(params.priceMin);
+  const parsedMax = Number(params.priceMax);
+  const priceMin = Number.isFinite(parsedMin)
+    ? Math.max(options.priceMin, Math.min(parsedMin, options.priceMax))
+    : defaults.priceMin;
+  const priceMax = Number.isFinite(parsedMax)
+    ? Math.max(priceMin, Math.min(parsedMax, options.priceMax))
+    : defaults.priceMax;
 
   return {
-    ...defaultPropertyFilters,
+    ...defaults,
     propertyType,
     city,
     purpose,
+    priceMin,
+    priceMax,
   };
 }
 
@@ -279,6 +343,14 @@ export function getPropertyById(id: string) {
 
 export function formatPriceLabel(value: number) {
   if (value >= propertyFilterOptions.priceMax) return "$1,000,000+";
+  return `$${value.toLocaleString("en-US")}`;
+}
+
+export function formatPriceLabelForOptions(
+  value: number,
+  options: PropertyFilterOptions = propertyFilterOptions,
+) {
+  if (value >= options.priceMax) return `$${options.priceMax.toLocaleString("en-US")}+`;
   return `$${value.toLocaleString("en-US")}`;
 }
 

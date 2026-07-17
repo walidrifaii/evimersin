@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "@/components/icons/ChevronDown";
 import { homeData } from "@/features/home/data";
 import { routes } from "@/constants/routes";
+import type { PropertyFilterOptions } from "@/features/products/types";
 
 type DropdownField = {
   label: string;
@@ -12,12 +13,49 @@ type DropdownField = {
   options: readonly string[];
 };
 
-const fields: (DropdownField & { key: string })[] = [
-  { ...homeData.search.city, key: "city" },
-  { ...homeData.search.propertyType, key: "propertyType" },
-  { ...homeData.search.purpose, key: "purpose" },
-  { ...homeData.search.priceRange, key: "priceRange" },
-];
+type PropertySearchBarProps = {
+  filterOptions: PropertyFilterOptions;
+};
+
+function getPriceRangeOptions(maxPrice: number) {
+  return [
+    "Any Price",
+    "$0 - $50,000",
+    "$50,000 - $100,000",
+    "$100,000 - $200,000",
+    "$200,000 - $500,000",
+    `$500,000 - $${maxPrice.toLocaleString("en-US")}`,
+  ];
+}
+
+function parsePriceRange(value: string) {
+  if (value === "Any Price") return {};
+  const numbers = value.match(/\d[\d,]*/g)?.map((item) => Number(item.replace(/,/g, "")));
+  if (!numbers?.length) return {};
+  return {
+    priceMin: String(numbers[0] ?? 0),
+    priceMax: String(numbers[1] ?? numbers[0] ?? 0),
+  };
+}
+
+function buildSearchHref(values: Record<string, string>) {
+  const params = new URLSearchParams();
+
+  if (values.city && values.city !== "All Cities") params.set("city", values.city);
+  if (values.propertyType && values.propertyType !== "All Types") {
+    params.set("type", values.propertyType);
+  }
+  if (values.purpose && values.purpose !== "Buy / Rent") {
+    params.set("purpose", values.purpose);
+  }
+
+  const priceRange = parsePriceRange(values.priceRange);
+  if (priceRange.priceMin) params.set("priceMin", priceRange.priceMin);
+  if (priceRange.priceMax) params.set("priceMax", priceRange.priceMax);
+
+  const query = params.toString();
+  return query ? `${routes.properties}?${query}` : routes.properties;
+}
 
 function FilterDropdown({
   field,
@@ -104,11 +142,38 @@ function FilterDropdown({
   );
 }
 
-export function PropertySearchBar() {
+export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
+  const fields: (DropdownField & { key: string })[] = [
+    {
+      label: homeData.search.city.label,
+      placeholder: "All Cities",
+      options: filterOptions.city,
+      key: "city",
+    },
+    {
+      label: homeData.search.propertyType.label,
+      placeholder: "All Types",
+      options: filterOptions.propertyType,
+      key: "propertyType",
+    },
+    {
+      label: homeData.search.purpose.label,
+      placeholder: "Buy / Rent",
+      options: filterOptions.purpose,
+      key: "purpose",
+    },
+    {
+      label: homeData.search.priceRange.label,
+      placeholder: "Any Price",
+      options: getPriceRangeOptions(filterOptions.priceMax),
+      key: "priceRange",
+    },
+  ];
   const [values, setValues] = useState<Record<string, string>>(() =>
     Object.fromEntries(fields.map((f) => [f.key, f.placeholder])),
   );
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const searchHref = buildSearchHref(values);
 
   return (
     <div className="flex w-full flex-col gap-2 rounded-2xl bg-white p-3 text-left shadow-[0_12px_32px_rgba(0,0,0,0.14)] lg:flex-row lg:items-stretch lg:gap-0 lg:rounded-[20px] lg:p-4">
@@ -137,7 +202,7 @@ export function PropertySearchBar() {
       </div>
 
       <Link
-        href={routes.properties}
+        href={searchHref}
         className="inline-flex h-16 w-full shrink-0 items-center justify-center rounded-[16px] bg-[var(--brand-blue)] px-8 text-base font-semibold leading-none text-white transition-colors hover:bg-[#1d4ed8] lg:h-16 lg:w-auto lg:min-w-[220px] lg:self-center lg:px-12 lg:text-[17px]"
       >
         {homeData.search.button}
