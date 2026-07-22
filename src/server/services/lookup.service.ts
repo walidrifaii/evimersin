@@ -69,6 +69,12 @@ export const cityService = {
 
   async remove(id: number) {
     await this.getById(id);
+    if (await cityRepository.hasProducts(id)) {
+      throw new AppError(
+        "City cannot be deleted while it has residential units. Delete or reassign those units first.",
+        409,
+      );
+    }
     await cityRepository.delete(id);
   },
 };
@@ -94,6 +100,12 @@ export const categoryService = {
 
   async remove(id: number) {
     await this.getById(id);
+    if (await categoryRepository.hasProducts(id)) {
+      throw new AppError(
+        "Category cannot be deleted while it has residential units. Delete or reassign those units first.",
+        409,
+      );
+    }
     await categoryRepository.delete(id);
   },
 };
@@ -119,6 +131,12 @@ export const purposeService = {
 
   async remove(id: number) {
     await this.getById(id);
+    if (await purposeRepository.hasProducts(id)) {
+      throw new AppError(
+        "Purpose cannot be deleted while it has residential units. Delete or reassign those units first.",
+        409,
+      );
+    }
     await purposeRepository.delete(id);
   },
 };

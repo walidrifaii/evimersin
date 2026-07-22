@@ -115,6 +115,14 @@ export const cityRepository = {
   update: (id: number, input: UpdateCityInput) =>
     updateRecord("cities", id, input),
   delete: (id: number) => deleteRecord("cities", id),
+
+  async hasProducts(id: number) {
+    const rows = await query<Array<{ total: number }>>(
+      "SELECT COUNT(*) AS total FROM products WHERE city_id = :id",
+      { id },
+    );
+    return Number(rows[0]?.total ?? 0) > 0;
+  },
 };
 
 export const categoryRepository = {
@@ -146,6 +154,14 @@ export const categoryRepository = {
   update: (id: number, input: UpdateCategoryInput) =>
     updateRecord("categories", id, input),
   delete: (id: number) => deleteRecord("categories", id),
+
+  async hasProducts(id: number) {
+    const rows = await query<Array<{ total: number }>>(
+      "SELECT COUNT(*) AS total FROM products WHERE category_id = :id",
+      { id },
+    );
+    return Number(rows[0]?.total ?? 0) > 0;
+  },
 };
 
 export const purposeRepository = {
@@ -177,4 +193,12 @@ export const purposeRepository = {
   update: (id: number, input: UpdatePurposeInput) =>
     updateRecord("purpose", id, input),
   delete: (id: number) => deleteRecord("purpose", id),
+
+  async hasProducts(id: number) {
+    const rows = await query<Array<{ total: number }>>(
+      "SELECT COUNT(*) AS total FROM products WHERE purpose_id = :id",
+      { id },
+    );
+    return Number(rows[0]?.total ?? 0) > 0;
+  },
 };

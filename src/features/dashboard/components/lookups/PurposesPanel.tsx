@@ -54,6 +54,7 @@ export function PurposesPanel() {
                       await deletePurpose(item.id).unwrap();
                     } catch (err) {
                       setActionError(err);
+                      throw err;
                     }
                   }}
                 />

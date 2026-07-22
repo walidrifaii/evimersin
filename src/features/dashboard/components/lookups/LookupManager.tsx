@@ -239,6 +239,7 @@ function ConfirmDeleteDrawer({
   title,
   message,
   deleting,
+  error,
   onCancel,
   onConfirm,
 }: {
@@ -246,6 +247,7 @@ function ConfirmDeleteDrawer({
   title: string;
   message: string;
   deleting?: boolean;
+  error?: string | null;
   onCancel: () => void;
   onConfirm: () => void;
 }) {
@@ -293,6 +295,12 @@ function ConfirmDeleteDrawer({
         </h2>
         <p className="mt-2 text-[14px] leading-relaxed text-[var(--muted)]">{message}</p>
 
+        {error ? (
+          <div className="mt-4 rounded-xl border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-[13px] font-medium text-[#b91c1c]">
+            {error}
+          </div>
+        ) : null}
+
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button
             type="button"
@@ -330,13 +338,15 @@ export function RowActions({
   confirmMessage?: string;
 }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
 
   async function handleConfirm() {
+    setConfirmError(null);
     try {
       await onDelete();
       setConfirmOpen(false);
-    } catch {
-      // Keep drawer open so the user can cancel after seeing the list error.
+    } catch (err) {
+      setConfirmError(getApiErrorMessage(err));
     }
   }
 
@@ -351,7 +361,10 @@ export function RowActions({
         </Link>
         <button
           type="button"
-          onClick={() => setConfirmOpen(true)}
+          onClick={() => {
+            setConfirmError(null);
+            setConfirmOpen(true);
+          }}
           disabled={deleting}
           className="cursor-pointer rounded-full px-3 py-1.5 text-[12px] font-semibold text-[var(--brand-red)] hover:bg-[#fef2f2] disabled:opacity-60"
         >
@@ -364,6 +377,7 @@ export function RowActions({
         title={confirmTitle}
         message={confirmMessage}
         deleting={deleting}
+        error={confirmError}
         onCancel={() => setConfirmOpen(false)}
         onConfirm={() => {
           void handleConfirm();

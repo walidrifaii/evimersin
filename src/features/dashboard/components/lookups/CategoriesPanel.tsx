@@ -72,6 +72,7 @@ export function CategoriesPanel() {
                       await deleteCategory(item.id).unwrap();
                     } catch (err) {
                       setActionError(err);
+                      throw err;
                     }
                   }}
                 />

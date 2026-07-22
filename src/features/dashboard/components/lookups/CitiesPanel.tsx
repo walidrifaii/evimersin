@@ -53,6 +53,7 @@ export function CitiesPanel() {
                       await deleteCity(item.id).unwrap();
                     } catch (err) {
                       setActionError(err);
+                      throw err;
                     }
                   }}
                 />

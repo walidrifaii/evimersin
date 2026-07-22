@@ -129,6 +129,7 @@ export function ProductsPanel() {
                       await deleteProduct(item.id).unwrap();
                     } catch (err) {
                       setActionError(err);
+                      throw err;
                     }
                   }}
                 />
