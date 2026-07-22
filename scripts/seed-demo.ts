@@ -1,8 +1,7 @@
-import { closePool, query } from "@/server/database/connection";
+import { closePool, execute, query } from "@/server/database/connection";
 import {
   categoryRepository,
   cityRepository,
-  countryRepository,
   purposeRepository,
 } from "@/server/database/repositories/lookup.repository";
 import {
@@ -52,10 +51,13 @@ async function seedDemo() {
   loadEnv();
   await setupDatabase();
 
-  const countries = await countryRepository.findAll();
-  const countryId = await ensureByName(countries, "Lebanon", () =>
-    countryRepository.create({ name: "Lebanon", status: 1 }),
+  await execute(
+    `INSERT INTO country (id, name, status)
+     VALUES (1, 'Lebanon', 1)
+     ON DUPLICATE KEY UPDATE name = 'Lebanon', status = 1`,
   );
+  await execute(`UPDATE cities SET country_id = 1, status = 1`);
+  const countryId = 1;
 
   const cities = await cityRepository.findAll();
   const cityId = await ensureByName(cities, "Beirut", () =>
