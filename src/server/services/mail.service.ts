@@ -64,12 +64,12 @@ function getAdminNotifyEmail(config: MailConfig) {
 
 export const mailService = {
   async sendPasswordResetOtp(input: {
+    to: string;
     username: string;
     adminName: string;
     otp: string;
   }) {
     const config = getMailConfig();
-    const notifyTo = getAdminNotifyEmail(config);
     const transporter = getTransporter();
 
     const text = [
@@ -96,7 +96,7 @@ export const mailService = {
     try {
       await transporter.sendMail({
         from: `"${config.fromName}" <${config.fromAddress}>`,
-        to: notifyTo,
+        to: input.to,
         subject: "[EviMersin Admin] Password reset OTP",
         text,
         html,

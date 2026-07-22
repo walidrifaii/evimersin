@@ -31,6 +31,7 @@ function toPublicAdmin(admin: {
   id: number;
   username: string;
   name: string;
+  email: string;
   status: number;
   created_at?: Date;
   updated_at?: Date;
@@ -39,6 +40,7 @@ function toPublicAdmin(admin: {
     id: admin.id,
     username: admin.username,
     name: admin.name,
+    email: admin.email,
     status: admin.status,
     created_at: admin.created_at,
     updated_at: admin.updated_at,
@@ -49,6 +51,7 @@ async function issueTokenPair(admin: {
   id: number;
   username: string;
   name: string;
+  email: string;
   status: number;
   created_at?: Date;
   updated_at?: Date;
@@ -182,7 +185,7 @@ export const adminService = {
   async requestPasswordReset(input: ForgotPasswordInput) {
     const admin = await adminRepository.findByUsername(input.username);
 
-    if (!admin || admin.status !== 1) {
+    if (!admin || admin.status !== 1 || !admin.email?.trim()) {
       return {
         message:
           "If the account exists, an OTP has been sent to the admin email.",
@@ -194,6 +197,7 @@ export const adminService = {
 
     await passwordResetRepository.create(admin.id, otp, expiresAt);
     await mailService.sendPasswordResetOtp({
+      to: admin.email.trim(),
       username: admin.username,
       adminName: admin.name,
       otp,

@@ -2,6 +2,7 @@ export type AuthAdmin = {
   id: number;
   username: string;
   name: string;
+  email: string;
   status: number;
 };
 

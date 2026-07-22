@@ -98,6 +98,8 @@ async function runMigrations(connection: {
         FOREIGN KEY (admin_id) REFERENCES admin(id)
         ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+    `ALTER TABLE admin
+      ADD COLUMN email VARCHAR(255) NULL AFTER name`,
   ];
 
   for (const sql of migrations) {
@@ -138,6 +140,17 @@ export async function setupDatabase() {
     await connection.query(`USE \`${config.database}\``);
     await connection.query(schemaSql);
     await runMigrations(connection);
+
+    const defaultAdminEmail =
+      process.env.MAIL_ORDER_NOTIFY_TO ??
+      process.env.MAIL_FROM_ADDRESS ??
+      "info@evimersin.com";
+
+    await connection.query(
+      `UPDATE admin SET email = ? WHERE email IS NULL OR email = ''`,
+      [defaultAdminEmail],
+    );
+
     console.log(`Database "${config.database}" is ready.`);
   } finally {
     await connection.end();

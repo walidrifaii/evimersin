@@ -17,6 +17,7 @@ export const createAdminSchema = z.object({
   username: z.string().trim().min(3).max(100),
   password: z.string().min(6).max(128),
   name: z.string().trim().min(2).max(150),
+  email: z.string().trim().email().max(255),
   status: z.union([z.literal(0), z.literal(1)]).optional().default(1),
 });
 
@@ -25,6 +26,7 @@ export const updateAdminSchema = z
     username: z.string().trim().min(3).max(100).optional(),
     password: z.string().min(6).max(128).optional(),
     name: z.string().trim().min(2).max(150).optional(),
+    email: z.string().trim().email().max(255).optional(),
     status: z.union([z.literal(0), z.literal(1)]).optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
