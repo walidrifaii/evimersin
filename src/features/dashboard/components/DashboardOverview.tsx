@@ -1,6 +1,5 @@
 "use client";
 
-import { ActivityFeed } from "@/features/dashboard/components/ActivityFeed";
 import { HotDealsPanel } from "@/features/dashboard/components/HotDealsPanel";
 import { KpiCards } from "@/features/dashboard/components/KpiCards";
 import { ListingsByTypeChart } from "@/features/dashboard/components/ListingsByTypeChart";
@@ -11,7 +10,6 @@ import {
   HotDealsPreview,
   WebsiteStatusPanel,
 } from "@/features/dashboard/components/OverviewWebsitePanels";
-import { PurposeMixChart } from "@/features/dashboard/components/PurposeMixChart";
 import { ViewsChart } from "@/features/dashboard/components/ViewsChart";
 import { getApiErrorMessage } from "@/store/api/errors";
 import { useGetDashboardAnalyticsQuery } from "@/store/slices/admin";
@@ -63,14 +61,7 @@ export function DashboardOverview() {
 
       <HotDealsPreview items={data.hotDeals} />
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <div className="xl:col-span-2">
-          <ViewsChart data={data.productsByDay} />
-        </div>
-        <div>
-          <PurposeMixChart data={data.productsByPurpose} />
-        </div>
-      </div>
+      <ViewsChart data={data.productsByDay} />
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <ListingsByTypeChart data={data.productsByCategory} />
@@ -81,9 +72,8 @@ export function DashboardOverview() {
         <div className="xl:col-span-3">
           <ListingsTable items={data.recentProducts} />
         </div>
-        <div className="space-y-6 xl:col-span-2">
+        <div className="xl:col-span-2">
           <HotDealsPanel items={data.hotDeals} />
-          <ActivityFeed items={data.activity} />
         </div>
       </div>
     </div>
