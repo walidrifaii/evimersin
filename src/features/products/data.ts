@@ -47,20 +47,37 @@ export function buildPropertyFilterOptions(
   listings: Array<
     Pick<PropertyListing, "city" | "propertyType" | "purpose" | "priceValue">
   >,
+  lookups?: {
+    cities?: string[];
+    propertyTypes?: string[];
+    purposes?: string[];
+  },
 ): PropertyFilterOptions {
   const maxPrice = Math.max(
     propertyFilterOptions.priceMax,
     ...listings.map((item) => Math.ceil(item.priceValue / 10000) * 10000),
   );
 
+  const cities =
+    lookups?.cities && lookups.cities.length > 0
+      ? uniqueSorted(lookups.cities)
+      : uniqueSorted(listings.map((item) => item.city));
+
+  const propertyTypes =
+    lookups?.propertyTypes && lookups.propertyTypes.length > 0
+      ? uniqueSorted(lookups.propertyTypes)
+      : uniqueSorted(listings.map((item) => item.propertyType));
+
+  const purposes =
+    lookups?.purposes && lookups.purposes.length > 0
+      ? uniqueSorted(lookups.purposes)
+      : uniqueSorted(listings.map((item) => item.purpose));
+
   return {
     ...propertyFilterOptions,
-    city: ["All Cities", ...uniqueSorted(listings.map((item) => item.city))],
-    propertyType: [
-      "All Types",
-      ...uniqueSorted(listings.map((item) => item.propertyType)),
-    ],
-    purpose: ["Buy / Rent", ...uniqueSorted(listings.map((item) => item.purpose))],
+    city: ["All Cities", ...cities],
+    propertyType: ["All Types", ...propertyTypes],
+    purpose: ["Buy / Rent", ...purposes],
     priceMax: maxPrice,
   };
 }

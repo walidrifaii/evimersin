@@ -9,6 +9,11 @@ import {
   hasActiveDiscount,
 } from "@/lib/product-pricing";
 import { buildPropertyFilterOptions } from "@/features/products/data";
+import {
+  categoryRepository,
+  cityRepository,
+  purposeRepository,
+} from "@/server/database/repositories/lookup.repository";
 import { productRepository } from "@/server/database/repositories/product.repository";
 import type { Product, ProductDetail } from "@/server/types/product.types";
 import type { PropertyListing } from "@/features/products/types";
@@ -128,7 +133,13 @@ const getCachedPropertyListingById = unstable_cache(
 
 async function loadPropertyFilterOptions() {
   try {
-    const products = await productRepository.findActive();
+    const [products, cities, categories, purposes] = await Promise.all([
+      productRepository.findActive(),
+      cityRepository.findAll(),
+      categoryRepository.findAll(),
+      purposeRepository.findAll(),
+    ]);
+
     return buildPropertyFilterOptions(
       products.map((product) => ({
         city: product.city_name,
@@ -136,6 +147,17 @@ async function loadPropertyFilterOptions() {
         purpose: product.purpose_name,
         priceValue: product.final_price,
       })),
+      {
+        cities: cities
+          .filter((city) => city.status === 1)
+          .map((city) => city.name),
+        propertyTypes: categories
+          .filter((category) => category.status === 1)
+          .map((category) => category.name),
+        purposes: purposes
+          .filter((purpose) => purpose.status === 1)
+          .map((purpose) => purpose.name),
+      },
     );
   } catch (error) {
     console.error("[listings] Failed to load filter options:", error);

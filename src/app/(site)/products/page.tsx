@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PropertiesPageContent } from "@/features/products/components/PropertiesPageContent";
 import { config } from "@/constants/config";
-import { buildPropertyFilterOptions } from "@/features/products/data";
-import { getPropertyListings } from "@/features/products/server-data";
+import {
+  getPropertyFilterOptions,
+  getPropertyListings,
+} from "@/features/products/server-data";
 
 export const metadata: Metadata = {
   title: `Properties | ${config.appName}`,
@@ -14,8 +16,10 @@ export const metadata: Metadata = {
 export const revalidate = 60;
 
 export default async function ProductsPage() {
-  const listings = await getPropertyListings();
-  const filterOptions = buildPropertyFilterOptions(listings);
+  const [listings, filterOptions] = await Promise.all([
+    getPropertyListings(),
+    getPropertyFilterOptions(),
+  ]);
 
   return (
     <div className="flex flex-1 flex-col bg-[#f5f7fa]">
