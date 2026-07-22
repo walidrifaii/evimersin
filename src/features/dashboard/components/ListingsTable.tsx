@@ -42,6 +42,7 @@ export function ListingsTable({ items }: ListingsTableProps) {
               <tr>
                 <th className="px-5 py-3 font-semibold sm:px-6">Property</th>
                 <th className="px-4 py-3 font-semibold">Category</th>
+                <th className="px-4 py-3 font-semibold">Purpose</th>
                 <th className="px-4 py-3 font-semibold">Status</th>
                 <th className="px-4 py-3 font-semibold">Price</th>
                 <th className="px-4 py-3 font-semibold">Deal</th>
@@ -82,16 +83,26 @@ export function ListingsTable({ items }: ListingsTableProps) {
                     <td className="px-4 py-3.5 text-[var(--brand-navy)]">
                       {item.category_name}
                     </td>
+                    <td className="px-4 py-3.5 text-[var(--brand-navy)]">
+                      {item.purpose_name}
+                    </td>
                     <td className="px-4 py-3.5">
-                      <span
-                        className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                          item.status === 1
-                            ? "bg-[#ecfdf5] text-[#059669]"
-                            : "bg-[#f1f5f9] text-[#64748b]"
-                        }`}
-                      >
-                        {item.status === 1 ? "Active" : "Inactive"}
-                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        <span
+                          className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                            item.status === 1
+                              ? "bg-[#ecfdf5] text-[#059669]"
+                              : "bg-[#f1f5f9] text-[#64748b]"
+                          }`}
+                        >
+                          {item.status === 1 ? "Active" : "Inactive"}
+                        </span>
+                        {item.is_featured ? (
+                          <span className="inline-flex rounded-full bg-[#eff6ff] px-2.5 py-1 text-[11px] font-semibold text-[var(--brand-blue)]">
+                            Featured
+                          </span>
+                        ) : null}
+                      </div>
                     </td>
                     <td className="px-4 py-3.5 font-semibold text-[var(--brand-navy)]">
                       <div className="flex flex-col">

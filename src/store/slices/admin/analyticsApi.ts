@@ -26,6 +26,7 @@ export type AnalyticsProductRow = {
   image: string | null;
   status: 0 | 1;
   is_hot_deal: boolean;
+  is_featured: boolean;
   date_created: string;
 };
 
@@ -36,12 +37,25 @@ export type AnalyticsActivity = {
   time: string;
 };
 
+export type AnalyticsSummary = {
+  countries: number;
+  cities: number;
+  categories: number;
+  purposes: number;
+  featured: number;
+  hotDeals: number;
+  inactive: number;
+};
+
 export type DashboardAnalytics = {
   kpis: AnalyticsKpi[];
+  summary: AnalyticsSummary;
   productsByDay: AnalyticsChartPoint[];
   productsByCategory: AnalyticsChartPoint[];
+  productsByPurpose: AnalyticsChartPoint[];
   recentProducts: AnalyticsProductRow[];
   hotDeals: AnalyticsProductRow[];
+  featuredProducts: AnalyticsProductRow[];
   activity: AnalyticsActivity[];
 };
 

@@ -1,6 +1,7 @@
 import {
   categoryRepository,
   cityRepository,
+  countryRepository,
   purposeRepository,
 } from "@/server/database/repositories/lookup.repository";
 import { productRepository } from "@/server/database/repositories/product.repository";
@@ -24,6 +25,23 @@ function formatDayLabel(dateKey: string) {
   return date.toLocaleDateString("en-US", { weekday: "short" });
 }
 
+function formatActivityTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function isHotDeal(product: Product) {
+  return (
+    product.is_hot_deal === 1 ||
+    hasActiveDiscount(product.discount_type, product.discount_value)
+  );
+}
+
 function toProductRow(product: Product): AnalyticsProductRow {
   return {
     id: product.id,
@@ -35,30 +53,34 @@ function toProductRow(product: Product): AnalyticsProductRow {
     final_price: product.final_price,
     image: product.image,
     status: product.status,
-    is_hot_deal: hasActiveDiscount(
-      product.discount_type,
-      product.discount_value,
-    ),
+    is_hot_deal: isHotDeal(product),
+    is_featured: product.is_featured === 1,
     date_created: product.date_created,
   };
 }
 
 function buildKpis(input: {
   activeProducts: number;
+  featuredProducts: number;
   hotDeals: number;
-  categories: number;
-  purposes: number;
-  cities: number;
   inventoryValue: number;
 }): AnalyticsKpi[] {
   return [
     {
       id: "active-products",
-      label: "Active Residential Units",
+      label: "Active Listings",
       value: String(input.activeProducts),
       change: "Live",
       trend: "neutral",
       hint: "Published on the website",
+    },
+    {
+      id: "featured-products",
+      label: "Featured Properties",
+      value: String(input.featuredProducts),
+      change: input.featuredProducts > 0 ? "Homepage" : "None",
+      trend: input.featuredProducts > 0 ? "up" : "neutral",
+      hint: "Shown in Featured Properties section",
     },
     {
       id: "hot-deals",
@@ -66,15 +88,7 @@ function buildKpis(input: {
       value: String(input.hotDeals),
       change: input.hotDeals > 0 ? "On sale" : "None",
       trend: input.hotDeals > 0 ? "up" : "neutral",
-      hint: "Residential units with an active discount",
-    },
-    {
-      id: "lookups",
-      label: "Filter Options",
-      value: String(input.categories + input.purposes + input.cities),
-      change: `${input.categories} cat`,
-      trend: "neutral",
-      hint: `${input.cities} cities · ${input.purposes} purposes`,
+      hint: "Discounted listings on the website",
     },
     {
       id: "inventory-value",
@@ -82,7 +96,7 @@ function buildKpis(input: {
       value: formatProductPrice(input.inventoryValue),
       change: "Total",
       trend: "neutral",
-      hint: "Sum of final residential unit prices",
+      hint: "Sum of active listing prices",
     },
   ];
 }
@@ -112,11 +126,14 @@ function buildProductsByDay(products: Product[]) {
   }));
 }
 
-function buildProductsByCategory(products: Product[]) {
+function buildGroupedCounts(
+  products: Product[],
+  getLabel: (product: Product) => string,
+) {
   const counts = new Map<string, number>();
 
   for (const product of products) {
-    const label = product.category_name || "Other";
+    const label = getLabel(product) || "Other";
     counts.set(label, (counts.get(label) ?? 0) + 1);
   }
 
@@ -135,25 +152,27 @@ function buildActivity(products: Product[]): AnalyticsActivity[] {
     .slice(0, 6)
     .map((product) => ({
       id: `product-${product.id}`,
-      title: "Residential unit listed",
+      title: product.status === 1 ? "Listing published" : "Listing saved",
       detail: `${product.name} · ${product.city_name} · ${product.category_name}`,
-      time: product.date_created,
+      time: formatActivityTime(product.date_created),
     }));
 }
 
 export const analyticsService = {
   async getOverview(): Promise<DashboardAnalytics> {
-    const [products, categories, cities, purposes] = await Promise.all([
+    const [products, categories, cities, purposes, countries] = await Promise.all([
       productRepository.findAll(),
       categoryRepository.findAll(),
       cityRepository.findAll(),
       purposeRepository.findAll(),
+      countryRepository.findAll(),
     ]);
 
     const activeProducts = products.filter((product) => product.status === 1);
-    const hotDealProducts = activeProducts.filter((product) =>
-      hasActiveDiscount(product.discount_type, product.discount_value),
+    const featuredProducts = activeProducts.filter(
+      (product) => product.is_featured === 1,
     );
+    const hotDealProducts = activeProducts.filter(isHotDeal);
     const inventoryValue = activeProducts.reduce(
       (sum, product) => sum + Number(product.final_price || 0),
       0,
@@ -162,21 +181,39 @@ export const analyticsService = {
     return {
       kpis: buildKpis({
         activeProducts: activeProducts.length,
+        featuredProducts: featuredProducts.length,
         hotDeals: hotDealProducts.length,
-        categories: categories.length,
-        purposes: purposes.length,
-        cities: cities.length,
         inventoryValue,
       }),
+      summary: {
+        countries: countries.length,
+        cities: cities.length,
+        categories: categories.length,
+        purposes: purposes.length,
+        featured: featuredProducts.length,
+        hotDeals: hotDealProducts.length,
+        inactive: products.length - activeProducts.length,
+      },
       productsByDay: buildProductsByDay(products),
-      productsByCategory: buildProductsByCategory(activeProducts),
+      productsByCategory: buildGroupedCounts(
+        activeProducts,
+        (product) => product.category_name,
+      ),
+      productsByPurpose: buildGroupedCounts(
+        activeProducts,
+        (product) => product.purpose_name,
+      ),
       recentProducts: [...activeProducts]
         .sort((a, b) => b.id - a.id)
         .slice(0, 6)
         .map(toProductRow),
       hotDeals: hotDealProducts
         .sort((a, b) => b.id - a.id)
-        .slice(0, 5)
+        .slice(0, 4)
+        .map(toProductRow),
+      featuredProducts: featuredProducts
+        .sort((a, b) => b.id - a.id)
+        .slice(0, 4)
         .map(toProductRow),
       activity: buildActivity(products),
     };
