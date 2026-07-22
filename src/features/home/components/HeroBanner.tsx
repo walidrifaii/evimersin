@@ -21,16 +21,18 @@ export function HeroBanner({ filterOptions }: HeroBannerProps) {
 
   return (
     <section className="relative w-full bg-white">
-      <div className="relative min-h-[78vh] w-full overflow-hidden lg:min-h-[820px]">
-        <Image
-          src={heroImage}
-          alt="Luxury villa with pool at night"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover object-center"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/35 to-black/55" />
+      <div className="relative min-h-[78vh] w-full lg:min-h-[820px]">
+        <div className="absolute inset-0 overflow-hidden">
+          <Image
+            src={heroImage}
+            alt="Luxury villa with pool at night"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/35 to-black/55" />
+        </div>
 
         <div className="relative z-10 mx-auto flex h-full min-h-[78vh] w-full flex-col items-start justify-start px-4 pb-32 pt-14 text-left sm:px-6 md:px-4 md:pb-36 md:pt-16 lg:px-[100px] lg:pb-48 lg:pt-28">
           <div className="w-full max-w-[640px] animate-[heroFade_700ms_ease-out]">
@@ -44,7 +46,7 @@ export function HeroBanner({ filterOptions }: HeroBannerProps) {
             </p>
           </div>
 
-          <div className="mt-8 w-full self-start animate-[heroFade_900ms_ease-out] sm:mt-10">
+          <div className="relative z-30 mt-8 w-full self-start animate-[heroFade_900ms_ease-out] sm:mt-10">
             <PropertySearchBar filterOptions={filterOptions} />
           </div>
         </div>

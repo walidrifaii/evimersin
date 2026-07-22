@@ -115,7 +115,7 @@ function FilterDropdown({
       {isOpen ? (
         <div
           role="listbox"
-          className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-[#e5e7eb] bg-white shadow-[0_12px_32px_rgba(0,0,0,0.12)]"
+          className="absolute left-0 right-0 top-full z-[60] mt-2 max-h-64 overflow-y-auto rounded-xl border border-[#e5e7eb] bg-white shadow-[0_12px_32px_rgba(0,0,0,0.12)]"
         >
           {field.options.map((opt) => (
             <button
@@ -123,7 +123,11 @@ function FilterDropdown({
               type="button"
               role="option"
               aria-selected={opt === value}
-              onClick={() => {
+              onMouseDown={(event) => {
+                event.preventDefault();
+              }}
+              onClick={(event) => {
+                event.stopPropagation();
                 onChange(opt);
                 onClose();
               }}

@@ -94,11 +94,14 @@ export function PropertiesPageContent({
         <PropertiesHeader />
 
         <div className="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)] lg:items-start lg:gap-8 xl:grid-cols-[320px_minmax(0,1fr)]">
-          <div className="lg:sticky lg:top-28">
+          <div className="relative z-20 lg:sticky lg:top-28">
             <PropertyFilters
               value={draftFilters}
-                options={filterOptions}
-              onChange={setDraftFilters}
+              options={filterOptions}
+              onChange={(next) => {
+                setDraftFilters(next);
+                setAppliedFilters(next);
+              }}
               onApply={applyFilters}
             />
           </div>

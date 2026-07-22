@@ -61,11 +61,14 @@ function FilterSelect({
       </button>
 
       {open ? (
-        <div className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-xl border border-[#e5eaf2] bg-white shadow-[0_12px_32px_rgba(15,23,42,0.12)]">
+        <div className="absolute left-0 right-0 top-full z-40 mt-2 max-h-64 overflow-y-auto rounded-xl border border-[#e5eaf2] bg-white shadow-[0_12px_32px_rgba(15,23,42,0.12)]">
           {options.map((option) => (
             <button
               key={option}
               type="button"
+              onMouseDown={(event) => {
+                event.preventDefault();
+              }}
               onClick={() => {
                 onChange(option);
                 setOpen(false);

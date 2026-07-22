@@ -141,16 +141,10 @@ export function filtersFromSearchParams(params: {
     defaults.propertyType;
 
   const city =
-    params.city &&
-    options.city.includes(params.city)
-      ? params.city
-      : defaults.city;
+    findOptionMatch(params.city, options.city) ?? defaults.city;
 
   const purpose =
-    params.purpose &&
-    options.purpose.includes(params.purpose)
-      ? params.purpose
-      : defaults.purpose;
+    findOptionMatch(params.purpose, options.purpose) ?? defaults.purpose;
 
   const parsedMin = Number(params.priceMin);
   const parsedMax = Number(params.priceMax);
@@ -378,14 +372,22 @@ export function filterProperties(
   filters: PropertyFiltersState,
 ) {
   let result = listings.filter((item) => {
-    if (filters.city !== "All Cities" && item.city !== filters.city) return false;
     if (
-      filters.propertyType !== "All Types" &&
-      item.propertyType !== filters.propertyType
+      filters.city !== "All Cities" &&
+      item.city.toLowerCase() !== filters.city.toLowerCase()
     ) {
       return false;
     }
-    if (filters.purpose !== "Buy / Rent" && item.purpose !== filters.purpose) {
+    if (
+      filters.propertyType !== "All Types" &&
+      item.propertyType.toLowerCase() !== filters.propertyType.toLowerCase()
+    ) {
+      return false;
+    }
+    if (
+      filters.purpose !== "Buy / Rent" &&
+      item.purpose.toLowerCase() !== filters.purpose.toLowerCase()
+    ) {
       return false;
     }
     if (item.priceValue < filters.priceMin || item.priceValue > filters.priceMax) {
