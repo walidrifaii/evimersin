@@ -3,10 +3,7 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { FaWhatsapp } from "react-icons/fa";
 import { HiCheckCircle } from "react-icons/hi";
-import {
-  useSiteSettings,
-  useWhatsAppUrl,
-} from "@/components/providers/SiteSettingsProvider";
+import { useWhatsAppUrl } from "@/components/providers/SiteSettingsProvider";
 import {
   contactData,
   initialContactForm,
@@ -28,41 +25,58 @@ const inputClassName =
   "w-full rounded-xl border border-[#e8edf5] bg-white px-4 py-3 text-[15px] text-[var(--brand-navy)] outline-none transition-colors placeholder:text-[#9ca3af] focus:border-[var(--brand-blue)] focus:ring-2 focus:ring-[#eff6ff]";
 
 export function ContactForm() {
-  const settings = useSiteSettings();
   const whatsappUrl = useWhatsAppUrl();
   const [form, setForm] = useState<ContactFormState>(initialContactForm);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   function updateField<K extends keyof ContactFormState>(key: K, value: ContactFormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
     setError("");
   }
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setError("");
 
     if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
       setError("Please fill in your name, email, and message.");
       return;
     }
 
-    const body = [
-      `Name: ${form.name}`,
-      `Email: ${form.email}`,
-      form.phone ? `Phone: ${form.phone}` : null,
-      `Subject: ${form.subject}`,
-      "",
-      form.message,
-    ]
-      .filter(Boolean)
-      .join("\n");
+    setSubmitting(true);
 
-    window.location.href = `mailto:${settings.email}?subject=${encodeURIComponent(
-      `[EviMersin] ${form.subject}`,
-    )}&body=${encodeURIComponent(body)}`;
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          subject: form.subject,
+          message: form.message.trim(),
+        }),
+      });
 
-    setSubmitted(true);
+      const result = (await response.json()) as {
+        success?: boolean;
+        message?: string;
+      };
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Failed to send your message.");
+      }
+
+      setSubmitted(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to send your message.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (submitted) {
@@ -72,10 +86,10 @@ export function ContactForm() {
           <HiCheckCircle className="h-7 w-7" aria-hidden="true" />
         </div>
         <h3 className="mt-5 text-[1.35rem] font-bold text-[var(--brand-navy)]">
-          Message ready to send
+          Message sent successfully
         </h3>
         <p className="mt-3 text-[15px] leading-relaxed text-[var(--muted)]">
-          Your email app should open shortly. If it does not, contact us directly on WhatsApp.
+          Thank you for contacting us. Our team will reply to your email as soon as possible.
         </p>
         <a
           href={whatsappUrl}
@@ -113,6 +127,7 @@ export function ContactForm() {
             placeholder="Your full name"
             className={inputClassName}
             autoComplete="name"
+            required
           />
         </div>
 
@@ -126,6 +141,7 @@ export function ContactForm() {
             placeholder="you@example.com"
             className={inputClassName}
             autoComplete="email"
+            required
           />
         </div>
 
@@ -167,6 +183,7 @@ export function ContactForm() {
             placeholder="Tell us how we can help you..."
             rows={5}
             className={`${inputClassName} resize-y min-h-[140px]`}
+            required
           />
         </div>
       </div>
@@ -177,9 +194,10 @@ export function ContactForm() {
 
       <button
         type="submit"
-        className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-lg bg-[var(--brand-blue)] px-6 text-[15px] font-semibold text-white transition-colors hover:bg-[#1d4ed8] sm:w-auto"
+        disabled={submitting}
+        className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-lg bg-[var(--brand-blue)] px-6 text-[15px] font-semibold text-white transition-colors hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
       >
-        Send Message
+        {submitting ? "Sending..." : "Send Message"}
       </button>
     </form>
   );
