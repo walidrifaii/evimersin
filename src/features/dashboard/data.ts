@@ -8,13 +8,13 @@ export type DashboardNavItem = {
 };
 
 export const dashboardNav: DashboardNavItem[] = [
-  { id: "overview", label: "Overview", href: routes.dashboard },
-  { id: "countries", label: "Countries", href: `${routes.dashboard}?tab=countries` },
-  { id: "cities", label: "Cities", href: `${routes.dashboard}?tab=cities` },
-  { id: "categories", label: "Categories", href: `${routes.dashboard}?tab=categories` },
-  { id: "purposes", label: "Purposes", href: `${routes.dashboard}?tab=purposes` },
-  { id: "products", label: "Residential Units", href: `${routes.dashboard}?tab=products` },
-  { id: "settings", label: "Settings", href: `${routes.dashboard}?tab=settings` },
+  { id: "overview", label: "Overview", href: routes.dashboardTab("overview") },
+  { id: "countries", label: "Countries", href: routes.dashboardTab("countries") },
+  { id: "cities", label: "Cities", href: routes.dashboardTab("cities") },
+  { id: "categories", label: "Categories", href: routes.dashboardTab("categories") },
+  { id: "purposes", label: "Purposes", href: routes.dashboardTab("purposes") },
+  { id: "products", label: "Residential Units", href: routes.dashboardTab("products") },
+  { id: "settings", label: "Settings", href: routes.dashboardTab("settings") },
 ];
 
 export const dashboardAgent = {

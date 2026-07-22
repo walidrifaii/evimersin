@@ -59,12 +59,36 @@ export type DashboardAnalytics = {
   activity: AnalyticsActivity[];
 };
 
+const emptySummary: AnalyticsSummary = {
+  countries: 0,
+  cities: 0,
+  categories: 0,
+  purposes: 0,
+  featured: 0,
+  hotDeals: 0,
+  inactive: 0,
+};
+
+function normalizeAnalytics(data: Partial<DashboardAnalytics> | undefined): DashboardAnalytics {
+  return {
+    kpis: data?.kpis ?? [],
+    summary: data?.summary ?? emptySummary,
+    productsByDay: data?.productsByDay ?? [],
+    productsByCategory: data?.productsByCategory ?? [],
+    productsByPurpose: data?.productsByPurpose ?? [],
+    recentProducts: data?.recentProducts ?? [],
+    hotDeals: data?.hotDeals ?? [],
+    featuredProducts: data?.featuredProducts ?? [],
+    activity: data?.activity ?? [],
+  };
+}
+
 export const analyticsApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getDashboardAnalytics: builder.query<DashboardAnalytics, void>({
       query: () => "/admin/analytics",
       transformResponse: (response: ApiResponse<DashboardAnalytics>) =>
-        response.data,
+        normalizeAnalytics(response.data),
       providesTags: [{ type: "Analytics", id: "OVERVIEW" }],
     }),
   }),

@@ -17,7 +17,10 @@ import { getApiErrorMessage } from "@/store/api/errors";
 import { useGetDashboardAnalyticsQuery } from "@/store/slices/admin";
 
 export function DashboardOverview() {
-  const { data, isLoading, error, isFetching } = useGetDashboardAnalyticsQuery();
+  const { data, isLoading, error, isFetching, refetch } = useGetDashboardAnalyticsQuery(
+    undefined,
+    { refetchOnMountOrArgChange: true },
+  );
 
   if (isLoading) {
     return (
@@ -29,8 +32,17 @@ export function DashboardOverview() {
 
   if (error || !data) {
     return (
-      <div className="rounded-[24px] border border-[#fecaca] bg-[#fef2f2] px-5 py-8 text-[14px] font-medium text-[#b91c1c]">
-        {getApiErrorMessage(error) || "Failed to load dashboard analytics"}
+      <div className="rounded-[24px] border border-[#fecaca] bg-[#fef2f2] px-5 py-8 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+        <p className="text-[14px] font-medium text-[#b91c1c]">
+          {getApiErrorMessage(error) || "Failed to load dashboard analytics"}
+        </p>
+        <button
+          type="button"
+          onClick={() => refetch()}
+          className="mt-4 inline-flex h-10 cursor-pointer items-center justify-center rounded-full bg-[var(--brand-red)] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#c9181e]"
+        >
+          Try again
+        </button>
       </div>
     );
   }
@@ -45,7 +57,7 @@ export function DashboardOverview() {
         </p>
       ) : null}
 
-      <KpiCards items={data.kpis} />
+      {data.kpis.length > 0 ? <KpiCards items={data.kpis} /> : null}
 
       <FeaturedPropertiesPanel items={data.featuredProducts} />
 

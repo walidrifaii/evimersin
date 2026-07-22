@@ -146,7 +146,7 @@ export function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
         }}
       >
         <div className="flex h-16 items-center justify-between px-5 pt-2">
-          <Link href={routes.dashboard} className="flex min-w-0 items-center gap-2.5" onClick={onClose}>
+          <Link href={routes.dashboardTab("overview")} className="flex min-w-0 items-center gap-2.5" onClick={onClose}>
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white/20">
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
                 <path
@@ -187,10 +187,10 @@ export function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
 
         <nav className="mt-2 flex-1 space-y-1 overflow-y-auto px-3 pb-4" aria-label="Dashboard">
           {dashboardNav.map((item) => {
-            const tab = new URL(item.href, "http://local").searchParams.get("tab") ?? "overview";
+            const tab =
+              new URL(item.href, "http://local").searchParams.get("tab") ?? "overview";
             const isActive =
-              pathname === routes.dashboard &&
-              (item.id === "overview" ? activeTab === "overview" : activeTab === tab);
+              pathname === routes.dashboard && activeTab === tab;
 
             return (
               <Link
