@@ -1,5 +1,5 @@
 import type { ComponentType, SVGProps } from "react";
-import aboutImage from "@/assets/images/about-building.png";
+import aboutImage from "@/assets/images/about-building.webp";
 import { BadgeCheckIcon } from "@/components/icons/BadgeCheckIcon";
 import { ShieldCheckIcon } from "@/components/icons/ShieldCheckIcon";
 import { UserIcon } from "@/components/icons/UserIcon";

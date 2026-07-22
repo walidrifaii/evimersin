@@ -4,9 +4,16 @@ import { AppError } from "@/server/utils/errors";
 import { ok } from "@/server/utils/response";
 import { saveImageUpload } from "@/server/utils/upload";
 import { updateProductSchema } from "@/server/validators/product.validator";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export const runtime = "nodejs";
 
+function revalidateListingsCache(id?: number) {
+  revalidateTag("property-listings", "max");
+  revalidatePath("/");
+  revalidatePath("/products");
+  if (id) revalidatePath(`/products/${id}`);
+}
 function parseId(params: Record<string, string>, key = "id") {
   const id = Number(params[key]);
   if (!Number.isInteger(id) || id <= 0) {
@@ -65,11 +72,14 @@ export const PUT = compose(withAuth, withHandler)(async (request, context: ApiCo
     image: nextImage,
   });
 
-  return ok(await productService.update(id, input, galleryImages));
+  const updated = await productService.update(id, input, galleryImages);
+  revalidateListingsCache(id);
+  return ok(updated);
 });
 
 export const DELETE = compose(withAuth, withHandler)(async (_request, context: ApiContext) => {
   const id = parseId(await context.params);
   await productService.remove(id);
+  revalidateListingsCache(id);
   return ok({ message: "Product deleted successfully" });
 });

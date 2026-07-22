@@ -5,6 +5,7 @@ const parsedAppUrl = new URL(appUrl);
 
 const nextConfig: NextConfig = {
   images: {
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
         protocol: parsedAppUrl.protocol.replace(":", "") as "http" | "https",
@@ -13,6 +14,9 @@ const nextConfig: NextConfig = {
         pathname: "/uploads/**",
       },
     ],
+  },
+  experimental: {
+    optimizePackageImports: ["react-icons"],
   },
 };
 

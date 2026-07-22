@@ -112,6 +112,9 @@ CREATE TABLE IF NOT EXISTS products (
   KEY idx_products_category_id (category_id),
   KEY idx_products_purpose_id (purpose_id),
   KEY idx_products_city_id (city_id),
+  KEY idx_products_status_featured (status, is_featured),
+  KEY idx_products_status_hot_deal (status, is_hot_deal),
+  KEY idx_products_status_position (status, position),
   CONSTRAINT fk_products_category
     FOREIGN KEY (category_id) REFERENCES categories(id)
     ON UPDATE CASCADE

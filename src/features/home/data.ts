@@ -1,6 +1,6 @@
 import type { StaticImageData } from "next/image";
 import type { ComponentType, SVGProps } from "react";
-import featuredPropertyImage from "@/assets/images/featured-property.png";
+import featuredPropertyImage from "@/assets/images/featured-property.webp";
 import { BadgeCheckIcon } from "@/components/icons/BadgeCheckIcon";
 import { DollarCircleIcon } from "@/components/icons/DollarCircleIcon";
 import { MoreCircleIcon } from "@/components/icons/MoreCircleIcon";

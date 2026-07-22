@@ -100,6 +100,12 @@ async function runMigrations(connection: {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
     `ALTER TABLE admin
       ADD COLUMN email VARCHAR(255) NULL AFTER name`,
+    `ALTER TABLE products
+      ADD INDEX idx_products_status_featured (status, is_featured)`,
+    `ALTER TABLE products
+      ADD INDEX idx_products_status_hot_deal (status, is_hot_deal)`,
+    `ALTER TABLE products
+      ADD INDEX idx_products_status_position (status, position)`,
   ];
 
   for (const sql of migrations) {
@@ -109,6 +115,7 @@ async function runMigrations(connection: {
       const message = error instanceof Error ? error.message : String(error);
       if (
         !message.includes("Duplicate column name") &&
+        !message.includes("Duplicate key name") &&
         !message.includes("already exists")
       ) {
         throw error;

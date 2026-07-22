@@ -1,5 +1,5 @@
 import Image from "next/image";
-import heroImage from "@/assets/images/hero.png";
+import heroImage from "@/assets/images/hero.webp";
 import { howItWorksData } from "@/features/how-it-works/data";
 
 export function HowItWorksHero() {

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import heroImage from "@/assets/images/hero.png";
+import heroImage from "@/assets/images/hero.webp";
 import { PropertySearchBar } from "@/features/home/components/PropertySearchBar";
 import { PropertyTypeCard } from "@/features/home/components/PropertyTypeCard";
 import { homeData, propertyTypeCards } from "@/features/home/data";

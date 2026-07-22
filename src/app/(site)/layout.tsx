@@ -3,7 +3,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { SiteSettingsProvider } from "@/components/providers/SiteSettingsProvider";
 import { getSiteSettings } from "@/lib/site-settings";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function SiteLayout({
   children,

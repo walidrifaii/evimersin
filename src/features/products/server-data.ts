@@ -1,7 +1,14 @@
-import featuredPropertyImage from "@/assets/images/featured-property.png";
+import { unstable_cache } from "next/cache";
+import { cache } from "react";
+import featuredPropertyImage from "@/assets/images/featured-property.webp";
 import { routes } from "@/constants/routes";
 import { toDisplayImageSrc } from "@/lib/image-url";
-import { formatDiscountLabel, formatProductPrice, hasActiveDiscount } from "@/lib/product-pricing";
+import {
+  formatDiscountLabel,
+  formatProductPrice,
+  hasActiveDiscount,
+} from "@/lib/product-pricing";
+import { buildPropertyFilterOptions } from "@/features/products/data";
 import { productRepository } from "@/server/database/repositories/product.repository";
 import type { Product, ProductDetail } from "@/server/types/product.types";
 import type { PropertyListing } from "@/features/products/types";
@@ -41,7 +48,7 @@ function toPropertyListing(product: ProductDetail): PropertyListing {
     description: product.description ?? "",
     href: routes.property(String(product.id)),
     featured: product.is_featured === 1,
-    hotDeal: discounted,
+    hotDeal: discounted || product.is_hot_deal === 1,
     discountLabel: formatDiscountLabel(
       product.price,
       product.discount_type,
@@ -50,24 +57,115 @@ function toPropertyListing(product: ProductDetail): PropertyListing {
   };
 }
 
-export async function getPropertyListings() {
-  const products = await productRepository.findAll();
-  const details = await Promise.all(
-    products.map((product) => productRepository.findDetailById(product.id)),
-  );
-
-  return details
-    .filter((product): product is ProductDetail => Boolean(product))
-    .filter((product) => product.status === 1)
-    .map(toPropertyListing);
+async function loadPropertyListings() {
+  try {
+    const details = await productRepository.findActiveDetails();
+    return details.map(toPropertyListing);
+  } catch (error) {
+    console.error("[listings] Failed to load property listings:", error);
+    return [];
+  }
 }
 
-export async function getPropertyListingById(id: string) {
-  const numericId = Number(id);
-  if (!Number.isInteger(numericId) || numericId <= 0) return null;
-
-  const product = await productRepository.findDetailById(numericId);
-  if (!product || product.status !== 1) return null;
-
-  return toPropertyListing(product);
+async function loadFeaturedListings(limit: number) {
+  try {
+    const details = await productRepository.findFeaturedDetails(limit);
+    return details.map(toPropertyListing);
+  } catch (error) {
+    console.error("[listings] Failed to load featured listings:", error);
+    return [];
+  }
 }
+
+async function loadHotDealListings(limit: number) {
+  try {
+    const details = await productRepository.findHotDealDetails(limit);
+    return details.map(toPropertyListing);
+  } catch (error) {
+    console.error("[listings] Failed to load hot deal listings:", error);
+    return [];
+  }
+}
+
+async function loadPropertyListingById(id: string) {
+  try {
+    const numericId = Number(id);
+    if (!Number.isInteger(numericId) || numericId <= 0) return null;
+
+    const product = await productRepository.findDetailById(numericId);
+    if (!product || product.status !== 1) return null;
+
+    return toPropertyListing(product);
+  } catch (error) {
+    console.error("[listings] Failed to load property:", error);
+    return null;
+  }
+}
+
+const getCachedPropertyListings = unstable_cache(
+  loadPropertyListings,
+  ["property-listings"],
+  { revalidate: 60, tags: ["property-listings"] },
+);
+
+const getCachedFeaturedListings = unstable_cache(
+  async (limit: number) => loadFeaturedListings(limit),
+  ["property-featured"],
+  { revalidate: 60, tags: ["property-listings"] },
+);
+
+const getCachedHotDealListings = unstable_cache(
+  async (limit: number) => loadHotDealListings(limit),
+  ["property-hot-deals"],
+  { revalidate: 60, tags: ["property-listings"] },
+);
+
+const getCachedPropertyListingById = unstable_cache(
+  async (id: string) => loadPropertyListingById(id),
+  ["property-listing-by-id"],
+  { revalidate: 60, tags: ["property-listings"] },
+);
+
+async function loadPropertyFilterOptions() {
+  try {
+    const products = await productRepository.findActive();
+    return buildPropertyFilterOptions(
+      products.map((product) => ({
+        city: product.city_name,
+        propertyType: product.category_name,
+        purpose: product.purpose_name,
+        priceValue: product.final_price,
+      })),
+    );
+  } catch (error) {
+    console.error("[listings] Failed to load filter options:", error);
+    return buildPropertyFilterOptions([]);
+  }
+}
+
+const getCachedPropertyFilterOptions = unstable_cache(
+  loadPropertyFilterOptions,
+  ["property-filter-options"],
+  { revalidate: 60, tags: ["property-listings"] },
+);
+
+/** Per-request dedupe + cross-request ISR cache (60s). */
+export const getPropertyListings = cache(async () => {
+  return getCachedPropertyListings();
+});
+
+export const getPropertyFilterOptions = cache(async () => {
+  return getCachedPropertyFilterOptions();
+});
+
+export const getFeaturedPropertyListings = cache(async (limit = 4) => {
+  return getCachedFeaturedListings(limit);
+});
+
+export const getHotDealPropertyListings = cache(async (limit = 4) => {
+  return getCachedHotDealListings(limit);
+});
+
+export const getPropertyListingById = cache(async (id: string) => {
+  return getCachedPropertyListingById(id);
+});

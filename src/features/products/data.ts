@@ -1,5 +1,5 @@
-import featuredPropertyImage from "@/assets/images/featured-property.png";
-import aboutBuildingImage from "@/assets/images/about-building.png";
+import featuredPropertyImage from "@/assets/images/featured-property.webp";
+import aboutBuildingImage from "@/assets/images/about-building.webp";
 import type { StaticImageData } from "next/image";
 import { routes } from "@/constants/routes";
 import type {
@@ -44,7 +44,9 @@ function uniqueSorted(values: string[]) {
 }
 
 export function buildPropertyFilterOptions(
-  listings: PropertyListing[],
+  listings: Array<
+    Pick<PropertyListing, "city" | "propertyType" | "purpose" | "priceValue">
+  >,
 ): PropertyFilterOptions {
   const maxPrice = Math.max(
     propertyFilterOptions.priceMax,

@@ -8,6 +8,7 @@ import {
 import { settingsService } from "@/server/services/settings.service";
 import { ok } from "@/server/utils/response";
 import { updateSiteSettingsSchema } from "@/server/validators/settings.validator";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export const runtime = "nodejs";
 
@@ -24,5 +25,8 @@ export const PUT = compose(
     updateSiteSettingsSchema,
     await parseJsonBody(request),
   );
-  return ok(await settingsService.update(input));
+  const result = await settingsService.update(input);
+  revalidateTag("site-settings", "max");
+  revalidatePath("/", "layout");
+  return ok(result);
 });

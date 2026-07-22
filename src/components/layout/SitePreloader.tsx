@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { config } from "@/constants/config";
 
-const MIN_VISIBLE_MS = 2400;
-const EXIT_MS = 750;
+const MIN_VISIBLE_MS = 300;
+const EXIT_MS = 400;
 
 /** Brand letters: Evi (red) + Mersin (white) — reveal from first → last */
 const brandLetters = [
@@ -47,7 +47,7 @@ export function SitePreloader() {
       finish();
     } else {
       window.addEventListener("load", finish, { once: true });
-      fallbackTimer = setTimeout(finish, 4200);
+      fallbackTimer = setTimeout(finish, 1500);
     }
 
     return () => {

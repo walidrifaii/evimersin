@@ -8,7 +8,7 @@ type PropertyPageProps = {
   params: Promise<{ id: string }>;
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export async function generateMetadata({
   params,
