@@ -38,19 +38,28 @@ function toPublicSettings(row: SiteSettings): UpdateSiteSettingsInput & {
 
 export const settingsService = {
   async get() {
-    const existing = await settingsRepository.find();
-    if (existing) return toPublicSettings(existing);
+    try {
+      const existing = await settingsRepository.find();
+      if (existing) return toPublicSettings(existing);
 
-    await settingsRepository.upsert(defaultSiteSettings);
-    const created = await settingsRepository.find();
-    if (!created) {
+      await settingsRepository.upsert(defaultSiteSettings);
+      const created = await settingsRepository.find();
+      if (!created) {
+        return {
+          id: 1,
+          ...defaultSiteSettings,
+          updated_at: new Date().toISOString(),
+        };
+      }
+      return toPublicSettings(created);
+    } catch (error) {
+      console.error("[settings] Falling back to defaults:", error);
       return {
         id: 1,
         ...defaultSiteSettings,
         updated_at: new Date().toISOString(),
       };
     }
-    return toPublicSettings(created);
   },
 
   async update(input: UpdateSiteSettingsInput) {

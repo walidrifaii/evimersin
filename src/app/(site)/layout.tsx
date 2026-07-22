@@ -3,6 +3,8 @@ import { Navbar } from "@/components/layout/Navbar";
 import { SiteSettingsProvider } from "@/components/providers/SiteSettingsProvider";
 import { getSiteSettings } from "@/lib/site-settings";
 
+export const dynamic = "force-dynamic";
+
 export default async function SiteLayout({
   children,
 }: Readonly<{
