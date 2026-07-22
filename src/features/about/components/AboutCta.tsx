@@ -1,9 +1,13 @@
 import Link from "next/link";
 import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
-import { getWhatsAppUrl } from "@/constants/config";
+import { getWhatsAppUrlFromSettings } from "@/constants/config";
 import { routes } from "@/constants/routes";
+import { getSiteSettings } from "@/lib/site-settings";
 
-export function AboutCta() {
+export async function AboutCta() {
+  const settings = await getSiteSettings();
+  const whatsappUrl = getWhatsAppUrlFromSettings(settings);
+
   return (
     <section className="w-full bg-white">
       <div className="mx-auto w-full px-4 py-16 sm:px-6 md:px-4 lg:px-[100px] lg:py-20">
@@ -23,7 +27,7 @@ export function AboutCta() {
               Browse Properties
             </Link>
             <a
-              href={getWhatsAppUrl()}
+              href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[var(--brand-red)] px-6 text-[15px] font-semibold text-white transition-colors hover:bg-[#c9181e] sm:w-auto"

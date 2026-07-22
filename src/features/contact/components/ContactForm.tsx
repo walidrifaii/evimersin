@@ -3,7 +3,10 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { FaWhatsapp } from "react-icons/fa";
 import { HiCheckCircle } from "react-icons/hi";
-import { config, getWhatsAppUrl } from "@/constants/config";
+import {
+  useSiteSettings,
+  useWhatsAppUrl,
+} from "@/components/providers/SiteSettingsProvider";
 import {
   contactData,
   initialContactForm,
@@ -25,6 +28,8 @@ const inputClassName =
   "w-full rounded-xl border border-[#e8edf5] bg-white px-4 py-3 text-[15px] text-[var(--brand-navy)] outline-none transition-colors placeholder:text-[#9ca3af] focus:border-[var(--brand-blue)] focus:ring-2 focus:ring-[#eff6ff]";
 
 export function ContactForm() {
+  const settings = useSiteSettings();
+  const whatsappUrl = useWhatsAppUrl();
   const [form, setForm] = useState<ContactFormState>(initialContactForm);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
@@ -53,7 +58,7 @@ export function ContactForm() {
       .filter(Boolean)
       .join("\n");
 
-    window.location.href = `mailto:${config.contact.email}?subject=${encodeURIComponent(
+    window.location.href = `mailto:${settings.email}?subject=${encodeURIComponent(
       `[EviMersin] ${form.subject}`,
     )}&body=${encodeURIComponent(body)}`;
 
@@ -73,7 +78,7 @@ export function ContactForm() {
           Your email app should open shortly. If it does not, contact us directly on WhatsApp.
         </p>
         <a
-          href={getWhatsAppUrl()}
+          href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[var(--brand-red)] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#c9181e]"

@@ -6,3 +6,4 @@ export {
   countryRepository,
   purposeRepository,
 } from "@/server/database/repositories/lookup.repository";
+export { settingsRepository } from "@/server/database/repositories/settings.repository";

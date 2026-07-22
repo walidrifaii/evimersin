@@ -1,4 +1,5 @@
 import { config } from "@/constants/config";
+import type { PublicSiteSettings } from "@/lib/site-settings";
 
 export const contactData = {
   hero: {
@@ -23,46 +24,52 @@ export const contactData = {
     description:
       "Reach out directly by phone, email, or WhatsApp. We are happy to assist with listings, viewings, and property advice in Mersin.",
   },
-  methods: [
+} as const;
+
+export function getContactMethods(settings: PublicSiteSettings) {
+  return [
     {
-      id: "phone",
+      id: "phone" as const,
       title: "Phone",
-      value: config.contact.phoneLabel,
-      href: `tel:${config.contact.phone}`,
+      value: settings.phone_label,
+      href: `tel:${settings.phone}`,
       description: "Speak with our team",
     },
     {
-      id: "email",
+      id: "email" as const,
       title: "Email",
-      value: config.contact.email,
-      href: `mailto:${config.contact.email}`,
+      value: settings.email,
+      href: `mailto:${settings.email}`,
       description: "We reply within 24 hours",
     },
     {
-      id: "address",
+      id: "address" as const,
       title: "Office",
       value: config.contact.addressName,
       href: config.contact.mapsUrl,
       description: config.contact.address,
     },
-  ],
-  social: [
+  ];
+}
+
+export function getContactSocial(settings: PublicSiteSettings) {
+  return [
     {
-      id: "instagram",
+      id: "instagram" as const,
       title: "Instagram",
-      value: config.social.instagramHandle,
-      href: config.social.instagram,
+      value: settings.instagram_handle,
+      href: settings.instagram_url,
       description: "Follow our latest listings and updates",
     },
     {
-      id: "facebook",
+      id: "facebook" as const,
       title: "Facebook",
-      value: config.social.facebookHandle,
-      href: config.social.facebook,
+      value: settings.facebook_handle,
+      href: settings.facebook_url,
       description: "Connect with us on Facebook",
     },
-  ],
-} as const;
+  ];
+}
 
 export type ContactFormState = {
   name: string;

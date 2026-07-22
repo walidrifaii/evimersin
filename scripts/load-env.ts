@@ -48,6 +48,43 @@ async function runMigrations(connection: {
       ADD COLUMN is_hot_deal TINYINT NOT NULL DEFAULT 0 COMMENT '1 = hot deal, 0 = not hot deal' AFTER status`,
     `ALTER TABLE products
       ADD COLUMN is_featured TINYINT NOT NULL DEFAULT 0 COMMENT '1 = featured, 0 = not featured' AFTER is_hot_deal`,
+    `CREATE TABLE IF NOT EXISTS site_settings (
+      id INT NOT NULL PRIMARY KEY DEFAULT 1,
+      email VARCHAR(255) NOT NULL,
+      phone VARCHAR(50) NOT NULL,
+      phone_label VARCHAR(50) NOT NULL,
+      whatsapp_phone VARCHAR(30) NOT NULL,
+      whatsapp_message VARCHAR(500) NOT NULL,
+      instagram_url VARCHAR(500) NOT NULL,
+      instagram_handle VARCHAR(100) NOT NULL,
+      facebook_url VARCHAR(500) NOT NULL,
+      facebook_handle VARCHAR(100) NOT NULL,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      CONSTRAINT chk_site_settings_singleton CHECK (id = 1)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+    `INSERT IGNORE INTO site_settings (
+      id,
+      email,
+      phone,
+      phone_label,
+      whatsapp_phone,
+      whatsapp_message,
+      instagram_url,
+      instagram_handle,
+      facebook_url,
+      facebook_handle
+    ) VALUES (
+      1,
+      'info@evimersin.com',
+      '+90 555 123 45 67',
+      '+90 555 123 45 67',
+      '905551234567',
+      'Hello EviMersin, I would like to know more about your properties.',
+      'https://instagram.com/evimersin',
+      '@evimersin',
+      'https://facebook.com/evimersin',
+      'EviMersin'
+    )`,
   ];
 
   for (const sql of migrations) {
@@ -55,7 +92,10 @@ async function runMigrations(connection: {
       await connection.query(sql);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      if (!message.includes("Duplicate column name")) {
+      if (
+        !message.includes("Duplicate column name") &&
+        !message.includes("already exists")
+      ) {
         throw error;
       }
     }

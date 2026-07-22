@@ -6,3 +6,4 @@ export * from "@/store/slices/admin/purposesApi";
 export * from "@/store/slices/admin/productTypes";
 export * from "@/store/slices/admin/productsApi";
 export * from "@/store/slices/admin/analyticsApi";
+export * from "@/store/slices/admin/settingsApi";

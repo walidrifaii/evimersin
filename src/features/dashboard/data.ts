@@ -60,6 +60,7 @@ export const dashboardNav: DashboardNavItem[] = [
   { id: "categories", label: "Categories", href: `${routes.dashboard}?tab=categories` },
   { id: "purposes", label: "Purposes", href: `${routes.dashboard}?tab=purposes` },
   { id: "products", label: "Residential Units", href: `${routes.dashboard}?tab=products` },
+  { id: "settings", label: "Settings", href: `${routes.dashboard}?tab=settings` },
 ];
 
 export const dashboardKpis: DashboardKpi[] = [

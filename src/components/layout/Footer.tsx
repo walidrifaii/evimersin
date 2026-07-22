@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { BrandLogo } from "@/components/layout/BrandLogo";
 import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
-import { config, getWhatsAppUrl } from "@/constants/config";
+import { useSiteSettings } from "@/components/providers/SiteSettingsProvider";
+import { config, getWhatsAppUrlFromSettings } from "@/constants/config";
 import { routes } from "@/constants/routes";
 import { navigation } from "@/data/navigation";
 
@@ -12,6 +15,9 @@ const quickLinks = [
 ];
 
 export function Footer() {
+  const settings = useSiteSettings();
+  const whatsappUrl = getWhatsAppUrlFromSettings(settings);
+
   return (
     <footer className="mt-auto w-full bg-[var(--brand-navy)] text-white">
       <div className="mx-auto w-full px-4 py-12 sm:px-6 sm:py-14 md:px-4 lg:px-[100px] lg:py-16">
@@ -72,21 +78,21 @@ export function Footer() {
                 {config.contact.address}
               </p>
               <a
-                href={`tel:${config.contact.phone}`}
+                href={`tel:${settings.phone}`}
                 className="block transition-colors hover:text-white"
               >
-                {config.contact.phoneLabel}
+                {settings.phone_label}
               </a>
               <a
-                href={`mailto:${config.contact.email}`}
+                href={`mailto:${settings.email}`}
                 className="block transition-colors hover:text-white"
               >
-                {config.contact.email}
+                {settings.email}
               </a>
             </div>
 
             <a
-              href={getWhatsAppUrl()}
+              href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-5 inline-flex items-center gap-2 rounded-full bg-[var(--brand-red)] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#c9181e] sm:mt-6"

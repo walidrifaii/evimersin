@@ -23,7 +23,28 @@ export const config = {
   },
 } as const;
 
-export function getWhatsAppUrl(customMessage?: string) {
-  const text = encodeURIComponent(customMessage ?? config.whatsapp.message);
-  return `https://wa.me/${config.whatsapp.phone}?text=${text}`;
+export type WhatsAppSettings = {
+  phone: string;
+  message: string;
+};
+
+export function getWhatsAppUrl(
+  customMessage?: string,
+  options?: Partial<WhatsAppSettings>,
+) {
+  const phone = options?.phone ?? config.whatsapp.phone;
+  const text = encodeURIComponent(
+    customMessage ?? options?.message ?? config.whatsapp.message,
+  );
+  return `https://wa.me/${phone}?text=${text}`;
+}
+
+export function getWhatsAppUrlFromSettings(
+  settings: { whatsapp_phone: string; whatsapp_message: string },
+  customMessage?: string,
+) {
+  return getWhatsAppUrl(customMessage, {
+    phone: settings.whatsapp_phone,
+    message: settings.whatsapp_message,
+  });
 }

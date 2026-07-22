@@ -4,17 +4,20 @@ import { HiChevronLeft } from "react-icons/hi";
 import { BathIcon } from "@/components/icons/BathIcon";
 import { BedIcon } from "@/components/icons/BedIcon";
 import { SquareMeterIcon } from "@/components/icons/SquareMeterIcon";
-import { getWhatsAppUrl } from "@/constants/config";
+import { getWhatsAppUrlFromSettings } from "@/constants/config";
 import { routes } from "@/constants/routes";
 import { PropertyGallery } from "@/features/products/components/PropertyGallery";
 import type { PropertyListing } from "@/features/products/types";
+import { getSiteSettings } from "@/lib/site-settings";
 
 type PropertyDetailsViewProps = {
   property: PropertyListing;
 };
 
-export function PropertyDetailsView({ property }: PropertyDetailsViewProps) {
-  const whatsappUrl = getWhatsAppUrl(
+export async function PropertyDetailsView({ property }: PropertyDetailsViewProps) {
+  const settings = await getSiteSettings();
+  const whatsappUrl = getWhatsAppUrlFromSettings(
+    settings,
     `Hello EviMersin, I am interested in ${property.title} (${property.location}).`,
   );
 

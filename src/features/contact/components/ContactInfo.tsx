@@ -1,3 +1,5 @@
+"use client";
+
 import type { IconType } from "react-icons";
 import {
   FaFacebook,
@@ -9,8 +11,15 @@ import {
   HiOutlineMail,
   HiOutlinePhone,
 } from "react-icons/hi";
-import { getWhatsAppUrl } from "@/constants/config";
-import { contactData } from "@/features/contact/data";
+import {
+  useSiteSettings,
+  useWhatsAppUrl,
+} from "@/components/providers/SiteSettingsProvider";
+import {
+  contactData,
+  getContactMethods,
+  getContactSocial,
+} from "@/features/contact/data";
 
 const methodIcons = {
   phone: HiOutlinePhone,
@@ -61,6 +70,11 @@ function ContactCard({
 }
 
 export function ContactInfo() {
+  const settings = useSiteSettings();
+  const whatsappUrl = useWhatsAppUrl();
+  const methods = getContactMethods(settings);
+  const social = getContactSocial(settings);
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -73,7 +87,7 @@ export function ContactInfo() {
       </div>
 
       <div className="space-y-4">
-        {contactData.methods.map((method) => (
+        {methods.map((method) => (
           <ContactCard
             key={method.id}
             id={method.id}
@@ -87,7 +101,7 @@ export function ContactInfo() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {contactData.social.map((item) => (
+        {social.map((item) => (
           <ContactCard
             key={item.id}
             id={item.id}
@@ -101,7 +115,7 @@ export function ContactInfo() {
       </div>
 
       <a
-        href={getWhatsAppUrl()}
+        href={whatsappUrl}
         target="_blank"
         rel="noopener noreferrer"
         className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--brand-red)] px-5 py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-[#c9181e]"

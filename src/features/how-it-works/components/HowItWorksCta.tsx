@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { FaWhatsapp } from "react-icons/fa";
 import { HiArrowRight, HiOutlineHome } from "react-icons/hi";
-import { getWhatsAppUrl } from "@/constants/config";
+import { getWhatsAppUrlFromSettings } from "@/constants/config";
 import { routes } from "@/constants/routes";
+import { getSiteSettings } from "@/lib/site-settings";
 
-export function HowItWorksCta() {
+export async function HowItWorksCta() {
+  const settings = await getSiteSettings();
+  const whatsappUrl = getWhatsAppUrlFromSettings(settings);
   return (
     <section className="w-full bg-white">
       <div className="mx-auto w-full px-4 py-16 sm:px-6 md:px-4 lg:px-[100px] lg:py-20">
@@ -49,7 +52,7 @@ export function HowItWorksCta() {
               </Link>
 
               <a
-                href={getWhatsAppUrl()}
+                href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-[#e8edf5] bg-white px-6 text-[15px] font-semibold text-[var(--brand-navy)] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] hover:shadow-md"

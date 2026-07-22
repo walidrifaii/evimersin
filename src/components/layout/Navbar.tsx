@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { BrandLogo } from "@/components/layout/BrandLogo";
 import { ChevronDown } from "@/components/icons/ChevronDown";
 import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
-import { getWhatsAppUrl } from "@/constants/config";
+import { useWhatsAppUrl } from "@/components/providers/SiteSettingsProvider";
 import { navigation } from "@/data/navigation";
 import { propertyTypeCards } from "@/features/home/data";
 
@@ -14,6 +14,7 @@ const propertyNavItems = propertyTypeCards.filter((item) => item.id !== "more");
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [propertiesOpen, setPropertiesOpen] = useState(false);
+  const whatsappUrl = useWhatsAppUrl();
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -38,8 +39,6 @@ export function Navbar() {
   useEffect(() => {
     if (!menuOpen) setPropertiesOpen(false);
   }, [menuOpen]);
-
-  const whatsappUrl = useMemo(() => getWhatsAppUrl(), []);
 
   return (
     <>

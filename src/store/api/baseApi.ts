@@ -73,6 +73,7 @@ export const api = createApi({
     "Category",
     "Purpose",
     "Analytics",
+    "Settings",
   ],
   endpoints: () => ({}),
 });

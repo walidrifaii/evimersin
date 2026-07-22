@@ -6,6 +6,7 @@ import { CitiesPanel } from "@/features/dashboard/components/lookups/CitiesPanel
 import { CountriesPanel } from "@/features/dashboard/components/lookups/CountriesPanel";
 import { PurposesPanel } from "@/features/dashboard/components/lookups/PurposesPanel";
 import { ProductsPanel } from "@/features/dashboard/components/lookups/ProductsPanel";
+import { SettingsPanel } from "@/features/dashboard/components/SettingsPanel";
 import { DashboardOverview } from "@/features/dashboard/components/DashboardOverview";
 
 export function DashboardContent() {
@@ -23,6 +24,8 @@ export function DashboardContent() {
       return <PurposesPanel />;
     case "products":
       return <ProductsPanel />;
+    case "settings":
+      return <SettingsPanel />;
     default:
       return <DashboardOverview />;
   }
