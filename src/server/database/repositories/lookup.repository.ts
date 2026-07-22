@@ -90,6 +90,18 @@ export const cityRepository = {
        ORDER BY cities.name ASC`,
     ),
 
+  findActiveByCountry: (countryName: string) =>
+    query<City[]>(
+      `SELECT cities.id, cities.name, cities.country_id,
+              country.name AS country_name, cities.status
+       FROM cities
+       INNER JOIN country ON country.id = cities.country_id
+       WHERE LOWER(country.name) = LOWER(:countryName)
+          OR cities.country_id = 1
+       ORDER BY cities.name ASC`,
+      { countryName },
+    ),
+
   async findById(id: number) {
     const rows = await query<City[]>(
       `SELECT cities.id, cities.name, cities.country_id,

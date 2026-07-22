@@ -8,7 +8,7 @@ import {
   getPropertyFilterOptions,
 } from "@/features/products/server-data";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const [filterOptions, featuredListings, hotDeals] = await Promise.all([

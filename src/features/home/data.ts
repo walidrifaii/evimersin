@@ -16,7 +16,7 @@ import { routes } from "@/constants/routes";
 export const homeData = {
   title: "Find Your",
   titleAccent: "Dream Property",
-  subtitle: "Discover the best properties in Mersin",
+  subtitle: "Discover the best properties in Lebanon",
   search: {
     city: {
       label: "City",

@@ -132,52 +132,66 @@ const getCachedPropertyListingById = unstable_cache(
 );
 
 async function loadPropertyFilterOptions() {
-  try {
-    const [products, cities, categories, purposes] = await Promise.all([
-      productRepository.findActive(),
-      cityRepository.findAll(),
-      categoryRepository.findAll(),
-      purposeRepository.findAll(),
-    ]);
+  const settled = await Promise.allSettled([
+    productRepository.findActive(),
+    cityRepository.findActiveByCountry("Lebanon"),
+    categoryRepository.findAll(),
+    purposeRepository.findAll(),
+  ]);
 
-    return buildPropertyFilterOptions(
-      products.map((product) => ({
-        city: product.city_name,
-        propertyType: product.category_name,
-        purpose: product.purpose_name,
-        priceValue: product.final_price,
-      })),
-      {
-        cities: cities
-          .filter((city) => city.status === 1)
-          .map((city) => city.name),
-        propertyTypes: categories
-          .filter((category) => category.status === 1)
-          .map((category) => category.name),
-        purposes: purposes
-          .filter((purpose) => purpose.status === 1)
-          .map((purpose) => purpose.name),
-      },
-    );
-  } catch (error) {
-    console.error("[listings] Failed to load filter options:", error);
-    return buildPropertyFilterOptions([]);
+  const products =
+    settled[0].status === "fulfilled" ? settled[0].value : [];
+  const cities =
+    settled[1].status === "fulfilled" ? settled[1].value : [];
+  const categories =
+    settled[2].status === "fulfilled" ? settled[2].value : [];
+  const purposes =
+    settled[3].status === "fulfilled" ? settled[3].value : [];
+
+  for (const [index, result] of settled.entries()) {
+    if (result.status === "rejected") {
+      console.error(`[listings] Filter source ${index} failed:`, result.reason);
+    }
   }
+
+  // Fallback: if Lebanon filter returned nothing, use any city in the database.
+  let cityNames = cities.map((city) => city.name);
+  if (cityNames.length === 0) {
+    try {
+      const allCities = await cityRepository.findAll();
+      cityNames = allCities.map((city) => city.name);
+    } catch (error) {
+      console.error("[listings] Failed to load fallback cities:", error);
+    }
+  }
+
+  return buildPropertyFilterOptions(
+    products.map((product) => ({
+      city: product.city_name,
+      propertyType: product.category_name,
+      purpose: product.purpose_name,
+      priceValue: product.final_price,
+    })),
+    {
+      cities: cityNames,
+      propertyTypes: categories
+        .filter((category) => Number(category.status) === 1)
+        .map((category) => category.name),
+      purposes: purposes
+        .filter((purpose) => Number(purpose.status) === 1)
+        .map((purpose) => purpose.name),
+    },
+  );
 }
 
-const getCachedPropertyFilterOptions = unstable_cache(
-  loadPropertyFilterOptions,
-  ["property-filter-options"],
-  { revalidate: 60, tags: ["property-listings"] },
-);
+/** Fresh each request so city filters never stick on an empty build cache. */
+export const getPropertyFilterOptions = cache(async () => {
+  return loadPropertyFilterOptions();
+});
 
 /** Per-request dedupe + cross-request ISR cache (60s). */
 export const getPropertyListings = cache(async () => {
   return getCachedPropertyListings();
-});
-
-export const getPropertyFilterOptions = cache(async () => {
-  return getCachedPropertyFilterOptions();
 });
 
 export const getFeaturedPropertyListings = cache(async (limit = 4) => {
