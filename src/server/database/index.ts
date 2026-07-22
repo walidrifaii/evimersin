@@ -1,5 +1,6 @@
 export { getPool, query, execute } from "@/server/database/connection";
 export { adminRepository } from "@/server/database/repositories/admin.repository";
+export { passwordResetRepository } from "@/server/database/repositories/password-reset.repository";
 export {
   categoryRepository,
   cityRepository,

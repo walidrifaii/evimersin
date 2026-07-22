@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
@@ -119,6 +120,15 @@ export function AdminLoginForm() {
                   {showPassword ? "Hide" : "Show"}
                 </button>
               </div>
+            </div>
+
+            <div className="text-right">
+              <Link
+                href={routes.forgotPassword}
+                className="text-[13px] font-semibold text-[var(--brand-blue)] transition-colors hover:text-[#1d4ed8]"
+              >
+                Forgot password?
+              </Link>
             </div>
 
             {error ? (

@@ -84,6 +84,20 @@ async function runMigrations(connection: {
       'https://facebook.com/evimersin',
       'EviMersin'
     )`,
+    `CREATE TABLE IF NOT EXISTS password_reset_otps (
+      id INT NOT NULL AUTO_INCREMENT,
+      admin_id INT NOT NULL,
+      otp_hash VARCHAR(255) NOT NULL,
+      expires_at DATETIME NOT NULL,
+      used_at DATETIME NULL DEFAULT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      KEY idx_password_reset_admin_id (admin_id),
+      KEY idx_password_reset_expires_at (expires_at),
+      CONSTRAINT fk_password_reset_admin
+        FOREIGN KEY (admin_id) REFERENCES admin(id)
+        ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
   ];
 
   for (const sql of migrations) {

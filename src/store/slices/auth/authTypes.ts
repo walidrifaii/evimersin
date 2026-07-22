@@ -17,3 +17,13 @@ export type LoginRequest = {
   username: string;
   password: string;
 };
+
+export type ForgotPasswordRequest = {
+  username: string;
+};
+
+export type ResetPasswordRequest = {
+  username: string;
+  otp: string;
+  password: string;
+};

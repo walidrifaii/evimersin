@@ -36,6 +36,16 @@ export type LoginInput = {
   password: string;
 };
 
+export type ForgotPasswordInput = {
+  username: string;
+};
+
+export type ResetPasswordInput = {
+  username: string;
+  otp: string;
+  password: string;
+};
+
 export type AuthTokenPayload = {
   sub: number;
   username: string;

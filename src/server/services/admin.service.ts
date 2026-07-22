@@ -1,5 +1,10 @@
 import { adminRepository } from "@/server/database/repositories/admin.repository";
 import {
+  generateOtpCode,
+  passwordResetRepository,
+  verifyOtpHash,
+} from "@/server/database/repositories/password-reset.repository";
+import {
   refreshTokenRepository,
 } from "@/server/database/repositories/refresh-token.repository";
 import {
@@ -9,13 +14,18 @@ import {
   verifyRefreshJwt,
 } from "@/server/auth/jwt";
 import { hashPassword, verifyPassword } from "@/server/auth/password";
+import { mailService } from "@/server/services/mail.service";
 import { AppError } from "@/server/utils/errors";
 import type {
   AdminPublic,
   CreateAdminInput,
+  ForgotPasswordInput,
   LoginInput,
+  ResetPasswordInput,
   UpdateAdminInput,
 } from "@/server/types/admin.types";
+
+const OTP_EXPIRY_MINUTES = 10;
 
 function toPublicAdmin(admin: {
   id: number;
@@ -167,5 +177,49 @@ export const adminService = {
 
   async me(adminId: number) {
     return this.getById(adminId);
+  },
+
+  async requestPasswordReset(input: ForgotPasswordInput) {
+    const admin = await adminRepository.findByUsername(input.username);
+
+    if (!admin || admin.status !== 1) {
+      return {
+        message:
+          "If the account exists, an OTP has been sent to the admin email.",
+      };
+    }
+
+    const otp = generateOtpCode();
+    const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
+
+    await passwordResetRepository.create(admin.id, otp, expiresAt);
+    await mailService.sendPasswordResetOtp({
+      username: admin.username,
+      adminName: admin.name,
+      otp,
+    });
+
+    return {
+      message: "If the account exists, an OTP has been sent to the admin email.",
+    };
+  },
+
+  async resetPassword(input: ResetPasswordInput) {
+    const admin = await adminRepository.findByUsername(input.username);
+    if (!admin || admin.status !== 1) {
+      throw new AppError("Invalid username or OTP", 400);
+    }
+
+    const record = await passwordResetRepository.findLatestValid(admin.id);
+    if (!record || !verifyOtpHash(input.otp, record.otp_hash)) {
+      throw new AppError("Invalid or expired OTP", 400);
+    }
+
+    const passwordHash = await hashPassword(input.password);
+    await adminRepository.update(admin.id, { password: passwordHash });
+    await passwordResetRepository.markUsed(record.id);
+    await refreshTokenRepository.revokeAllForAdmin(admin.id);
+
+    return { message: "Password updated successfully. You can sign in now." };
   },
 };

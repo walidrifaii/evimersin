@@ -3,7 +3,9 @@ import type { ApiResponse } from "@/store/api/types";
 import type {
   AuthAdmin,
   AuthSession,
+  ForgotPasswordRequest,
   LoginRequest,
+  ResetPasswordRequest,
 } from "@/store/slices/auth/authTypes";
 
 export const authApi = api.injectEndpoints({
@@ -32,7 +34,33 @@ export const authApi = api.injectEndpoints({
       transformResponse: (response: ApiResponse<{ message: string }>) =>
         response.data,
     }),
+
+    forgotPassword: builder.mutation<{ message: string }, ForgotPasswordRequest>({
+      query: (body) => ({
+        url: "/admin/auth/forgot-password",
+        method: "POST",
+        body,
+      }),
+      transformResponse: (response: ApiResponse<{ message: string }>) =>
+        response.data,
+    }),
+
+    resetPassword: builder.mutation<{ message: string }, ResetPasswordRequest>({
+      query: (body) => ({
+        url: "/admin/auth/reset-password",
+        method: "POST",
+        body,
+      }),
+      transformResponse: (response: ApiResponse<{ message: string }>) =>
+        response.data,
+    }),
   }),
 });
 
-export const { useLoginMutation, useGetMeQuery, useLogoutMutation } = authApi;
+export const {
+  useLoginMutation,
+  useGetMeQuery,
+  useLogoutMutation,
+  useForgotPasswordMutation,
+  useResetPasswordMutation,
+} = authApi;
