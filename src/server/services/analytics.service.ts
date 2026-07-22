@@ -11,7 +11,7 @@ import type {
   AnalyticsProductRow,
   DashboardAnalytics,
 } from "@/server/types/analytics.types";
-import { formatProductPrice, hasActiveDiscount } from "@/lib/product-pricing";
+import { hasActiveDiscount } from "@/lib/product-pricing";
 import type { Product } from "@/server/types/product.types";
 
 function toDateKey(value: string | Date) {
@@ -63,7 +63,6 @@ function buildKpis(input: {
   activeProducts: number;
   featuredProducts: number;
   hotDeals: number;
-  inventoryValue: number;
 }): AnalyticsKpi[] {
   return [
     {
@@ -89,14 +88,6 @@ function buildKpis(input: {
       change: input.hotDeals > 0 ? "On sale" : "None",
       trend: input.hotDeals > 0 ? "up" : "neutral",
       hint: "Discounted listings on the website",
-    },
-    {
-      id: "inventory-value",
-      label: "Inventory Value",
-      value: formatProductPrice(input.inventoryValue),
-      change: "Total",
-      trend: "neutral",
-      hint: "Sum of active listing prices",
     },
   ];
 }
@@ -173,17 +164,12 @@ export const analyticsService = {
       (product) => product.is_featured === 1,
     );
     const hotDealProducts = activeProducts.filter(isHotDeal);
-    const inventoryValue = activeProducts.reduce(
-      (sum, product) => sum + Number(product.final_price || 0),
-      0,
-    );
 
     return {
       kpis: buildKpis({
         activeProducts: activeProducts.length,
         featuredProducts: featuredProducts.length,
         hotDeals: hotDealProducts.length,
-        inventoryValue,
       }),
       summary: {
         countries: countries.length,
