@@ -13,7 +13,6 @@ const messageSchema = z.string().trim().min(1).max(500);
 export const updateSiteSettingsSchema = z.object({
   email: emailSchema,
   phone: phoneSchema,
-  phone_label: phoneSchema,
   whatsapp_phone: whatsappPhoneSchema,
   whatsapp_message: messageSchema,
   instagram_url: urlSchema,

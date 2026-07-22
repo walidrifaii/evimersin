@@ -9,7 +9,6 @@ import { AppError } from "@/server/utils/errors";
 export const defaultSiteSettings: UpdateSiteSettingsInput = {
   email: config.contact.email,
   phone: config.contact.phone,
-  phone_label: config.contact.phoneLabel,
   whatsapp_phone: config.whatsapp.phone,
   whatsapp_message: config.whatsapp.message,
   instagram_url: config.social.instagram,
@@ -18,15 +17,16 @@ export const defaultSiteSettings: UpdateSiteSettingsInput = {
   facebook_handle: config.social.facebookHandle,
 };
 
-function toPublicSettings(row: SiteSettings): UpdateSiteSettingsInput & {
+export type PublicSiteSettings = UpdateSiteSettingsInput & {
   id: number;
   updated_at: Date | string;
-} {
+};
+
+function toPublicSettings(row: SiteSettings): PublicSiteSettings {
   return {
     id: row.id,
     email: row.email,
     phone: row.phone,
-    phone_label: row.phone_label,
     whatsapp_phone: row.whatsapp_phone,
     whatsapp_message: row.whatsapp_message,
     instagram_url: row.instagram_url,

@@ -18,7 +18,6 @@ type FormState = UpdateSiteSettingsInput;
 const emptyForm: FormState = {
   email: "",
   phone: "",
-  phone_label: "",
   whatsapp_phone: "",
   whatsapp_message: "",
   instagram_url: "",
@@ -39,7 +38,6 @@ export function SettingsPanel() {
     setForm({
       email: data.email,
       phone: data.phone,
-      phone_label: data.phone_label,
       whatsapp_phone: data.whatsapp_phone,
       whatsapp_message: data.whatsapp_message,
       instagram_url: data.instagram_url,
@@ -105,13 +103,6 @@ export function SettingsPanel() {
                 required
                 placeholder="+90 555 123 45 67"
                 onChange={(value) => updateField("phone", value)}
-              />
-              <TextInput
-                label="Phone label"
-                value={form.phone_label}
-                required
-                placeholder="+90 555 123 45 67"
-                onChange={(value) => updateField("phone_label", value)}
               />
             </div>
           </section>

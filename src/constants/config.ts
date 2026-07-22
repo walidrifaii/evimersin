@@ -8,7 +8,6 @@ export const config = {
     mapsUrl:
       "https://www.google.com/maps?cid=17182616818109508322&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAMYASAF&hl=tr&gl=TR&source=embed",
     phone: "+90 555 123 45 67",
-    phoneLabel: "+90 555 123 45 67",
     email: "info@evimersin.com",
   },
   whatsapp: {

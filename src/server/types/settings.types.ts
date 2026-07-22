@@ -15,7 +15,6 @@ export type SiteSettings = {
 export type UpdateSiteSettingsInput = {
   email: string;
   phone: string;
-  phone_label: string;
   whatsapp_phone: string;
   whatsapp_message: string;
   instagram_url: string;

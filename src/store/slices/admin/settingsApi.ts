@@ -5,7 +5,6 @@ export type SiteSettings = {
   id: number;
   email: string;
   phone: string;
-  phone_label: string;
   whatsapp_phone: string;
   whatsapp_message: string;
   instagram_url: string;

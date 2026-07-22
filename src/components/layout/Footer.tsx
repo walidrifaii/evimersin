@@ -81,7 +81,7 @@ export function Footer() {
                 href={`tel:${settings.phone}`}
                 className="block transition-colors hover:text-white"
               >
-                {settings.phone_label}
+                {settings.phone}
               </a>
               <a
                 href={`mailto:${settings.email}`}

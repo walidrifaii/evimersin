@@ -76,7 +76,7 @@ export const settingsRepository = {
         1,
         :email,
         :phone,
-        :phone_label,
+        :phone,
         :whatsapp_phone,
         :whatsapp_message,
         :instagram_url,
@@ -87,7 +87,7 @@ export const settingsRepository = {
       ON DUPLICATE KEY UPDATE
         email = VALUES(email),
         phone = VALUES(phone),
-        phone_label = VALUES(phone_label),
+        phone_label = VALUES(phone),
         whatsapp_phone = VALUES(whatsapp_phone),
         whatsapp_message = VALUES(whatsapp_message),
         instagram_url = VALUES(instagram_url),

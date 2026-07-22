@@ -31,7 +31,7 @@ export function getContactMethods(settings: PublicSiteSettings) {
     {
       id: "phone" as const,
       title: "Phone",
-      value: settings.phone_label,
+      value: settings.phone,
       href: `tel:${settings.phone}`,
       description: "Speak with our team",
     },
