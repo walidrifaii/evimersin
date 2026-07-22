@@ -1,8 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
-import { useState } from "react";
 import { routes } from "@/constants/routes";
 import {
   FormLoading,
@@ -12,6 +12,7 @@ import {
 } from "@/features/dashboard/components/lookups/LookupManager";
 import {
   useCreateCityMutation,
+  useCreateCountryMutation,
   useGetCitiesQuery,
   useGetCountriesQuery,
   useUpdateCityMutation,
@@ -20,6 +21,7 @@ import {
 } from "@/store/slices/admin";
 
 const backHref = routes.dashboardTab("cities");
+const DEFAULT_COUNTRY_NAME = "Lebanon";
 
 export function CityForm({ id }: { id?: number }) {
   const { data = [], isLoading } = useGetCitiesQuery();
@@ -32,7 +34,8 @@ export function CityForm({ id }: { id?: number }) {
 
 function CityFormFields({ id, initial }: { id?: number; initial?: City }) {
   const router = useRouter();
-  const { data: countries = [] } = useGetCountriesQuery();
+  const { data: countries = [], isLoading: countriesLoading } = useGetCountriesQuery();
+  const [createCountry] = useCreateCountryMutation();
   const [createCity, createState] = useCreateCityMutation();
   const [updateCity, updateState] = useUpdateCityMutation();
 
@@ -40,13 +43,57 @@ function CityFormFields({ id, initial }: { id?: number; initial?: City }) {
   const [countryId, setCountryId] = useState<number>(initial?.country_id ?? 0);
   const [status, setStatus] = useState<Status>(initial?.status ?? 1);
   const [error, setError] = useState<unknown>(null);
+  const [resolvingCountry, setResolvingCountry] = useState(!initial?.country_id);
+
+  useEffect(() => {
+    if (initial?.country_id) {
+      setCountryId(initial.country_id);
+      setResolvingCountry(false);
+      return;
+    }
+
+    if (countriesLoading) return;
+
+    let cancelled = false;
+
+    async function ensureLebanon() {
+      setResolvingCountry(true);
+      try {
+        const existing = countries.find(
+          (country) => country.name.toLowerCase() === DEFAULT_COUNTRY_NAME.toLowerCase(),
+        );
+
+        if (existing) {
+          if (!cancelled) setCountryId(existing.id);
+          return;
+        }
+
+        const created = await createCountry({
+          name: DEFAULT_COUNTRY_NAME,
+          status: 1,
+        }).unwrap();
+
+        if (!cancelled) setCountryId(created.id);
+      } catch (err) {
+        if (!cancelled) setError(err);
+      } finally {
+        if (!cancelled) setResolvingCountry(false);
+      }
+    }
+
+    void ensureLebanon();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [countries, countriesLoading, createCountry, initial?.country_id]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
 
     if (!countryId) {
-      setError({ data: { message: "Please select a country" } });
+      setError({ data: { message: "Lebanon country is not ready yet. Please try again." } });
       return;
     }
 
@@ -64,10 +111,12 @@ function CityFormFields({ id, initial }: { id?: number; initial?: City }) {
     }
   }
 
+  if (resolvingCountry && !countryId) return <FormLoading />;
+
   return (
     <LookupFormLayout
       title={id ? "Edit city" : "Add city"}
-      description="Cities are linked to a country and used for property locations."
+      description="Cities in Lebanon used for property locations."
       backHref={backHref}
       onSubmit={onSubmit}
       submitting={createState.isLoading || updateState.isLoading}
@@ -78,27 +127,9 @@ function CityFormFields({ id, initial }: { id?: number; initial?: City }) {
         label="Name"
         value={name}
         required
-        placeholder="Mersin"
+        placeholder="Beirut"
         onChange={setName}
       />
-      <label className="block">
-        <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
-          Country
-        </span>
-        <select
-          required
-          value={countryId || ""}
-          onChange={(e) => setCountryId(Number(e.target.value))}
-          className="h-11 w-full rounded-xl border border-[#dbe3ef] bg-[#f8fafc] px-3 text-[14px] text-[var(--brand-navy)] outline-none focus:border-[var(--brand-blue)] focus:bg-white"
-        >
-          <option value="">Select country</option>
-          {countries.map((country) => (
-            <option key={country.id} value={country.id}>
-              {country.name}
-            </option>
-          ))}
-        </select>
-      </label>
       <StatusSelect value={status} onChange={setStatus} />
     </LookupFormLayout>
   );

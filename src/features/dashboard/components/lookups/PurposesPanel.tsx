@@ -46,6 +46,8 @@ export function PurposesPanel() {
                 <RowActions
                   editHref={routes.lookupEdit("purposes", item.id)}
                   deleting={deleteState.isLoading}
+                  confirmTitle="Delete purpose?"
+                  confirmMessage={`Are you sure you want to delete “${item.name}”? This action cannot be undone.`}
                   onDelete={async () => {
                     setActionError(null);
                     try {

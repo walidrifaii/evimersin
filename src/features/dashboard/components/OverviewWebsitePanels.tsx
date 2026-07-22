@@ -180,7 +180,6 @@ const quickLinks = [
 ] as const;
 
 const manageLinks = [
-  { label: "Countries", href: routes.dashboardTab("countries"), countKey: "countries" as const },
   { label: "Cities", href: routes.dashboardTab("cities"), countKey: "cities" as const },
   { label: "Categories", href: routes.dashboardTab("categories"), countKey: "categories" as const },
   { label: "Purposes", href: routes.dashboardTab("purposes"), countKey: "purposes" as const },

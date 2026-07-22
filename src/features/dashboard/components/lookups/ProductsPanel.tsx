@@ -121,6 +121,8 @@ export function ProductsPanel() {
                 <RowActions
                   editHref={routes.lookupEdit("products", item.id)}
                   deleting={deleteState.isLoading}
+                  confirmTitle="Delete residential unit?"
+                  confirmMessage={`Are you sure you want to delete “${item.name}”? This action cannot be undone.`}
                   onDelete={async () => {
                     setActionError(null);
                     try {

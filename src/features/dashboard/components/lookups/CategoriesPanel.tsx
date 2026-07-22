@@ -64,6 +64,8 @@ export function CategoriesPanel() {
                 <RowActions
                   editHref={routes.lookupEdit("categories", item.id)}
                   deleting={deleteState.isLoading}
+                  confirmTitle="Delete category?"
+                  confirmMessage={`Are you sure you want to delete “${item.name}”? This action cannot be undone.`}
                   onDelete={async () => {
                     setActionError(null);
                     try {

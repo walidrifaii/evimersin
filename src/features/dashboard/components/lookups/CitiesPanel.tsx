@@ -21,7 +21,7 @@ export function CitiesPanel() {
   return (
     <LookupListLayout
       title="Cities"
-      description="Manage cities linked to countries for property locations."
+      description="Manage cities in Lebanon for property locations."
       addHref={routes.lookupNew("cities")}
       addLabel="Add city"
       loading={isLoading}
@@ -29,16 +29,15 @@ export function CitiesPanel() {
     >
       {data.length === 0 ? (
         <div className="px-5 py-10 text-center text-[14px] text-[var(--muted)]">
-          No cities yet. Create a country first, then add cities.
+          No cities yet. Add your first city in Lebanon.
         </div>
       ) : (
         <LookupTable
-          headers={["ID", "Name", "Country", "Status", "Actions"]}
+          headers={["ID", "Name", "Status", "Actions"]}
           rows={data.map((item) => (
             <tr key={item.id} className="border-t border-[#eef2f7]">
               <td className="px-5 py-3 text-[var(--muted)]">{item.id}</td>
               <td className="px-5 py-3 font-semibold text-[var(--brand-navy)]">{item.name}</td>
-              <td className="px-5 py-3 text-[var(--brand-navy)]">{item.country_name}</td>
               <td className="px-5 py-3">
                 <StatusBadge status={item.status} />
               </td>
@@ -46,6 +45,8 @@ export function CitiesPanel() {
                 <RowActions
                   editHref={routes.lookupEdit("cities", item.id)}
                   deleting={deleteState.isLoading}
+                  confirmTitle="Delete city?"
+                  confirmMessage={`Are you sure you want to delete “${item.name}”? This action cannot be undone.`}
                   onDelete={async () => {
                     setActionError(null);
                     try {

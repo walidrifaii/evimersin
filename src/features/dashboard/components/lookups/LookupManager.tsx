@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { FormEvent, ReactNode } from "react";
+import { useEffect, useId, useState, type FormEvent, type ReactNode } from "react";
 import { getApiErrorMessage } from "@/store/api/errors";
 
 export function LookupListLayout({
@@ -234,32 +234,142 @@ export function LookupTable({
   );
 }
 
+function ConfirmDeleteDrawer({
+  open,
+  title,
+  message,
+  deleting,
+  onCancel,
+  onConfirm,
+}: {
+  open: boolean;
+  title: string;
+  message: string;
+  deleting?: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const titleId = useId();
+
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape" && !deleting) onCancel();
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open, deleting, onCancel]);
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
+      <button
+        type="button"
+        aria-label="Close confirmation"
+        className="absolute inset-0 bg-black/40"
+        onClick={() => {
+          if (!deleting) onCancel();
+        }}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="relative z-10 w-full max-w-md rounded-3xl border border-[#e8eef6] bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.25)]"
+      >
+        <h2
+          id={titleId}
+          className="text-[1.15rem] font-bold tracking-tight text-[var(--brand-navy)]"
+        >
+          {title}
+        </h2>
+        <p className="mt-2 text-[14px] leading-relaxed text-[var(--muted)]">{message}</p>
+
+        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            disabled={deleting}
+            onClick={onCancel}
+            className="inline-flex h-11 cursor-pointer items-center justify-center rounded-full border border-[#d7dee8] bg-white px-5 text-[13px] font-semibold text-[var(--brand-navy)] transition-colors hover:bg-[#f8fafc] disabled:opacity-60"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={deleting}
+            onClick={onConfirm}
+            className="inline-flex h-11 cursor-pointer items-center justify-center rounded-full bg-[var(--brand-red)] px-5 text-[13px] font-semibold text-white transition-colors hover:bg-[#c9181e] disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {deleting ? "Deleting..." : "Delete"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function RowActions({
   editHref,
   onDelete,
   deleting,
+  confirmTitle = "Delete item?",
+  confirmMessage = "Are you sure you want to delete this item? This action cannot be undone.",
 }: {
   editHref: string;
-  onDelete: () => void;
+  onDelete: () => void | Promise<void>;
   deleting?: boolean;
+  confirmTitle?: string;
+  confirmMessage?: string;
 }) {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  async function handleConfirm() {
+    try {
+      await onDelete();
+      setConfirmOpen(false);
+    } catch {
+      // Keep drawer open so the user can cancel after seeing the list error.
+    }
+  }
+
   return (
-    <div className="flex items-center gap-2">
-      <Link
-        href={editHref}
-        className="cursor-pointer rounded-full px-3 py-1.5 text-[12px] font-semibold text-[var(--brand-blue)] hover:bg-[#eff6ff]"
-      >
-        Edit
-      </Link>
-      <button
-        type="button"
-        onClick={onDelete}
-        disabled={deleting}
-        className="cursor-pointer rounded-full px-3 py-1.5 text-[12px] font-semibold text-[var(--brand-red)] hover:bg-[#fef2f2] disabled:opacity-60"
-      >
-        {deleting ? "..." : "Delete"}
-      </button>
-    </div>
+    <>
+      <div className="flex items-center gap-2">
+        <Link
+          href={editHref}
+          className="cursor-pointer rounded-full px-3 py-1.5 text-[12px] font-semibold text-[var(--brand-blue)] hover:bg-[#eff6ff]"
+        >
+          Edit
+        </Link>
+        <button
+          type="button"
+          onClick={() => setConfirmOpen(true)}
+          disabled={deleting}
+          className="cursor-pointer rounded-full px-3 py-1.5 text-[12px] font-semibold text-[var(--brand-red)] hover:bg-[#fef2f2] disabled:opacity-60"
+        >
+          Delete
+        </button>
+      </div>
+
+      <ConfirmDeleteDrawer
+        open={confirmOpen}
+        title={confirmTitle}
+        message={confirmMessage}
+        deleting={deleting}
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={() => {
+          void handleConfirm();
+        }}
+      />
+    </>
   );
 }
 

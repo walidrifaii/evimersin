@@ -53,14 +53,14 @@ async function seedDemo() {
   await setupDatabase();
 
   const countries = await countryRepository.findAll();
-  const countryId = await ensureByName(countries, "Turkey", () =>
-    countryRepository.create({ name: "Turkey", status: 1 }),
+  const countryId = await ensureByName(countries, "Lebanon", () =>
+    countryRepository.create({ name: "Lebanon", status: 1 }),
   );
 
   const cities = await cityRepository.findAll();
-  const cityId = await ensureByName(cities, "Mersin", () =>
+  const cityId = await ensureByName(cities, "Beirut", () =>
     cityRepository.create({
-      name: "Mersin",
+      name: "Beirut",
       country_id: countryId,
       status: 1,
     }),
@@ -151,7 +151,7 @@ async function seedDemo() {
     {
       name: "City Center Apartment",
       description:
-        "Bright 2-bedroom apartment in central Mersin with balcony, fitted kitchen, and walking distance to cafes.",
+        "Bright 2-bedroom apartment in central Beirut with balcony, fitted kitchen, and walking distance to cafes.",
       price: 165000,
       category_id: apartmentCategoryId,
       purpose_id: salePurposeId,
@@ -239,7 +239,7 @@ async function seedDemo() {
 
   console.log("Demo seed complete.");
   console.log(`Categories: Villa, Apartment, Land`);
-  console.log(`City: Mersin (Turkey)`);
+  console.log(`City: Beirut (Lebanon)`);
   console.log(`Purposes: Sale, Rent`);
   console.log(`Products created: ${created}, skipped (already exist): ${skipped}`);
 

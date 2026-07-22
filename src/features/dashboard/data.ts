@@ -9,7 +9,6 @@ export type DashboardNavItem = {
 
 export const dashboardNav: DashboardNavItem[] = [
   { id: "overview", label: "Overview", href: routes.dashboardTab("overview") },
-  { id: "countries", label: "Countries", href: routes.dashboardTab("countries") },
   { id: "cities", label: "Cities", href: routes.dashboardTab("cities") },
   { id: "categories", label: "Categories", href: routes.dashboardTab("categories") },
   { id: "purposes", label: "Purposes", href: routes.dashboardTab("purposes") },
