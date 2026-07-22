@@ -4,6 +4,7 @@ import type {
   SiteSettings,
   UpdateSiteSettingsInput,
 } from "@/server/types/settings.types";
+import { AppError } from "@/server/utils/errors";
 
 export const defaultSiteSettings: UpdateSiteSettingsInput = {
   email: config.contact.email,
@@ -63,7 +64,20 @@ export const settingsService = {
   },
 
   async update(input: UpdateSiteSettingsInput) {
-    await settingsRepository.upsert(input);
-    return this.get();
+    try {
+      await settingsRepository.upsert(input);
+      const saved = await settingsRepository.find();
+      if (!saved) {
+        throw new AppError("Settings were saved but could not be loaded", 500);
+      }
+      return toPublicSettings(saved);
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      console.error("[settings] Failed to update:", error);
+      throw new AppError(
+        "Failed to save settings. Make sure the database is reachable.",
+        500,
+      );
+    }
   },
 };

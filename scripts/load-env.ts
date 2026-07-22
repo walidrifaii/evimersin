@@ -59,8 +59,7 @@ async function runMigrations(connection: {
       instagram_handle VARCHAR(100) NOT NULL,
       facebook_url VARCHAR(500) NOT NULL,
       facebook_handle VARCHAR(100) NOT NULL,
-      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      CONSTRAINT chk_site_settings_singleton CHECK (id = 1)
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
     `INSERT IGNORE INTO site_settings (
       id,
