@@ -37,17 +37,25 @@ export const adminIdSchema = z.object({
   id: z.coerce.number().int().positive(),
 });
 
+const identifierSchema = z.string().trim().min(3).max(255);
+
 export const forgotPasswordSchema = z.object({
-  username: z.string().trim().min(3).max(100),
+  identifier: identifierSchema,
+});
+
+export const verifyOtpSchema = z.object({
+  identifier: identifierSchema,
+  otp: z.string().trim().regex(/^\d{6}$/, "OTP must be 6 digits"),
 });
 
 export const resetPasswordSchema = z.object({
-  username: z.string().trim().min(3).max(100),
+  identifier: identifierSchema,
   otp: z.string().trim().regex(/^\d{6}$/, "OTP must be 6 digits"),
   password: z.string().min(6).max(128),
 });
 
 export type ForgotPasswordSchema = z.infer<typeof forgotPasswordSchema>;
+export type VerifyOtpSchema = z.infer<typeof verifyOtpSchema>;
 export type ResetPasswordSchema = z.infer<typeof resetPasswordSchema>;
 export type LoginSchema = z.infer<typeof loginSchema>;
 export type CreateAdminSchema = z.infer<typeof createAdminSchema>;

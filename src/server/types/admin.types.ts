@@ -41,11 +41,16 @@ export type LoginInput = {
 };
 
 export type ForgotPasswordInput = {
-  username: string;
+  identifier: string;
+};
+
+export type VerifyOtpInput = {
+  identifier: string;
+  otp: string;
 };
 
 export type ResetPasswordInput = {
-  username: string;
+  identifier: string;
   otp: string;
   password: string;
 };

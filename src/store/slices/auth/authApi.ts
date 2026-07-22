@@ -6,6 +6,7 @@ import type {
   ForgotPasswordRequest,
   LoginRequest,
   ResetPasswordRequest,
+  VerifyOtpRequest,
 } from "@/store/slices/auth/authTypes";
 
 export const authApi = api.injectEndpoints({
@@ -45,6 +46,16 @@ export const authApi = api.injectEndpoints({
         response.data,
     }),
 
+    verifyOtp: builder.mutation<{ message: string }, VerifyOtpRequest>({
+      query: (body) => ({
+        url: "/admin/auth/verify-otp",
+        method: "POST",
+        body,
+      }),
+      transformResponse: (response: ApiResponse<{ message: string }>) =>
+        response.data,
+    }),
+
     resetPassword: builder.mutation<{ message: string }, ResetPasswordRequest>({
       query: (body) => ({
         url: "/admin/auth/reset-password",
@@ -62,5 +73,6 @@ export const {
   useGetMeQuery,
   useLogoutMutation,
   useForgotPasswordMutation,
+  useVerifyOtpMutation,
   useResetPasswordMutation,
 } = authApi;

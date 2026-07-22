@@ -23,9 +23,16 @@ import type {
   LoginInput,
   ResetPasswordInput,
   UpdateAdminInput,
+  VerifyOtpInput,
 } from "@/server/types/admin.types";
 
 const OTP_EXPIRY_MINUTES = 10;
+
+async function findActiveAdminByIdentifier(identifier: string) {
+  const admin = await adminRepository.findByEmailOrUsername(identifier.trim());
+  if (!admin || admin.status !== 1) return null;
+  return admin;
+}
 
 function toPublicAdmin(admin: {
   id: number;
@@ -183,9 +190,9 @@ export const adminService = {
   },
 
   async requestPasswordReset(input: ForgotPasswordInput) {
-    const admin = await adminRepository.findByUsername(input.username);
+    const admin = await findActiveAdminByIdentifier(input.identifier);
 
-    if (!admin || admin.status !== 1 || !admin.email?.trim()) {
+    if (!admin || !admin.email?.trim()) {
       return {
         message:
           "If the account exists, an OTP has been sent to the admin email.",
@@ -208,9 +215,23 @@ export const adminService = {
     };
   },
 
+  async verifyPasswordResetOtp(input: VerifyOtpInput) {
+    const admin = await findActiveAdminByIdentifier(input.identifier);
+    if (!admin) {
+      throw new AppError("Invalid or expired OTP", 400);
+    }
+
+    const record = await passwordResetRepository.findLatestValid(admin.id);
+    if (!record || !verifyOtpHash(input.otp, record.otp_hash)) {
+      throw new AppError("Invalid or expired OTP", 400);
+    }
+
+    return { message: "OTP verified. You can set a new password." };
+  },
+
   async resetPassword(input: ResetPasswordInput) {
-    const admin = await adminRepository.findByUsername(input.username);
-    if (!admin || admin.status !== 1) {
+    const admin = await findActiveAdminByIdentifier(input.identifier);
+    if (!admin) {
       throw new AppError("Invalid username or OTP", 400);
     }
 

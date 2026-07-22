@@ -78,6 +78,20 @@ export const adminRepository = {
     return rows[0] ?? null;
   },
 
+  async findByEmailOrUsername(identifier: string): Promise<AdminRecord | null> {
+    await ensureEmailColumn();
+
+    const rows = await query<AdminRecord[]>(
+      `SELECT ${SELECT_FIELDS}
+       FROM admin
+       WHERE username = :identifier OR email = :identifier
+       LIMIT 1`,
+      { identifier },
+    );
+
+    return rows[0] ?? null;
+  },
+
   async create(input: CreateAdminInput & { password: string }): Promise<number> {
     await ensureEmailColumn();
 

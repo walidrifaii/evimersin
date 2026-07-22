@@ -20,11 +20,16 @@ export type LoginRequest = {
 };
 
 export type ForgotPasswordRequest = {
-  username: string;
+  identifier: string;
+};
+
+export type VerifyOtpRequest = {
+  identifier: string;
+  otp: string;
 };
 
 export type ResetPasswordRequest = {
-  username: string;
+  identifier: string;
   otp: string;
   password: string;
 };
