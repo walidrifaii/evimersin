@@ -116,12 +116,30 @@ export function getPropertyTypeFromQuery(type?: string | null) {
   return typeQueryMap[normalized] ?? null;
 }
 
+function normalizePurpose(value: string) {
+  const normalized = value.trim().toLowerCase();
+  if (["sale", "for sale", "buy", "buying"].includes(normalized)) {
+    return "for sale";
+  }
+  if (["rent", "for rent", "rental", "daily rent"].includes(normalized)) {
+    return "for rent";
+  }
+  return normalized;
+}
+
 function findOptionMatch(value: string | null | undefined, options: string[]) {
   if (!value) return null;
   const normalized = value.trim().toLowerCase();
   return (
     options.find((option) => option.toLowerCase() === normalized) ??
-    options.find((option) => option.toLowerCase().replace(/s$/, "") === normalized.replace(/s$/, "")) ??
+    options.find(
+      (option) =>
+        option.toLowerCase().replace(/s$/, "") ===
+        normalized.replace(/s$/, ""),
+    ) ??
+    options.find(
+      (option) => normalizePurpose(option) === normalizePurpose(value),
+    ) ??
     null
   );
 }
@@ -386,7 +404,7 @@ export function filterProperties(
     }
     if (
       filters.purpose !== "Buy / Rent" &&
-      item.purpose.toLowerCase() !== filters.purpose.toLowerCase()
+      normalizePurpose(item.purpose) !== normalizePurpose(filters.purpose)
     ) {
       return false;
     }

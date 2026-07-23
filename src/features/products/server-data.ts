@@ -134,7 +134,7 @@ const getCachedPropertyListingById = unstable_cache(
 async function loadPropertyFilterOptions() {
   const settled = await Promise.allSettled([
     productRepository.findActive(),
-    cityRepository.findActiveByCountry("Lebanon"),
+    cityRepository.findAll(),
     categoryRepository.findAll(),
     purposeRepository.findAll(),
   ]);
@@ -154,16 +154,9 @@ async function loadPropertyFilterOptions() {
     }
   }
 
-  // Fallback: if Lebanon filter returned nothing, use any city in the database.
-  let cityNames = cities.map((city) => city.name);
-  if (cityNames.length === 0) {
-    try {
-      const allCities = await cityRepository.findAll();
-      cityNames = allCities.map((city) => city.name);
-    } catch (error) {
-      console.error("[listings] Failed to load fallback cities:", error);
-    }
-  }
+  const cityNames = cities
+    .filter((city) => Number(city.status) === 1)
+    .map((city) => city.name);
 
   return buildPropertyFilterOptions(
     products.map((product) => ({

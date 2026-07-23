@@ -96,8 +96,8 @@ export const cityRepository = {
               country.name AS country_name, cities.status
        FROM cities
        INNER JOIN country ON country.id = cities.country_id
-       WHERE LOWER(country.name) = LOWER(:countryName)
-          OR cities.country_id = 1
+       WHERE cities.status = 1
+         AND LOWER(country.name) = LOWER(:countryName)
        ORDER BY cities.name ASC`,
       { countryName },
     ),
