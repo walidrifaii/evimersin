@@ -3,7 +3,7 @@ import { compose, validateBody, withAuth, withHandler, type ApiContext } from "@
 import { AppError } from "@/server/utils/errors";
 import { ok } from "@/server/utils/response";
 import { revalidateListingsCache } from "@/server/utils/revalidate";
-import { saveImageUpload } from "@/server/utils/upload";
+import { saveImageUpload, toRelativeUploadPath } from "@/server/utils/upload";
 import { updateProductSchema } from "@/server/validators/product.validator";
 
 export const runtime = "nodejs";
@@ -40,7 +40,7 @@ export const PUT = compose(withAuth, withHandler)(async (request, context: ApiCo
   const nextImage =
     imageFile instanceof File && imageFile.size > 0
       ? await saveImageUpload(imageFile, "uploads/products")
-      : current.image;
+      : toRelativeUploadPath(current.image);
   const galleryImages = await Promise.all(
     getImageFiles(formData, "images").map((file) =>
       saveImageUpload(file, "uploads/products/gallery"),

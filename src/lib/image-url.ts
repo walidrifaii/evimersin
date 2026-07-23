@@ -1,3 +1,8 @@
+export function getAppBaseUrl() {
+  const raw = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  return raw.replace(/\/$/, "");
+}
+
 export function toDisplayImageSrc(url: string | null | undefined) {
   if (!url) return "";
 
@@ -45,6 +50,27 @@ export function toDisplayImageSrc(url: string | null | undefined) {
   }
 
   return value;
+}
+
+/** Absolute URL for API responses (DB still stores relative `/uploads/...`). */
+export function toAbsoluteImageUrl(url: string | null | undefined) {
+  if (url == null || url === "") return null;
+
+  const trimmed = url.trim();
+  if (!trimmed) return null;
+
+  if (trimmed.startsWith("blob:") || trimmed.startsWith("data:")) {
+    return trimmed;
+  }
+
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    const relative = toDisplayImageSrc(trimmed);
+    return relative ? `${getAppBaseUrl()}${relative}` : null;
+  }
+
+  const relative = toDisplayImageSrc(trimmed);
+  if (!relative) return null;
+  return `${getAppBaseUrl()}${relative}`;
 }
 
 export function isUploadImageSrc(src: string) {

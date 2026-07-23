@@ -3,7 +3,11 @@ import { compose, validateBody, withAuth, withHandler, type ApiContext } from "@
 import { AppError } from "@/server/utils/errors";
 import { ok } from "@/server/utils/response";
 import { revalidateListingsCache } from "@/server/utils/revalidate";
-import { removeUploadedFile, saveImageUpload } from "@/server/utils/upload";
+import {
+  removeUploadedFile,
+  saveImageUpload,
+  toRelativeUploadPath,
+} from "@/server/utils/upload";
 import { updateCategorySchema } from "@/server/validators/lookup.validator";
 
 export const runtime = "nodejs";
@@ -29,7 +33,7 @@ export const PUT = compose(withAuth, withHandler)(async (request, context: ApiCo
   const nextIcon =
     iconFile instanceof File && iconFile.size > 0
       ? await saveImageUpload(iconFile, "uploads/categories")
-      : current.icon;
+      : toRelativeUploadPath(current.icon);
 
   const input = validateBody(updateCategorySchema, {
     name: formData.get("name"),
@@ -40,7 +44,7 @@ export const PUT = compose(withAuth, withHandler)(async (request, context: ApiCo
 
   const updated = await categoryService.update(id, input);
 
-  if (nextIcon !== current.icon) {
+  if (nextIcon !== toRelativeUploadPath(current.icon)) {
     await removeUploadedFile(current.icon);
   }
 

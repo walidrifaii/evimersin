@@ -12,6 +12,7 @@ import type {
   DashboardAnalytics,
 } from "@/server/types/analytics.types";
 import { hasActiveDiscount } from "@/lib/product-pricing";
+import { toAbsoluteImageUrl } from "@/lib/image-url";
 import type { Product } from "@/server/types/product.types";
 
 function toDateKey(value: string | Date) {
@@ -51,7 +52,7 @@ function toProductRow(product: Product): AnalyticsProductRow {
     purpose_name: product.purpose_name,
     price: product.price,
     final_price: product.final_price,
-    image: product.image,
+    image: toAbsoluteImageUrl(product.image),
     status: product.status,
     is_hot_deal: isHotDeal(product),
     is_featured: product.is_featured === 1,

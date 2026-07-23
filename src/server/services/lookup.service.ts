@@ -5,6 +5,7 @@ import {
   purposeRepository,
 } from "@/server/database/repositories/lookup.repository";
 import type {
+  Category,
   CreateCategoryInput,
   CreateCityInput,
   CreateCountryInput,
@@ -15,6 +16,21 @@ import type {
   UpdatePurposeInput,
 } from "@/server/types/lookup.types";
 import { AppError } from "@/server/utils/errors";
+import { toRelativeUploadPath } from "@/server/utils/upload";
+import { toAbsoluteImageUrl } from "@/lib/image-url";
+
+function withAbsoluteCategoryIcon(category: Category): Category {
+  return {
+    ...category,
+    icon: toAbsoluteImageUrl(category.icon),
+  };
+}
+
+function normalizeStoredIcon(icon: string | null | undefined) {
+  if (icon === undefined) return undefined;
+  if (icon === null || icon === "") return null;
+  return toRelativeUploadPath(icon) ?? icon;
+}
 
 export const countryService = {
   list: () => countryRepository.findAll(),
@@ -80,21 +96,32 @@ export const cityService = {
 };
 
 export const categoryService = {
-  list: () => categoryRepository.findAll(),
+  async list() {
+    const categories = await categoryRepository.findAll();
+    return categories.map(withAbsoluteCategoryIcon);
+  },
 
   async getById(id: number) {
     const category = await categoryRepository.findById(id);
     if (!category) throw new AppError("Category not found", 404);
-    return category;
+    return withAbsoluteCategoryIcon(category);
   },
 
   async create(input: CreateCategoryInput) {
-    return this.getById(await categoryRepository.create(input));
+    const id = await categoryRepository.create({
+      ...input,
+      icon: normalizeStoredIcon(input.icon) ?? null,
+    });
+    return this.getById(id);
   },
 
   async update(id: number, input: UpdateCategoryInput) {
     await this.getById(id);
-    await categoryRepository.update(id, input);
+    await categoryRepository.update(id, {
+      ...input,
+      icon:
+        input.icon !== undefined ? normalizeStoredIcon(input.icon) : undefined,
+    });
     return this.getById(id);
   },
 

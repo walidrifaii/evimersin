@@ -10,16 +10,41 @@ import {
 import type {
   CreateProductImageInput,
   CreateProductInput,
+  Product,
+  ProductDetail,
+  ProductImage,
   UpdateProductInput,
 } from "@/server/types/product.types";
 import { AppError } from "@/server/utils/errors";
 import { removeUploadedFile, toRelativeUploadPath } from "@/server/utils/upload";
 import { hasActiveDiscount } from "@/lib/product-pricing";
+import { toAbsoluteImageUrl } from "@/lib/image-url";
 
 function normalizeStoredImagePath(image: string | null | undefined) {
   if (image === undefined) return undefined;
   if (image === null || image === "") return null;
   return toRelativeUploadPath(image) ?? image;
+}
+
+function withAbsoluteProductImage(product: Product): Product {
+  return {
+    ...product,
+    image: toAbsoluteImageUrl(product.image),
+  };
+}
+
+function withAbsoluteProductDetail(product: ProductDetail): ProductDetail {
+  return {
+    ...withAbsoluteProductImage(product),
+    images: product.images.map((item) => withAbsoluteGalleryImage(item)),
+  };
+}
+
+function withAbsoluteGalleryImage(image: ProductImage): ProductImage {
+  return {
+    ...image,
+    image: toAbsoluteImageUrl(image.image) ?? image.image,
+  };
 }
 
 function normalizeDiscount(
@@ -90,12 +115,15 @@ async function addGalleryImages(productId: number, images: string[]) {
 }
 
 export const productService = {
-  list: () => productRepository.findAll(),
+  async list() {
+    const products = await productRepository.findAll();
+    return products.map(withAbsoluteProductImage);
+  },
 
   async getById(id: number) {
     const product = await productRepository.findDetailById(id);
     if (!product) throw new AppError("Product not found", 404);
-    return product;
+    return withAbsoluteProductDetail(product);
   },
 
   async create(input: CreateProductInput, galleryImages: string[] = []) {
@@ -119,7 +147,8 @@ export const productService = {
     input: UpdateProductInput,
     galleryImages: string[] = [],
   ) {
-    const current = await this.getById(id);
+    const current = await productRepository.findDetailById(id);
+    if (!current) throw new AppError("Product not found", 404);
 
     if (
       input.category_id !== undefined ||
@@ -138,12 +167,14 @@ export const productService = {
       input.price ?? current.price,
     ) as UpdateProductInput;
 
+    const nextImage =
+      normalized.image !== undefined
+        ? normalizeStoredImagePath(normalized.image)
+        : undefined;
+
     await productRepository.update(id, {
       ...normalized,
-      image:
-        normalized.image !== undefined
-          ? normalizeStoredImagePath(normalized.image)
-          : undefined,
+      image: nextImage,
     });
     await addGalleryImages(
       id,
@@ -152,7 +183,10 @@ export const productService = {
         .filter((image): image is string => Boolean(image)),
     );
 
-    if (input.image !== undefined && input.image !== current.image) {
+    if (
+      nextImage !== undefined &&
+      nextImage !== current.image
+    ) {
       await removeUploadedFile(current.image);
     }
 
@@ -160,7 +194,9 @@ export const productService = {
   },
 
   async remove(id: number) {
-    const product = await this.getById(id);
+    const product = await productRepository.findDetailById(id);
+    if (!product) throw new AppError("Product not found", 404);
+
     await productRepository.delete(id);
     await removeUploadedFile(product.image);
 
@@ -171,10 +207,13 @@ export const productService = {
 
   async addImage(input: CreateProductImageInput) {
     await this.getById(input.product_id);
-    const imageId = await productImageRepository.create(input);
+    const imageId = await productImageRepository.create({
+      ...input,
+      image: normalizeStoredImagePath(input.image) ?? input.image,
+    });
     const image = await productImageRepository.findById(imageId);
     if (!image) throw new AppError("Product image not found", 404);
-    return image;
+    return withAbsoluteGalleryImage(image);
   },
 
   async removeImage(productId: number, imageId: number) {
