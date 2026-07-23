@@ -148,6 +148,13 @@ async function runMigrations(connection: {
     `UPDATE categories
      SET icon = CONCAT('/uploads/', SUBSTRING_INDEX(icon, '/uploads/', -1))
      WHERE icon LIKE 'http%://%/uploads/%'`,
+    // Corrupt cover that returns HTTP 500 on some hosts → known-good duplicate
+    `UPDATE products
+     SET image = '/uploads/products/8fa18561-17a3-42b6-81b3-c47f6e423104.jpg'
+     WHERE image LIKE '%16e546d2-9ea3-4ed3-bc35-5a8f0bc49ee8.jpg%'`,
+    `UPDATE product_images
+     SET image = '/uploads/products/8fa18561-17a3-42b6-81b3-c47f6e423104.jpg'
+     WHERE image LIKE '%16e546d2-9ea3-4ed3-bc35-5a8f0bc49ee8.jpg%'`,
     `UPDATE purpose SET name = 'For Sale', status = 1 WHERE LOWER(name) IN ('sale', 'buy')`,
     `UPDATE purpose SET name = 'For Rent', status = 1 WHERE LOWER(name) IN ('rent', 'rental')`,
   ];

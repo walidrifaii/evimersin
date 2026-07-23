@@ -14,9 +14,9 @@ import {
 import { loadEnv, setupDatabase } from "./load-env";
 
 const COVER_IMAGES = [
-  "/uploads/products/16e546d2-9ea3-4ed3-bc35-5a8f0bc49ee8.jpg",
   "/uploads/products/8fa18561-17a3-42b6-81b3-c47f6e423104.jpg",
   "/uploads/products/b7b4cf8d-c191-415a-9c80-df9a499af660.png",
+  "/uploads/products/16e546d2-9ea3-4ed3-bc35-5a8f0bc49ee8.jpg",
 ];
 
 const GALLERY_IMAGES = [

@@ -37,6 +37,13 @@ export function toDisplayImageSrc(url: string | null | undefined) {
   // Collapse accidental double prefixes
   value = value.replace(/^\/uploads\/uploads\//, "/uploads/");
 
+  // Known corrupt seed file that 500s on some hosts → working duplicate
+  if (
+    value === "/uploads/products/16e546d2-9ea3-4ed3-bc35-5a8f0bc49ee8.jpg"
+  ) {
+    value = "/uploads/products/8fa18561-17a3-42b6-81b3-c47f6e423104.jpg";
+  }
+
   return value;
 }
 
