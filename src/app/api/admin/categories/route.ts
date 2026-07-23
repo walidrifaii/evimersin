@@ -1,17 +1,11 @@
-import { revalidatePath, revalidateTag } from "next/cache";
 import { categoryService } from "@/server/services/lookup.service";
 import { compose, validateBody, withAuth, withHandler } from "@/server/middleware";
 import { ok } from "@/server/utils/response";
+import { revalidateListingsCache } from "@/server/utils/revalidate";
 import { saveImageUpload } from "@/server/utils/upload";
 import { createCategorySchema } from "@/server/validators/lookup.validator";
 
 export const runtime = "nodejs";
-
-function revalidatePublicFilters() {
-  revalidateTag("property-listings", "max");
-  revalidatePath("/");
-  revalidatePath("/products");
-}
 
 export const GET = compose(withAuth, withHandler)(async () =>
   ok(await categoryService.list()),
@@ -33,6 +27,6 @@ export const POST = compose(withAuth, withHandler)(async (request) => {
   });
 
   const created = await categoryService.create(input);
-  revalidatePublicFilters();
+  revalidateListingsCache();
   return ok(created, 201);
 });

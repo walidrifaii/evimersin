@@ -112,6 +112,16 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
   const [galleryPreviewUrls, setGalleryPreviewUrls] = useState<string[]>([]);
   const finalPrice = calculateFinalPrice(price, discountType, discountValue);
 
+  const activeCategories = categories.filter(
+    (item) => Number(item.status) === 1 || item.id === categoryId,
+  );
+  const activePurposes = purposes.filter(
+    (item) => Number(item.status) === 1 || item.id === purposeId,
+  );
+  const activeCities = cities.filter(
+    (item) => Number(item.status) === 1 || item.id === cityId,
+  );
+
   useEffect(() => {
     if (!imageFile) {
       setPreviewUrl(toDisplayImageSrc(initial?.image));
@@ -263,21 +273,21 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
           label="Category"
           value={categoryId}
           onChange={setCategoryId}
-          options={categories}
+          options={activeCategories}
           required
         />
         <SelectField
           label="Purpose"
           value={purposeId}
           onChange={setPurposeId}
-          options={purposes}
+          options={activePurposes}
           required
         />
         <SelectField
           label="City"
           value={cityId}
           onChange={setCityId}
-          options={cities}
+          options={activeCities}
           required
         />
         <StatusSelect value={status} onChange={setStatus} />

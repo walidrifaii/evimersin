@@ -2,6 +2,7 @@ import { productService } from "@/server/services/product.service";
 import { compose, withAuth, withHandler, type ApiContext } from "@/server/middleware";
 import { AppError } from "@/server/utils/errors";
 import { ok } from "@/server/utils/response";
+import { revalidateListingsCache } from "@/server/utils/revalidate";
 
 export const runtime = "nodejs";
 
@@ -18,5 +19,6 @@ export const DELETE = compose(withAuth, withHandler)(async (_request, context: A
   const productId = parseId(params, "id");
   const imageId = parseId(params, "imageId");
   await productService.removeImage(productId, imageId);
+  revalidateListingsCache(productId);
   return ok({ message: "Product image deleted successfully" });
 });

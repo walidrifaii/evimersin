@@ -1,8 +1,8 @@
-import { revalidatePath, revalidateTag } from "next/cache";
 import { categoryService } from "@/server/services/lookup.service";
 import { compose, validateBody, withAuth, withHandler, type ApiContext } from "@/server/middleware";
 import { AppError } from "@/server/utils/errors";
 import { ok } from "@/server/utils/response";
+import { revalidateListingsCache } from "@/server/utils/revalidate";
 import { removeUploadedFile, saveImageUpload } from "@/server/utils/upload";
 import { updateCategorySchema } from "@/server/validators/lookup.validator";
 
@@ -14,12 +14,6 @@ function parseId(params: Record<string, string>) {
     throw new AppError("Invalid category id", 400);
   }
   return id;
-}
-
-function revalidatePublicFilters() {
-  revalidateTag("property-listings", "max");
-  revalidatePath("/");
-  revalidatePath("/products");
 }
 
 export const GET = compose(withAuth, withHandler)(async (_request, context: ApiContext) => {
@@ -50,7 +44,7 @@ export const PUT = compose(withAuth, withHandler)(async (request, context: ApiCo
     await removeUploadedFile(current.icon);
   }
 
-  revalidatePublicFilters();
+  revalidateListingsCache();
   return ok(updated);
 });
 
@@ -59,6 +53,6 @@ export const DELETE = compose(withAuth, withHandler)(async (_request, context: A
   const current = await categoryService.getById(id);
   await categoryService.remove(id);
   await removeUploadedFile(current.icon);
-  revalidatePublicFilters();
+  revalidateListingsCache();
   return ok({ message: "Category deleted successfully" });
 });

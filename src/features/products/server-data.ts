@@ -19,7 +19,7 @@ import type { Product, ProductDetail } from "@/server/types/product.types";
 import type { PropertyListing } from "@/features/products/types";
 
 function toBadge(product: Product) {
-  if (product.is_featured === 1) return "FEATURED";
+  if (Number(product.is_featured) === 1) return "FEATURED";
   return product.category_name.toUpperCase();
 }
 
@@ -38,11 +38,11 @@ function toPropertyListing(product: ProductDetail): PropertyListing {
     badge: toBadge(product),
     title: product.name,
     location: product.city_name,
-    cityId: product.city_id,
+    cityId: Number(product.city_id),
     city: product.city_name,
-    categoryId: product.category_id,
+    categoryId: Number(product.category_id),
     propertyType: product.category_name,
-    purposeId: product.purpose_id,
+    purposeId: Number(product.purpose_id),
     purpose: product.purpose_name,
     price: formatProductPrice(product.final_price),
     originalPrice: discounted ? formatProductPrice(product.price) : undefined,
@@ -55,8 +55,8 @@ function toPropertyListing(product: ProductDetail): PropertyListing {
     images: [image, ...gallery],
     description: product.description ?? "",
     href: routes.property(String(product.id)),
-    featured: product.is_featured === 1,
-    hotDeal: discounted || product.is_hot_deal === 1,
+    featured: Number(product.is_featured) === 1,
+    hotDeal: discounted || Number(product.is_hot_deal) === 1,
     discountLabel: formatDiscountLabel(
       product.price,
       product.discount_type,
@@ -101,7 +101,7 @@ async function loadPropertyListingById(id: string) {
     if (!Number.isInteger(numericId) || numericId <= 0) return null;
 
     const product = await productRepository.findDetailById(numericId);
-    if (!product || product.status !== 1) return null;
+    if (!product || Number(product.status) !== 1) return null;
 
     return toPropertyListing(product);
   } catch (error) {

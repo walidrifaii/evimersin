@@ -2,6 +2,7 @@ import { productService } from "@/server/services/product.service";
 import { compose, validateBody, withAuth, withHandler, type ApiContext } from "@/server/middleware";
 import { AppError } from "@/server/utils/errors";
 import { ok } from "@/server/utils/response";
+import { revalidateListingsCache } from "@/server/utils/revalidate";
 import { saveImageUpload } from "@/server/utils/upload";
 import { createProductImageSchema } from "@/server/validators/product.validator";
 
@@ -30,12 +31,11 @@ export const POST = compose(withAuth, withHandler)(async (request, context: ApiC
     status: Number(formData.get("status") ?? 1),
   });
 
-  return ok(
-    await productService.addImage({
-      product_id: productId,
-      image: input.image,
-      status: input.status,
-    }),
-    201,
-  );
+  const created = await productService.addImage({
+    product_id: productId,
+    image: input.image,
+    status: input.status,
+  });
+  revalidateListingsCache(productId);
+  return ok(created, 201);
 });

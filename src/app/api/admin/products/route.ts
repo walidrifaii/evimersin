@@ -1,17 +1,11 @@
 import { productService } from "@/server/services/product.service";
 import { compose, validateBody, withAuth, withHandler } from "@/server/middleware";
 import { ok } from "@/server/utils/response";
+import { revalidateListingsCache } from "@/server/utils/revalidate";
 import { saveImageUpload } from "@/server/utils/upload";
 import { createProductSchema } from "@/server/validators/product.validator";
-import { revalidatePath, revalidateTag } from "next/cache";
 
 export const runtime = "nodejs";
-
-function revalidateListingsCache() {
-  revalidateTag("property-listings", "max");
-  revalidatePath("/");
-  revalidatePath("/products");
-}
 
 export const GET = compose(withAuth, withHandler)(async () =>
   ok(await productService.list()),
@@ -57,6 +51,6 @@ export const POST = compose(withAuth, withHandler)(async (request) => {
   });
 
   const created = await productService.create(input, galleryImages);
-  revalidateListingsCache();
+  revalidateListingsCache(created.id);
   return ok(created, 201);
 });

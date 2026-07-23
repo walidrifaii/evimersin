@@ -5,25 +5,6 @@ import { AppError } from "@/server/utils/errors";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
-function getAppBaseUrl() {
-  return (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(
-    /\/$/,
-    "",
-  );
-}
-
-function toRelativeUploadPath(filePath: string) {
-  if (filePath.startsWith("http://") || filePath.startsWith("https://")) {
-    try {
-      const pathname = new URL(filePath).pathname;
-      return pathname.startsWith("/") ? pathname : `/${pathname}`;
-    } catch {
-      return null;
-    }
-  }
-
-  return filePath.startsWith("/") ? filePath : `/${filePath}`;
-}
 const ALLOWED_IMAGE_TYPES = new Set([
   "image/jpeg",
   "image/png",
@@ -40,6 +21,21 @@ function getFileExtension(file: File) {
   };
 
   return byType[file.type] ?? path.extname(file.name) ?? ".bin";
+}
+
+export function toRelativeUploadPath(filePath: string | null | undefined) {
+  if (!filePath) return null;
+
+  if (filePath.startsWith("http://") || filePath.startsWith("https://")) {
+    try {
+      const pathname = new URL(filePath).pathname;
+      return pathname.startsWith("/") ? pathname : `/${pathname}`;
+    } catch {
+      return null;
+    }
+  }
+
+  return filePath.startsWith("/") ? filePath : `/${filePath}`;
 }
 
 export async function saveImageUpload(file: File, folder: string) {
@@ -60,8 +56,8 @@ export async function saveImageUpload(file: File, folder: string) {
 
   await writeFile(filePath, buffer);
 
-  const relativePath = `/${folder.replace(/\\/g, "/")}/${fileName}`;
-  return `${getAppBaseUrl()}${relativePath}`;
+  // Always store relative paths so localhost/prod URLs never break images.
+  return `/${folder.replace(/\\/g, "/")}/${fileName}`;
 }
 
 export async function removeUploadedFile(filePath: string | null | undefined) {

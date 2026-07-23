@@ -122,6 +122,51 @@ async function runMigrations(connection: {
       }
     }
   }
+
+  // Normalize absolute upload URLs → relative paths so images work across domains.
+  const pathNormalizations = [
+    `UPDATE products
+     SET image = CONCAT('/uploads/', SUBSTRING_INDEX(image, '/uploads/', -1))
+     WHERE image LIKE 'http%://%/uploads/%'`,
+    `UPDATE products
+     SET image = CONCAT('/uploads/', image)
+     WHERE image IS NOT NULL
+       AND image <> ''
+       AND image NOT LIKE '/%'
+       AND image NOT LIKE 'http%://%'
+       AND image LIKE 'uploads/%'`,
+    `UPDATE product_images
+     SET image = CONCAT('/uploads/', SUBSTRING_INDEX(image, '/uploads/', -1))
+     WHERE image LIKE 'http%://%/uploads/%'`,
+    `UPDATE product_images
+     SET image = CONCAT('/uploads/', image)
+     WHERE image IS NOT NULL
+       AND image <> ''
+       AND image NOT LIKE '/%'
+       AND image NOT LIKE 'http%://%'
+       AND image LIKE 'uploads/%'`,
+    `UPDATE categories
+     SET icon = CONCAT('/uploads/', SUBSTRING_INDEX(icon, '/uploads/', -1))
+     WHERE icon LIKE 'http%://%/uploads/%'`,
+    `UPDATE purpose SET name = 'For Sale', status = 1 WHERE LOWER(name) IN ('sale', 'buy')`,
+    `UPDATE purpose SET name = 'For Rent', status = 1 WHERE LOWER(name) IN ('rent', 'rental')`,
+  ];
+
+  for (const sql of pathNormalizations) {
+    try {
+      await connection.query(sql);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      // Ignore if tables/columns are missing on a fresh partial setup.
+      if (
+        !message.includes("doesn't exist") &&
+        !message.includes("Unknown table") &&
+        !message.includes("Unknown column")
+      ) {
+        console.warn("[db] Normalization skipped:", message);
+      }
+    }
+  }
 }
 
 export async function setupDatabase() {

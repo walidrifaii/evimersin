@@ -2,18 +2,12 @@ import { productService } from "@/server/services/product.service";
 import { compose, validateBody, withAuth, withHandler, type ApiContext } from "@/server/middleware";
 import { AppError } from "@/server/utils/errors";
 import { ok } from "@/server/utils/response";
+import { revalidateListingsCache } from "@/server/utils/revalidate";
 import { saveImageUpload } from "@/server/utils/upload";
 import { updateProductSchema } from "@/server/validators/product.validator";
-import { revalidatePath, revalidateTag } from "next/cache";
 
 export const runtime = "nodejs";
 
-function revalidateListingsCache(id?: number) {
-  revalidateTag("property-listings", "max");
-  revalidatePath("/");
-  revalidatePath("/products");
-  if (id) revalidatePath(`/products/${id}`);
-}
 function parseId(params: Record<string, string>, key = "id") {
   const id = Number(params[key]);
   if (!Number.isInteger(id) || id <= 0) {

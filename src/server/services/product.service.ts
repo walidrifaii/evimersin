@@ -13,14 +13,25 @@ import type {
   UpdateProductInput,
 } from "@/server/types/product.types";
 import { AppError } from "@/server/utils/errors";
-import { removeUploadedFile } from "@/server/utils/upload";
+import { removeUploadedFile, toRelativeUploadPath } from "@/server/utils/upload";
 import { hasActiveDiscount } from "@/lib/product-pricing";
+
+function normalizeStoredImagePath(image: string | null | undefined) {
+  if (image === undefined) return undefined;
+  if (image === null || image === "") return null;
+  return toRelativeUploadPath(image) ?? image;
+}
 
 function normalizeDiscount(
   input: CreateProductInput | UpdateProductInput,
   price: number,
 ): CreateProductInput | UpdateProductInput {
-  if (!input.discount_type) {
+  // Partial updates: leave discount fields untouched when omitted.
+  if (input.discount_type === undefined && input.discount_value === undefined) {
+    return input;
+  }
+
+  if (input.discount_type === null || input.discount_type === undefined) {
     return {
       ...input,
       discount_type: null,
@@ -90,8 +101,16 @@ export const productService = {
   async create(input: CreateProductInput, galleryImages: string[] = []) {
     await validateRelations(input);
     const normalized = normalizeDiscount(input, input.price) as CreateProductInput;
-    const id = await productRepository.create(normalized);
-    await addGalleryImages(id, galleryImages);
+    const id = await productRepository.create({
+      ...normalized,
+      image: normalizeStoredImagePath(normalized.image) ?? null,
+    });
+    await addGalleryImages(
+      id,
+      galleryImages
+        .map((image) => normalizeStoredImagePath(image))
+        .filter((image): image is string => Boolean(image)),
+    );
     return this.getById(id);
   },
 
@@ -114,11 +133,24 @@ export const productService = {
       });
     }
 
-    await productRepository.update(id, normalizeDiscount(
+    const normalized = normalizeDiscount(
       input,
       input.price ?? current.price,
-    ));
-    await addGalleryImages(id, galleryImages);
+    ) as UpdateProductInput;
+
+    await productRepository.update(id, {
+      ...normalized,
+      image:
+        normalized.image !== undefined
+          ? normalizeStoredImagePath(normalized.image)
+          : undefined,
+    });
+    await addGalleryImages(
+      id,
+      galleryImages
+        .map((image) => normalizeStoredImagePath(image))
+        .filter((image): image is string => Boolean(image)),
+    );
 
     if (input.image !== undefined && input.image !== current.image) {
       await removeUploadedFile(current.image);

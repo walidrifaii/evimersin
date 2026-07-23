@@ -7,8 +7,8 @@ import {
 } from "@/server/middleware";
 import { settingsService } from "@/server/services/settings.service";
 import { ok } from "@/server/utils/response";
+import { revalidateSettingsCache } from "@/server/utils/revalidate";
 import { updateSiteSettingsSchema } from "@/server/validators/settings.validator";
-import { revalidatePath, revalidateTag } from "next/cache";
 
 export const runtime = "nodejs";
 
@@ -26,7 +26,6 @@ export const PUT = compose(
     await parseJsonBody(request),
   );
   const result = await settingsService.update(input);
-  revalidateTag("site-settings", "max");
-  revalidatePath("/", "layout");
+  revalidateSettingsCache();
   return ok(result);
 });
