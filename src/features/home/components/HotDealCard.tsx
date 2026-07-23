@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import { SafeImage } from "@/components/ui/SafeImage";
 import type { PropertyListing } from "@/features/products/types";
 
 type HotDealCardProps = {
@@ -13,7 +13,7 @@ export function HotDealCard({ item }: HotDealCardProps) {
       className="group flex h-full min-w-0 flex-col overflow-hidden rounded-xl bg-white shadow-[0_8px_24px_rgba(0,0,0,0.18)] transition-transform duration-300 hover:-translate-y-1"
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden sm:aspect-[5/4] lg:aspect-[16/10] xl:aspect-[16/9]">
-        <Image
+        <SafeImage
           src={item.image}
           alt={item.title}
           fill

@@ -1,9 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { routes } from "@/constants/routes";
-import { toDisplayImageSrc } from "@/lib/image-url";
+import { SafeImage } from "@/components/ui/SafeImage";
 import { formatProductPrice } from "@/lib/product-pricing";
 import type { AnalyticsProductRow } from "@/store/slices/admin";
 
@@ -37,45 +36,40 @@ export function HotDealsPanel({ items }: HotDealsPanelProps) {
         </p>
       ) : (
         <ul className="space-y-3">
-          {items.map((item) => {
-            const imageSrc = toDisplayImageSrc(item.image);
-            return (
-              <li key={item.id}>
-                <Link
-                  href={routes.lookupEdit("products", item.id)}
-                  className="flex items-start gap-3 rounded-xl border border-[#eef2f7] bg-[#f8fafc] p-3.5 transition-colors hover:bg-[#f1f5f9]"
-                >
-                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-white">
-                    {imageSrc ? (
-                      <Image
-                        src={imageSrc}
-                        alt={item.name}
-                        fill
-                        sizes="48px"
-                        className="object-cover"
-                      />
-                    ) : null}
+          {items.map((item) => (
+            <li key={item.id}>
+              <Link
+                href={routes.lookupEdit("products", item.id)}
+                className="flex items-start gap-3 rounded-xl border border-[#eef2f7] bg-[#f8fafc] p-3.5 transition-colors hover:bg-[#f1f5f9]"
+              >
+                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-white">
+                  <SafeImage
+                    src={item.image}
+                    alt={item.name}
+                    fill
+                    sizes="48px"
+                    className="object-cover"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[14px] font-semibold text-[var(--brand-navy)]">
+                    {item.name}
+                  </p>
+                  <p className="mt-0.5 truncate text-[12px] text-[var(--muted)]">
+                    {item.category_name} · {item.city_name}
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-baseline gap-2">
+                    <span className="text-[13px] font-bold text-[var(--brand-navy)]">
+                      {formatProductPrice(item.final_price)}
+                    </span>
+                    <span className="text-[12px] text-[var(--muted)] line-through">
+                      {formatProductPrice(item.price)}
+                    </span>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[14px] font-semibold text-[var(--brand-navy)]">
-                      {item.name}
-                    </p>
-                    <p className="mt-0.5 truncate text-[12px] text-[var(--muted)]">
-                      {item.category_name} · {item.city_name}
-                    </p>
-                    <div className="mt-2 flex flex-wrap items-baseline gap-2">
-                      <span className="text-[13px] font-bold text-[var(--brand-navy)]">
-                        {formatProductPrice(item.final_price)}
-                      </span>
-                      <span className="text-[12px] text-[var(--muted)] line-through">
-                        {formatProductPrice(item.price)}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              </li>
-            );
-          })}
+                </div>
+              </Link>
+            </li>
+          ))}
         </ul>
       )}
     </section>

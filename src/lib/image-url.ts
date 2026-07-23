@@ -1,30 +1,45 @@
 export function toDisplayImageSrc(url: string | null | undefined) {
   if (!url) return "";
 
-  const trimmed = url.trim();
-  if (!trimmed) return "";
+  let value = url.trim();
+  if (!value) return "";
 
-  if (trimmed.startsWith("/")) return trimmed;
-
-  try {
-    const parsed = new URL(trimmed);
-    // Always prefer pathname for uploaded assets, even if host differs
-    // (localhost vs production domain).
-    if (
-      parsed.pathname.startsWith("/uploads/") ||
-      parsed.pathname.startsWith("/_next/")
-    ) {
-      return parsed.pathname;
-    }
-
-    const appBase = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-    const appOrigin = new URL(appBase).origin;
-    if (parsed.origin === appOrigin) {
-      return parsed.pathname;
-    }
-  } catch {
-    return trimmed.startsWith("uploads/") ? `/${trimmed}` : trimmed;
+  // blob: / data: previews from file inputs
+  if (value.startsWith("blob:") || value.startsWith("data:")) {
+    return value;
   }
 
-  return trimmed;
+  // Absolute URL → pathname for uploaded assets
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    try {
+      const parsed = new URL(value);
+      value = parsed.pathname || "";
+    } catch {
+      return "";
+    }
+  }
+
+  value = value.replace(/\\/g, "/");
+
+  if (!value.startsWith("/")) {
+    value = `/${value}`;
+  }
+
+  // Repair paths that lost the /uploads prefix after bad migrations/stores
+  if (
+    value.startsWith("/products/") ||
+    value.startsWith("/categories/") ||
+    value.startsWith("/products/gallery/")
+  ) {
+    value = `/uploads${value}`;
+  }
+
+  // Collapse accidental double prefixes
+  value = value.replace(/^\/uploads\/uploads\//, "/uploads/");
+
+  return value;
+}
+
+export function isUploadImageSrc(src: string) {
+  return src.startsWith("/uploads/") || src.includes("/uploads/");
 }

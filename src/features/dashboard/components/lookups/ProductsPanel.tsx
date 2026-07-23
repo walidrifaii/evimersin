@@ -1,15 +1,14 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 import { routes } from "@/constants/routes";
+import { SafeImage } from "@/components/ui/SafeImage";
 import {
   LookupListLayout,
   LookupTable,
   RowActions,
   StatusBadge,
 } from "@/features/dashboard/components/lookups/LookupManager";
-import { toDisplayImageSrc } from "@/lib/image-url";
 import {
   formatProductPrice,
   hasActiveDiscount,
@@ -55,19 +54,15 @@ export function ProductsPanel() {
             <tr key={item.id} className="border-t border-[#eef2f7]">
               <td className="px-5 py-3 text-[var(--muted)]">{item.id}</td>
               <td className="px-5 py-3">
-                {item.image ? (
-                  <div className="relative h-11 w-11 overflow-hidden rounded-xl border border-[#e5eaf2] bg-white">
-                    <Image
-                      src={toDisplayImageSrc(item.image)}
-                      alt={item.name}
-                      fill
-                      className="object-cover"
-                      sizes="44px"
-                    />
-                  </div>
-                ) : (
-                  <span className="text-[var(--muted)]">-</span>
-                )}
+                <div className="relative h-11 w-11 overflow-hidden rounded-xl border border-[#e5eaf2] bg-white">
+                  <SafeImage
+                    src={item.image}
+                    alt={item.name}
+                    fill
+                    className="object-cover"
+                    sizes="44px"
+                  />
+                </div>
               </td>
               <td className="px-5 py-3 font-semibold text-[var(--brand-navy)]">
                 {item.name}

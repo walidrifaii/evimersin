@@ -1,15 +1,14 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 import { routes } from "@/constants/routes";
+import { SafeImage } from "@/components/ui/SafeImage";
 import {
   LookupListLayout,
   LookupTable,
   RowActions,
   StatusBadge,
 } from "@/features/dashboard/components/lookups/LookupManager";
-import { toDisplayImageSrc } from "@/lib/image-url";
 import {
   useDeleteCategoryMutation,
   useGetCategoriesQuery,
@@ -42,20 +41,15 @@ export function CategoriesPanel() {
               <td className="px-5 py-3 font-semibold text-[var(--brand-navy)]">{item.name}</td>
               <td className="px-5 py-3 text-[var(--brand-navy)]">{item.position}</td>
               <td className="px-5 py-3">
-                {item.icon ? (
-                  <div className="relative h-11 w-11 overflow-hidden rounded-xl border border-[#e5eaf2] bg-white">
-                    <Image
-                      src={toDisplayImageSrc(item.icon)}
-                      alt={`${item.name} icon`}
-                      fill
-                      className="object-cover"
-                      sizes="44px"
-                      unoptimized={toDisplayImageSrc(item.icon).endsWith(".svg")}
-                    />
-                  </div>
-                ) : (
-                  <span className="text-[var(--muted)]">-</span>
-                )}
+                <div className="relative h-11 w-11 overflow-hidden rounded-xl border border-[#e5eaf2] bg-white">
+                  <SafeImage
+                    src={item.icon}
+                    alt={`${item.name} icon`}
+                    fill
+                    className="object-cover"
+                    sizes="44px"
+                  />
+                </div>
               </td>
               <td className="px-5 py-3">
                 <StatusBadge status={item.status} />

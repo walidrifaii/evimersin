@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import { SafeImage } from "@/components/ui/SafeImage";
 import { BathIcon } from "@/components/icons/BathIcon";
 import { BedIcon } from "@/components/icons/BedIcon";
 import { SquareMeterIcon } from "@/components/icons/SquareMeterIcon";
@@ -17,7 +17,7 @@ export function PropertyListingCard({ item }: PropertyListingCardProps) {
   return (
     <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-[#e8edf5] bg-white shadow-[0_6px_24px_rgba(15,23,42,0.07)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_14px_36px_rgba(15,23,42,0.12)]">
       <Link href={item.href} className="relative block aspect-[16/10] w-full overflow-hidden">
-        <Image
+        <SafeImage
           src={item.image}
           alt={item.title}
           fill

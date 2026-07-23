@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
+import { SafeImage } from "@/components/ui/SafeImage";
 import { routes } from "@/constants/routes";
 import {
   FormLoading,
@@ -119,13 +119,12 @@ function CategoryFormFields({ id, initial }: { id?: number; initial?: Category }
         {previewUrl ? (
           <div className="mt-3">
             <div className="relative h-20 w-20 overflow-hidden rounded-2xl border border-[#e5eaf2] bg-white">
-              <Image
+              <SafeImage
                 src={previewUrl}
                 alt={`${name || "Category"} icon`}
                 fill
                 className="object-cover"
                 sizes="80px"
-                unoptimized={previewUrl.endsWith(".svg")}
               />
             </div>
           </div>

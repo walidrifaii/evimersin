@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useRef, useState } from "react";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
+import { SafeImage } from "@/components/ui/SafeImage";
 import type { PropertyImage } from "@/features/products/types";
 
 type PropertyGalleryProps = {
@@ -38,7 +38,7 @@ export function PropertyGallery({ title, images }: PropertyGalleryProps) {
           touchStartX.current = null;
         }}
       >
-        <Image
+        <SafeImage
           src={activeImage}
           alt={`${title} - photo ${activeIndex + 1}`}
           fill
@@ -88,7 +88,7 @@ export function PropertyGallery({ title, images }: PropertyGalleryProps) {
               aria-label={`View photo ${index + 1}`}
               aria-current={index === activeIndex}
             >
-              <Image
+              <SafeImage
                 src={image}
                 alt=""
                 fill

@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
+import { SafeImage } from "@/components/ui/SafeImage";
 import { routes } from "@/constants/routes";
 import {
   FormLoading,
@@ -315,7 +315,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
           />
           {previewUrl ? (
             <div className="relative mt-3 h-28 w-40 overflow-hidden rounded-2xl border border-[#e5eaf2] bg-white">
-              <Image
+              <SafeImage
                 src={previewUrl}
                 alt={name || "Residential unit"}
                 fill
@@ -345,7 +345,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
                   key={url}
                   className="relative h-24 overflow-hidden rounded-2xl border border-[#e5eaf2] bg-white"
                 >
-                  <Image
+                  <SafeImage
                     src={url}
                     alt={`Selected residential unit image ${index + 1}`}
                     fill
@@ -386,8 +386,8 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
                 className="overflow-hidden rounded-2xl border border-[#e5eaf2] bg-white"
               >
                 <div className="relative h-28 w-full">
-                  <Image
-                    src={toDisplayImageSrc(image.image)}
+                  <SafeImage
+                    src={image.image}
                     alt={`Gallery ${image.id}`}
                     fill
                     className="object-cover"

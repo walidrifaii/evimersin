@@ -1,10 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import { SafeImage } from "@/components/ui/SafeImage";
 import { config } from "@/constants/config";
 import { routes } from "@/constants/routes";
-import { toDisplayImageSrc } from "@/lib/image-url";
 import { formatProductPrice } from "@/lib/product-pricing";
 import type { AnalyticsProductRow } from "@/store/slices/admin";
 
@@ -19,8 +18,6 @@ function OverviewPropertyCard({
   badge,
   badgeClassName,
 }: OverviewPropertyCardProps) {
-  const imageSrc = toDisplayImageSrc(item.image);
-
   return (
     <Link
       href={routes.property(String(item.id))}
@@ -29,15 +26,13 @@ function OverviewPropertyCard({
       className="group flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-[#e8edf5] bg-white shadow-[0_4px_20px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(15,23,42,0.12)]"
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#eef2f7]">
-        {imageSrc ? (
-          <Image
-            src={imageSrc}
-            alt={item.name}
-            fill
-            sizes="(max-width: 1280px) 82vw, 25vw"
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : null}
+        <SafeImage
+          src={item.image}
+          alt={item.name}
+          fill
+          sizes="(max-width: 1280px) 82vw, 25vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+        />
         <span
           className={`absolute left-3 top-3 rounded-md px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.06em] text-white ${badgeClassName}`}
         >

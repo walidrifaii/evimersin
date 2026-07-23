@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import { SafeImage } from "@/components/ui/SafeImage";
 import { BedIcon } from "@/components/icons/BedIcon";
 import { BathIcon } from "@/components/icons/BathIcon";
 import { SquareMeterIcon } from "@/components/icons/SquareMeterIcon";
@@ -17,7 +17,7 @@ export function PropertyCard({ item }: PropertyCardProps) {
       className="group flex h-full flex-col overflow-hidden rounded-xl border border-[#e8edf5] bg-white shadow-[0_4px_20px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(15,23,42,0.12)]"
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden">
-        <Image
+        <SafeImage
           src={item.image}
           alt={item.title}
           fill

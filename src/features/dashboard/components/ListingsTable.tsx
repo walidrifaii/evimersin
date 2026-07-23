@@ -1,9 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { routes } from "@/constants/routes";
-import { toDisplayImageSrc } from "@/lib/image-url";
+import { SafeImage } from "@/components/ui/SafeImage";
 import { formatProductPrice } from "@/lib/product-pricing";
 import type { AnalyticsProductRow } from "@/store/slices/admin";
 
@@ -50,9 +49,7 @@ export function ListingsTable({ items }: ListingsTableProps) {
               </tr>
             </thead>
             <tbody>
-              {items.map((item) => {
-                const imageSrc = toDisplayImageSrc(item.image);
-                return (
+              {items.map((item) => (
                   <tr
                     key={item.id}
                     className="border-t border-[#eef2f7] transition-colors hover:bg-[#fafbfd]"
@@ -60,15 +57,13 @@ export function ListingsTable({ items }: ListingsTableProps) {
                     <td className="px-5 py-3.5 sm:px-6">
                       <div className="flex items-center gap-3">
                         <div className="relative h-12 w-14 shrink-0 overflow-hidden rounded-xl bg-[#eef2f7]">
-                          {imageSrc ? (
-                            <Image
-                              src={imageSrc}
-                              alt={item.name}
-                              fill
-                              sizes="56px"
-                              className="object-cover"
-                            />
-                          ) : null}
+                          <SafeImage
+                            src={item.image}
+                            alt={item.name}
+                            fill
+                            sizes="56px"
+                            className="object-cover"
+                          />
                         </div>
                         <div className="min-w-0">
                           <p className="truncate font-semibold text-[var(--brand-navy)]">
@@ -134,8 +129,7 @@ export function ListingsTable({ items }: ListingsTableProps) {
                       </Link>
                     </td>
                   </tr>
-                );
-              })}
+              ))}
             </tbody>
           </table>
         </div>
