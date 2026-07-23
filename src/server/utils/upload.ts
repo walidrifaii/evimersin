@@ -1,4 +1,4 @@
-import { mkdir, unlink, writeFile } from "node:fs/promises";
+import { mkdir, unlink, writeFile, access } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { AppError } from "@/server/utils/errors";
@@ -21,6 +21,30 @@ function getFileExtension(file: File) {
   };
 
   return byType[file.type] ?? path.extname(file.name) ?? ".bin";
+}
+
+/** Durable upload root (mount this on Easypanel). Falls back to ./storage/uploads */
+export function getUploadRoot() {
+  const configured = process.env.UPLOAD_DIR?.trim();
+  if (configured) return path.resolve(configured);
+  return path.join(process.cwd(), "storage", "uploads");
+}
+
+/** Built-in seed/demo images shipped in the image */
+export function getPublicUploadRoot() {
+  return path.join(process.cwd(), "public", "uploads");
+}
+
+/**
+ * folder examples: "uploads/products", "uploads/products/gallery", "uploads/categories"
+ * stored/served path: "/uploads/products/uuid.jpg"
+ */
+function toUploadsRelativeDir(folder: string) {
+  const normalized = folder.replace(/\\/g, "/").replace(/^\/+/, "");
+  if (normalized === "uploads" || normalized.startsWith("uploads/")) {
+    return normalized.slice("uploads/".length);
+  }
+  return normalized;
 }
 
 export function toRelativeUploadPath(filePath: string | null | undefined) {
@@ -47,7 +71,8 @@ export async function saveImageUpload(file: File, folder: string) {
     throw new AppError("Image size must be 5MB or less", 422);
   }
 
-  const uploadDir = path.join(process.cwd(), "public", folder);
+  const relativeDir = toUploadsRelativeDir(folder);
+  const uploadDir = path.join(getUploadRoot(), relativeDir);
   await mkdir(uploadDir, { recursive: true });
 
   const fileName = `${randomUUID()}${getFileExtension(file)}`;
@@ -57,20 +82,81 @@ export async function saveImageUpload(file: File, folder: string) {
   await writeFile(filePath, buffer);
 
   // Always store relative paths so localhost/prod URLs never break images.
-  return `/${folder.replace(/\\/g, "/")}/${fileName}`;
+  return `/uploads/${relativeDir}/${fileName}`.replace(/\/{2,}/g, "/");
+}
+
+function resolveSafeUploadPath(relativeUrlPath: string, root: string) {
+  const clean = relativeUrlPath.replace(/^\/+/, "").replace(/^uploads\/?/, "");
+  if (!clean || clean.includes("\0") || clean.split(/[/\\]/).includes("..")) {
+    return null;
+  }
+
+  const absolute = path.resolve(root, clean);
+  const rootResolved = path.resolve(root);
+  if (
+    absolute !== rootResolved &&
+    !absolute.startsWith(rootResolved + path.sep)
+  ) {
+    return null;
+  }
+  return absolute;
+}
+
+async function fileExists(filePath: string) {
+  try {
+    await access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Resolve an /uploads/... URL to a real file (storage first, then public/). */
+export async function resolveUploadFile(relativeUrlPath: string) {
+  const relative = toRelativeUploadPath(relativeUrlPath);
+  if (!relative?.startsWith("/uploads/")) return null;
+
+  const fromStorage = resolveSafeUploadPath(relative, getUploadRoot());
+  if (fromStorage && (await fileExists(fromStorage))) {
+    return fromStorage;
+  }
+
+  const fromPublic = resolveSafeUploadPath(relative, getPublicUploadRoot());
+  if (fromPublic && (await fileExists(fromPublic))) {
+    return fromPublic;
+  }
+
+  return null;
 }
 
 export async function removeUploadedFile(filePath: string | null | undefined) {
   if (!filePath) return;
 
-  const relativePath = toRelativeUploadPath(filePath);
-  if (!relativePath?.startsWith("/uploads/")) return;
+  const absolutePath = await resolveUploadFile(filePath);
+  if (!absolutePath) return;
 
-  const absolutePath = path.join(process.cwd(), "public", relativePath);
+  // Only delete runtime uploads from storage (never wipe seeded public assets).
+  const storageRoot = path.resolve(getUploadRoot());
+  if (!absolutePath.startsWith(storageRoot + path.sep) && absolutePath !== storageRoot) {
+    return;
+  }
 
   try {
     await unlink(absolutePath);
   } catch {
     // ignore missing files
   }
+}
+
+const CONTENT_TYPES: Record<string, string> = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+  ".svg": "image/svg+xml",
+  ".gif": "image/gif",
+};
+
+export function getUploadContentType(filePath: string) {
+  return CONTENT_TYPES[path.extname(filePath).toLowerCase()] ?? "application/octet-stream";
 }
