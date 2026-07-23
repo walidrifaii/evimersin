@@ -5,9 +5,10 @@ import { HiChevronDown } from "react-icons/hi";
 import {
   defaultPropertyFilters,
   formatPriceLabelForOptions,
-  propertyFilterOptions,
+  getFilterOptionLabel,
 } from "@/features/products/data";
 import type {
+  FilterOption,
   PropertyFilterOptions,
   PropertyFiltersState,
 } from "@/features/products/types";
@@ -26,12 +27,17 @@ function FilterSelect({
   onChange,
 }: {
   label: string;
-  options: readonly string[];
-  value: string;
-  onChange: (value: string) => void;
+  options: FilterOption[];
+  value: number | null;
+  onChange: (value: number | null) => void;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const selectedLabel = getFilterOptionLabel(
+    options,
+    value,
+    options[0]?.label ?? "",
+  );
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -51,7 +57,7 @@ function FilterSelect({
         onClick={() => setOpen((prev) => !prev)}
         className="flex h-12 w-full items-center justify-between rounded-xl border border-[#e5eaf2] bg-white px-4 text-left text-[14px] font-medium text-[var(--brand-navy)] transition-colors hover:border-[#c7d2e5]"
       >
-        <span className="truncate">{value}</span>
+        <span className="truncate">{selectedLabel}</span>
         <HiChevronDown
           className={`h-4 w-4 shrink-0 text-[#6b7280] transition-transform ${
             open ? "rotate-180" : ""
@@ -64,22 +70,22 @@ function FilterSelect({
         <div className="absolute left-0 right-0 top-full z-40 mt-2 max-h-64 overflow-y-auto rounded-xl border border-[#e5eaf2] bg-white shadow-[0_12px_32px_rgba(15,23,42,0.12)]">
           {options.map((option) => (
             <button
-              key={option}
+              key={`${option.id ?? "all"}-${option.label}`}
               type="button"
               onMouseDown={(event) => {
                 event.preventDefault();
               }}
               onClick={() => {
-                onChange(option);
+                onChange(option.id);
                 setOpen(false);
               }}
               className={`flex w-full px-4 py-3 text-left text-[14px] font-medium transition-colors hover:bg-[#f3f4f6] ${
-                option === value
+                option.id === value
                   ? "bg-[#eff6ff] text-[var(--brand-blue)]"
                   : "text-[var(--brand-navy)]"
               }`}
             >
-              {option}
+              {option.label}
             </button>
           ))}
         </div>
@@ -103,9 +109,7 @@ export function PropertyFilters({
 
   function clearAll() {
     onChange({
-      city: options.city[0] ?? defaultPropertyFilters.city,
-      propertyType: options.propertyType[0] ?? defaultPropertyFilters.propertyType,
-      purpose: options.purpose[0] ?? defaultPropertyFilters.purpose,
+      ...defaultPropertyFilters,
       priceMin: options.priceMin,
       priceMax: options.priceMax,
       sort: value.sort,
@@ -138,20 +142,20 @@ export function PropertyFilters({
         <FilterSelect
           label="City"
           options={options.city}
-          value={value.city}
-          onChange={(city) => update("city", city)}
+          value={value.cityId}
+          onChange={(cityId) => update("cityId", cityId)}
         />
         <FilterSelect
           label="Property Type"
           options={options.propertyType}
-          value={value.propertyType}
-          onChange={(propertyType) => update("propertyType", propertyType)}
+          value={value.categoryId}
+          onChange={(categoryId) => update("categoryId", categoryId)}
         />
         <FilterSelect
           label="Purpose"
           options={options.purpose}
-          value={value.purpose}
-          onChange={(purpose) => update("purpose", purpose)}
+          value={value.purposeId}
+          onChange={(purposeId) => update("purposeId", purposeId)}
         />
 
         <div>

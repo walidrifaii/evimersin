@@ -38,8 +38,11 @@ function toPropertyListing(product: ProductDetail): PropertyListing {
     badge: toBadge(product),
     title: product.name,
     location: product.city_name,
+    cityId: product.city_id,
     city: product.city_name,
+    categoryId: product.category_id,
     propertyType: product.category_name,
+    purposeId: product.purpose_id,
     purpose: product.purpose_name,
     price: formatProductPrice(product.final_price),
     originalPrice: discounted ? formatProductPrice(product.price) : undefined,
@@ -156,12 +159,15 @@ async function loadPropertyFilterOptions() {
 
   const cityNames = cities
     .filter((city) => Number(city.status) === 1)
-    .map((city) => city.name);
+    .map((city) => ({ id: city.id, label: city.name }));
 
   return buildPropertyFilterOptions(
     products.map((product) => ({
+      cityId: product.city_id,
       city: product.city_name,
+      categoryId: product.category_id,
       propertyType: product.category_name,
+      purposeId: product.purpose_id,
       purpose: product.purpose_name,
       priceValue: product.final_price,
     })),
@@ -169,10 +175,10 @@ async function loadPropertyFilterOptions() {
       cities: cityNames,
       propertyTypes: categories
         .filter((category) => Number(category.status) === 1)
-        .map((category) => category.name),
+        .map((category) => ({ id: category.id, label: category.name })),
       purposes: purposes
         .filter((purpose) => Number(purpose.status) === 1)
-        .map((purpose) => purpose.name),
+        .map((purpose) => ({ id: purpose.id, label: purpose.name })),
     },
   );
 }

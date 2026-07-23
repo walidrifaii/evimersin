@@ -248,3 +248,20 @@ export const propertyTypeCards: PropertyTypeCardItem[] = [
     Icon: MoreCircleIcon,
   },
 ];
+
+export function withCategoryIdHrefs(
+  cards: PropertyTypeCardItem[],
+  resolveCategoryId: (slug: string) => number | null,
+) {
+  return cards.map((card) => {
+    if (card.id === "more") return card;
+    const categoryId = resolveCategoryId(card.id);
+    return {
+      ...card,
+      href:
+        categoryId !== null
+          ? `${routes.properties}?categoryId=${categoryId}`
+          : routes.properties,
+    };
+  });
+}

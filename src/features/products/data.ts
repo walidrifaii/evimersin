@@ -3,23 +3,36 @@ import aboutBuildingImage from "@/assets/images/about-building.webp";
 import type { StaticImageData } from "next/image";
 import { routes } from "@/constants/routes";
 import type {
+  FilterOption,
   PropertyFilterOptions,
   PropertyFiltersState,
   PropertyListing,
 } from "./types";
 
 export const propertyFilterOptions: PropertyFilterOptions = {
-  city: ["All Cities", "Mersin", "Tarsus", "Erdemli", "Silifke", "Anamur", "Mut"],
-  propertyType: [
-    "All Types",
-    "Villa",
-    "Apartment",
-    "Studio",
-    "Land",
-    "Commercial",
-    "Penthouse",
+  city: [
+    { id: null, label: "All Cities" },
+    { id: 1, label: "Mersin" },
+    { id: 2, label: "Tarsus" },
+    { id: 3, label: "Erdemli" },
+    { id: 4, label: "Silifke" },
+    { id: 5, label: "Anamur" },
+    { id: 6, label: "Mut" },
   ],
-  purpose: ["Buy / Rent", "For Sale", "For Rent", "Daily Rent"],
+  propertyType: [
+    { id: null, label: "All Types" },
+    { id: 1, label: "Villa" },
+    { id: 2, label: "Apartment" },
+    { id: 3, label: "Studio" },
+    { id: 4, label: "Land" },
+    { id: 5, label: "Commercial" },
+    { id: 6, label: "Penthouse" },
+  ],
+  purpose: [
+    { id: null, label: "Buy / Rent" },
+    { id: 1, label: "For Sale" },
+    { id: 2, label: "For Rent" },
+  ],
   sort: [
     { value: "newest", label: "Newest" },
     { value: "price-asc", label: "Price: Low to High" },
@@ -31,26 +44,48 @@ export const propertyFilterOptions: PropertyFilterOptions = {
 };
 
 export const defaultPropertyFilters: PropertyFiltersState = {
-  city: "All Cities",
-  propertyType: "All Types",
-  purpose: "Buy / Rent",
+  cityId: null,
+  categoryId: null,
+  purposeId: null,
   priceMin: propertyFilterOptions.priceMin,
   priceMax: propertyFilterOptions.priceMax,
   sort: "newest",
 };
 
-function uniqueSorted(values: string[]) {
-  return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b));
+function uniqueById(options: FilterOption[]) {
+  const seen = new Set<string>();
+  return options
+    .filter((option) => Boolean(option.label))
+    .filter((option) => {
+      const key = `${option.id ?? "null"}:${option.label.toLowerCase()}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => {
+      if (a.id === null) return -1;
+      if (b.id === null) return 1;
+      return a.label.localeCompare(b.label);
+    });
 }
 
 export function buildPropertyFilterOptions(
   listings: Array<
-    Pick<PropertyListing, "city" | "propertyType" | "purpose" | "priceValue">
+    Pick<
+      PropertyListing,
+      | "cityId"
+      | "city"
+      | "categoryId"
+      | "propertyType"
+      | "purposeId"
+      | "purpose"
+      | "priceValue"
+    >
   >,
   lookups?: {
-    cities?: string[];
-    propertyTypes?: string[];
-    purposes?: string[];
+    cities?: FilterOption[];
+    propertyTypes?: FilterOption[];
+    purposes?: FilterOption[];
   },
 ): PropertyFilterOptions {
   const maxPrice = Math.max(
@@ -60,24 +95,36 @@ export function buildPropertyFilterOptions(
 
   const cities =
     lookups?.cities && lookups.cities.length > 0
-      ? uniqueSorted(lookups.cities)
-      : uniqueSorted(listings.map((item) => item.city));
+      ? lookups.cities
+      : listings.map((item) => ({ id: item.cityId, label: item.city }));
 
   const propertyTypes =
     lookups?.propertyTypes && lookups.propertyTypes.length > 0
-      ? uniqueSorted(lookups.propertyTypes)
-      : uniqueSorted(listings.map((item) => item.propertyType));
+      ? lookups.propertyTypes
+      : listings.map((item) => ({
+          id: item.categoryId,
+          label: item.propertyType,
+        }));
 
   const purposes =
     lookups?.purposes && lookups.purposes.length > 0
-      ? uniqueSorted(lookups.purposes)
-      : uniqueSorted(listings.map((item) => item.purpose));
+      ? lookups.purposes
+      : listings.map((item) => ({ id: item.purposeId, label: item.purpose }));
 
   return {
     ...propertyFilterOptions,
-    city: ["All Cities", ...cities],
-    propertyType: ["All Types", ...propertyTypes],
-    purpose: ["Buy / Rent", ...purposes],
+    city: [
+      { id: null, label: "All Cities" },
+      ...uniqueById(cities.filter((item) => item.id !== null)),
+    ],
+    propertyType: [
+      { id: null, label: "All Types" },
+      ...uniqueById(propertyTypes.filter((item) => item.id !== null)),
+    ],
+    purpose: [
+      { id: null, label: "Buy / Rent" },
+      ...uniqueById(purposes.filter((item) => item.id !== null)),
+    ],
     priceMax: maxPrice,
   };
 }
@@ -86,9 +133,9 @@ export function getDefaultPropertyFilters(
   options: PropertyFilterOptions = propertyFilterOptions,
 ): PropertyFiltersState {
   return {
-    city: options.city[0] ?? "All Cities",
-    propertyType: options.propertyType[0] ?? "All Types",
-    purpose: options.purpose[0] ?? "Buy / Rent",
+    cityId: null,
+    categoryId: null,
+    purposeId: null,
     priceMin: options.priceMin,
     priceMax: options.priceMax,
     sort: "newest",
@@ -116,53 +163,85 @@ export function getPropertyTypeFromQuery(type?: string | null) {
   return typeQueryMap[normalized] ?? null;
 }
 
-function normalizePurpose(value: string) {
-  const normalized = value.trim().toLowerCase();
-  if (["sale", "for sale", "buy", "buying"].includes(normalized)) {
-    return "for sale";
-  }
-  if (["rent", "for rent", "rental", "daily rent"].includes(normalized)) {
-    return "for rent";
-  }
-  return normalized;
+function parseIdParam(value: string | null | undefined) {
+  if (!value) return null;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) return null;
+  return parsed;
 }
 
-function findOptionMatch(value: string | null | undefined, options: string[]) {
+function findOptionById(id: number | null, options: FilterOption[]) {
+  if (id === null) return options.find((option) => option.id === null) ?? null;
+  return options.find((option) => option.id === id) ?? null;
+}
+
+function findOptionByLabel(value: string | null | undefined, options: FilterOption[]) {
   if (!value) return null;
   const normalized = value.trim().toLowerCase();
+  const mappedType = getPropertyTypeFromQuery(value);
+
   return (
-    options.find((option) => option.toLowerCase() === normalized) ??
+    options.find((option) => option.label.toLowerCase() === normalized) ??
     options.find(
       (option) =>
-        option.toLowerCase().replace(/s$/, "") ===
-        normalized.replace(/s$/, ""),
+        mappedType !== null &&
+        option.label.toLowerCase() === mappedType.toLowerCase(),
     ) ??
     options.find(
-      (option) => normalizePurpose(option) === normalizePurpose(value),
+      (option) =>
+        option.label.toLowerCase().replace(/s$/, "") ===
+        normalized.replace(/s$/, ""),
     ) ??
     null
   );
 }
 
-export function filtersFromSearchParams(params: {
-  type?: string | null;
-  city?: string | null;
-  purpose?: string | null;
-  priceMin?: string | null;
-  priceMax?: string | null;
-}, options: PropertyFilterOptions = propertyFilterOptions): PropertyFiltersState {
+export function getFilterOptionLabel(
+  options: FilterOption[],
+  id: number | null,
+  fallback: string,
+) {
+  return findOptionById(id, options)?.label ?? fallback;
+}
+
+export function filtersFromSearchParams(
+  params: {
+    cityId?: string | null;
+    categoryId?: string | null;
+    purposeId?: string | null;
+    /** @deprecated name/slug support for old links */
+    type?: string | null;
+    city?: string | null;
+    purpose?: string | null;
+    priceMin?: string | null;
+    priceMax?: string | null;
+  },
+  options: PropertyFilterOptions = propertyFilterOptions,
+): PropertyFiltersState {
   const defaults = getDefaultPropertyFilters(options);
-  const propertyTypeAlias = getPropertyTypeFromQuery(params.type);
-  const propertyType =
-    findOptionMatch(propertyTypeAlias, options.propertyType) ??
-    findOptionMatch(params.type, options.propertyType) ??
-    defaults.propertyType;
+
+  const cityFromId = findOptionById(parseIdParam(params.cityId), options.city);
+  const categoryFromId = findOptionById(
+    parseIdParam(params.categoryId),
+    options.propertyType,
+  );
+  const purposeFromId = findOptionById(
+    parseIdParam(params.purposeId),
+    options.purpose,
+  );
 
   const city =
-    findOptionMatch(params.city, options.city) ?? defaults.city;
-
+    cityFromId ??
+    findOptionByLabel(params.city, options.city) ??
+    findOptionById(null, options.city);
+  const propertyType =
+    categoryFromId ??
+    findOptionByLabel(params.type, options.propertyType) ??
+    findOptionById(null, options.propertyType);
   const purpose =
-    findOptionMatch(params.purpose, options.purpose) ?? defaults.purpose;
+    purposeFromId ??
+    findOptionByLabel(params.purpose, options.purpose) ??
+    findOptionById(null, options.purpose);
 
   const parsedMin = Number(params.priceMin);
   const parsedMax = Number(params.priceMax);
@@ -175,12 +254,46 @@ export function filtersFromSearchParams(params: {
 
   return {
     ...defaults,
-    propertyType,
-    city,
-    purpose,
+    cityId: city?.id ?? null,
+    categoryId: propertyType?.id ?? null,
+    purposeId: purpose?.id ?? null,
     priceMin,
     priceMax,
   };
+}
+
+export function buildPropertiesSearchHref(
+  filters: Pick<
+    PropertyFiltersState,
+    "cityId" | "categoryId" | "purposeId" | "priceMin" | "priceMax"
+  >,
+  options: PropertyFilterOptions = propertyFilterOptions,
+) {
+  const params = new URLSearchParams();
+
+  if (filters.cityId !== null) params.set("cityId", String(filters.cityId));
+  if (filters.categoryId !== null) {
+    params.set("categoryId", String(filters.categoryId));
+  }
+  if (filters.purposeId !== null) {
+    params.set("purposeId", String(filters.purposeId));
+  }
+  if (filters.priceMin > options.priceMin) {
+    params.set("priceMin", String(filters.priceMin));
+  }
+  if (filters.priceMax < options.priceMax) {
+    params.set("priceMax", String(filters.priceMax));
+  }
+
+  const query = params.toString();
+  return query ? `${routes.properties}?${query}` : routes.properties;
+}
+
+export function resolveCategoryIdBySlug(
+  slug: string,
+  options: PropertyFilterOptions,
+) {
+  return findOptionByLabel(slug, options.propertyType)?.id ?? null;
 }
 
 function gallery(...images: StaticImageData[]) {
@@ -193,8 +306,11 @@ export const propertiesListings: PropertyListing[] = [
     badge: "FEATURED",
     title: "Luxury Villa in Mezitli",
     location: "Mezitli, Mersin",
+    cityId: 1,
     city: "Mersin",
+    categoryId: 1,
     propertyType: "Villa",
+    purposeId: 1,
     purpose: "For Sale",
     price: "$350,000",
     priceValue: 350000,
@@ -220,8 +336,11 @@ export const propertiesListings: PropertyListing[] = [
     badge: "APARTMENT",
     title: "Modern City Apartment",
     location: "Yenişehir, Mersin",
+    cityId: 1,
     city: "Mersin",
+    categoryId: 2,
     propertyType: "Apartment",
+    purposeId: 1,
     purpose: "For Sale",
     price: "$185,000",
     priceValue: 185000,
@@ -244,8 +363,11 @@ export const propertiesListings: PropertyListing[] = [
     badge: "STUDIO",
     title: "Cozy Studio Downtown",
     location: "Mersin, City Center",
+    cityId: 1,
     city: "Mersin",
+    categoryId: 3,
     propertyType: "Studio",
+    purposeId: 2,
     purpose: "For Rent",
     price: "$850 / Month",
     priceValue: 850,
@@ -263,8 +385,11 @@ export const propertiesListings: PropertyListing[] = [
     badge: "LAND",
     title: "Prime Coastal Land Plot",
     location: "Erdemli, Mersin",
+    cityId: 3,
     city: "Erdemli",
+    categoryId: 4,
     propertyType: "Land",
+    purposeId: 1,
     purpose: "For Sale",
     price: "$120,000",
     priceValue: 120000,
@@ -282,8 +407,11 @@ export const propertiesListings: PropertyListing[] = [
     badge: "FEATURED",
     title: "Family Villa with Garden",
     location: "Tarsus, Mersin",
+    cityId: 2,
     city: "Tarsus",
+    categoryId: 1,
     propertyType: "Villa",
+    purposeId: 1,
     purpose: "For Sale",
     price: "$275,000",
     priceValue: 275000,
@@ -308,8 +436,11 @@ export const propertiesListings: PropertyListing[] = [
     badge: "PENTHOUSE",
     title: "Marina View Penthouse",
     location: "Marina District, Mersin",
+    cityId: 1,
     city: "Mersin",
+    categoryId: 6,
     propertyType: "Penthouse",
+    purposeId: 1,
     purpose: "For Sale",
     price: "$520,000",
     priceValue: 520000,
@@ -333,8 +464,11 @@ export const propertiesListings: PropertyListing[] = [
     badge: "COMMERCIAL",
     title: "Street-Front Commercial Unit",
     location: "Silifke, Mersin",
+    cityId: 4,
     city: "Silifke",
+    categoryId: 5,
     propertyType: "Commercial",
+    purposeId: 2,
     purpose: "For Rent",
     price: "$2,400 / Month",
     priceValue: 2400,
@@ -352,8 +486,11 @@ export const propertiesListings: PropertyListing[] = [
     badge: "APARTMENT",
     title: "Sea Breeze Apartment",
     location: "Anamur, Mersin",
+    cityId: 5,
     city: "Anamur",
+    categoryId: 2,
     propertyType: "Apartment",
+    purposeId: 1,
     purpose: "For Sale",
     price: "$95,000",
     priceValue: 95000,
@@ -390,22 +527,13 @@ export function filterProperties(
   filters: PropertyFiltersState,
 ) {
   let result = listings.filter((item) => {
-    if (
-      filters.city !== "All Cities" &&
-      item.city.toLowerCase() !== filters.city.toLowerCase()
-    ) {
+    if (filters.cityId !== null && item.cityId !== filters.cityId) {
       return false;
     }
-    if (
-      filters.propertyType !== "All Types" &&
-      item.propertyType.toLowerCase() !== filters.propertyType.toLowerCase()
-    ) {
+    if (filters.categoryId !== null && item.categoryId !== filters.categoryId) {
       return false;
     }
-    if (
-      filters.purpose !== "Buy / Rent" &&
-      normalizePurpose(item.purpose) !== normalizePurpose(filters.purpose)
-    ) {
+    if (filters.purposeId !== null && item.purposeId !== filters.purposeId) {
       return false;
     }
     if (item.priceValue < filters.priceMin || item.priceValue > filters.priceMax) {

@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { HiChevronDown } from "react-icons/hi";
 import {
+  buildPropertiesSearchHref,
   defaultPropertyFilters,
   filterProperties,
   filtersFromSearchParams,
@@ -27,7 +28,12 @@ export function PropertiesPageContent({
   listings,
   filterOptions,
 }: PropertiesPageContentProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+  const cityIdParam = searchParams.get("cityId");
+  const categoryIdParam = searchParams.get("categoryId");
+  const purposeIdParam = searchParams.get("purposeId");
   const typeParam = searchParams.get("type");
   const cityParam = searchParams.get("city");
   const purposeParam = searchParams.get("purpose");
@@ -36,14 +42,30 @@ export function PropertiesPageContent({
 
   const filtersFromUrl = useMemo(
     () =>
-      filtersFromSearchParams({
-        type: typeParam,
-        city: cityParam,
-        purpose: purposeParam,
-        priceMin: priceMinParam,
-        priceMax: priceMaxParam,
-      }, filterOptions),
-    [typeParam, cityParam, purposeParam, priceMinParam, priceMaxParam, filterOptions],
+      filtersFromSearchParams(
+        {
+          cityId: cityIdParam,
+          categoryId: categoryIdParam,
+          purposeId: purposeIdParam,
+          type: typeParam,
+          city: cityParam,
+          purpose: purposeParam,
+          priceMin: priceMinParam,
+          priceMax: priceMaxParam,
+        },
+        filterOptions,
+      ),
+    [
+      cityIdParam,
+      categoryIdParam,
+      purposeIdParam,
+      typeParam,
+      cityParam,
+      purposeParam,
+      priceMinParam,
+      priceMaxParam,
+      filterOptions,
+    ],
   );
 
   const [draftFilters, setDraftFilters] =
@@ -77,8 +99,19 @@ export function PropertiesPageContent({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [sortOpen]);
 
+  function syncUrl(next: PropertyFiltersState) {
+    const href = buildPropertiesSearchHref(next, filterOptions);
+    const nextQuery = href.includes("?") ? href.split("?")[1] : "";
+    const currentQuery = searchParams.toString();
+    if (nextQuery === currentQuery) return;
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+      scroll: false,
+    });
+  }
+
   function applyFilters() {
     setAppliedFilters(draftFilters);
+    syncUrl(draftFilters);
   }
 
   function changeSort(sort: string) {
@@ -101,6 +134,7 @@ export function PropertiesPageContent({
               onChange={(next) => {
                 setDraftFilters(next);
                 setAppliedFilters(next);
+                syncUrl(next);
               }}
               onApply={applyFilters}
             />
@@ -167,17 +201,12 @@ export function PropertiesPageContent({
                   onClick={() => {
                     const defaults = {
                       ...defaultPropertyFilters,
-                      city: filterOptions.city[0] ?? defaultPropertyFilters.city,
-                      propertyType:
-                        filterOptions.propertyType[0] ??
-                        defaultPropertyFilters.propertyType,
-                      purpose:
-                        filterOptions.purpose[0] ?? defaultPropertyFilters.purpose,
                       priceMin: filterOptions.priceMin,
                       priceMax: filterOptions.priceMax,
                     };
                     setDraftFilters(defaults);
                     setAppliedFilters(defaults);
+                    syncUrl(defaults);
                   }}
                   className="mt-5 inline-flex h-11 items-center justify-center rounded-xl bg-[var(--brand-blue)] px-5 text-[14px] font-semibold text-white transition-colors hover:bg-[#1d4ed8]"
                 >

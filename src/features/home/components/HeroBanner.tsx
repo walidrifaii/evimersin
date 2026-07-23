@@ -2,7 +2,12 @@ import Image from "next/image";
 import heroImage from "@/assets/images/hero.webp";
 import { PropertySearchBar } from "@/features/home/components/PropertySearchBar";
 import { PropertyTypeCard } from "@/features/home/components/PropertyTypeCard";
-import { homeData, propertyTypeCards } from "@/features/home/data";
+import {
+  homeData,
+  propertyTypeCards,
+  withCategoryIdHrefs,
+} from "@/features/home/data";
+import { resolveCategoryIdBySlug } from "@/features/products/data";
 import type { PropertyFilterOptions } from "@/features/products/types";
 
 type HeroBannerProps = {
@@ -10,14 +15,17 @@ type HeroBannerProps = {
 };
 
 export function HeroBanner({ filterOptions }: HeroBannerProps) {
-  const tabletCards = propertyTypeCards.filter((item) => item.id !== "more");
-  const moreCard = propertyTypeCards.find((item) => item.id === "more");
+  const cards = withCategoryIdHrefs(propertyTypeCards, (slug) =>
+    resolveCategoryIdBySlug(slug, filterOptions),
+  );
+  const tabletCards = cards.filter((item) => item.id !== "more");
+  const moreCard = cards.find((item) => item.id === "more");
   const mobileCards = [
-    ...propertyTypeCards.filter((item) =>
+    ...cards.filter((item) =>
       ["villas", "apartments", "studios", "lands"].includes(item.id),
     ),
     moreCard,
-  ].filter((item): item is (typeof propertyTypeCards)[number] => Boolean(item));
+  ].filter((item): item is (typeof cards)[number] => Boolean(item));
 
   return (
     <section className="relative w-full bg-white">
