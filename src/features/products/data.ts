@@ -170,6 +170,13 @@ function parseIdParam(value: string | null | undefined) {
   return parsed;
 }
 
+function parseOptionalPrice(value: string | null | undefined) {
+  if (value == null || String(value).trim() === "") return null;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) return null;
+  return parsed;
+}
+
 function findOptionById(id: number | null, options: FilterOption[]) {
   if (id === null) return options.find((option) => option.id === null) ?? null;
   return options.find((option) => option.id === id) ?? null;
@@ -243,14 +250,19 @@ export function filtersFromSearchParams(
     findOptionByLabel(params.purpose, options.purpose) ??
     findOptionById(null, options.purpose);
 
-  const parsedMin = Number(params.priceMin);
-  const parsedMax = Number(params.priceMax);
-  const priceMin = Number.isFinite(parsedMin)
-    ? Math.max(options.priceMin, Math.min(parsedMin, options.priceMax))
-    : defaults.priceMin;
-  const priceMax = Number.isFinite(parsedMax)
-    ? Math.max(priceMin, Math.min(parsedMax, options.priceMax))
-    : defaults.priceMax;
+  const parsedMin = parseOptionalPrice(params.priceMin);
+  const parsedMax = parseOptionalPrice(params.priceMax);
+
+  const priceMin =
+    parsedMin === null
+      ? defaults.priceMin
+      : Math.max(options.priceMin, Math.min(parsedMin, options.priceMax));
+
+  // Ignore invalid/zero max from bad URLs like ?priceMax=0 (Number(null) used to become 0).
+  const priceMax =
+    parsedMax === null || parsedMax <= 0
+      ? defaults.priceMax
+      : Math.max(priceMin, Math.min(parsedMax, options.priceMax));
 
   return {
     ...defaults,
@@ -281,7 +293,12 @@ export function buildPropertiesSearchHref(
   if (filters.priceMin > options.priceMin) {
     params.set("priceMin", String(filters.priceMin));
   }
-  if (filters.priceMax < options.priceMax) {
+  // Never persist a zero/invalid max — that hides every paid listing.
+  if (
+    filters.priceMax > 0 &&
+    filters.priceMax < options.priceMax &&
+    filters.priceMax >= filters.priceMin
+  ) {
     params.set("priceMax", String(filters.priceMax));
   }
 

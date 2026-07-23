@@ -183,7 +183,11 @@ export function PropertyFilters({
               value={value.priceMin}
               onChange={(e) => {
                 const next = Number(e.target.value);
-                update("priceMin", Math.min(next, value.priceMax - 10000));
+                const maxFloor = Math.max(
+                  options.priceMin,
+                  value.priceMax - 10000,
+                );
+                update("priceMin", Math.min(next, maxFloor));
               }}
               className="pointer-events-none absolute inset-0 z-10 w-full appearance-none bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-[var(--brand-blue)] [&::-moz-range-thumb]:shadow [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-[var(--brand-blue)] [&::-webkit-slider-thumb]:shadow"
               aria-label="Minimum price"
@@ -196,7 +200,11 @@ export function PropertyFilters({
               value={value.priceMax}
               onChange={(e) => {
                 const next = Number(e.target.value);
-                update("priceMax", Math.max(next, value.priceMin + 10000));
+                const minCeil = Math.min(
+                  options.priceMax,
+                  value.priceMin + 10000,
+                );
+                update("priceMax", Math.max(next, minCeil));
               }}
               className="pointer-events-none absolute inset-0 z-20 w-full appearance-none bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-[var(--brand-blue)] [&::-moz-range-thumb]:shadow [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-[var(--brand-blue)] [&::-webkit-slider-thumb]:shadow"
               aria-label="Maximum price"
