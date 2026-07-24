@@ -110,7 +110,7 @@ export function Footer() {
           <p>
             Powered by{" "}
             <a
-              href="https://www.amctag.co/"
+              href="https://www.amctag.com/"
               target="_blank"
               rel="noopener noreferrer"
               className="text-white/80 transition-colors hover:text-white"
