@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
 import { SiteSettingsProvider } from "@/components/providers/SiteSettingsProvider";
@@ -15,7 +16,13 @@ export default async function SiteLayout({
   return (
     <SiteSettingsProvider settings={settings}>
       <div className="flex min-h-full flex-col">
-        <Navbar />
+        <Suspense
+          fallback={
+            <div className="h-[5rem] w-full border-b border-black/5 bg-white" />
+          }
+        >
+          <Navbar />
+        </Suspense>
         <main className="flex flex-1 flex-col">{children}</main>
         <Footer />
       </div>

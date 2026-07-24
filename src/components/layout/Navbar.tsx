@@ -1,20 +1,47 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BrandLogo } from "@/components/layout/BrandLogo";
 import { ChevronDown } from "@/components/icons/ChevronDown";
-import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
-import { useWhatsAppUrl } from "@/components/providers/SiteSettingsProvider";
+import { PhoneIcon } from "@/components/icons/PhoneIcon";
+import { useSiteSettings } from "@/components/providers/SiteSettingsProvider";
+import { routes } from "@/constants/routes";
 import { navigation } from "@/data/navigation";
 import { propertyTypeCards } from "@/features/home/data";
 
 const propertyNavItems = propertyTypeCards.filter((item) => item.id !== "more");
 
+function isNavActive(pathname: string, href: string) {
+  if (href === routes.home) return pathname === routes.home;
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function isSubNavActive(
+  pathname: string,
+  searchParams: URLSearchParams,
+  href: string,
+) {
+  const [path, query = ""] = href.split("?");
+  if (!isNavActive(pathname, path)) return false;
+  if (!query) return !searchParams.toString();
+
+  const expected = new URLSearchParams(query);
+  for (const [key, value] of expected.entries()) {
+    if (searchParams.get(key) !== value) return false;
+  }
+  return true;
+}
+
 export function Navbar() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [menuOpen, setMenuOpen] = useState(false);
   const [propertiesOpen, setPropertiesOpen] = useState(false);
-  const whatsappUrl = useWhatsAppUrl();
+  const settings = useSiteSettings();
+  const callHref = `tel:${settings.phone}`;
+  const propertiesActive = isNavActive(pathname, routes.properties);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -37,8 +64,12 @@ export function Navbar() {
   }, [menuOpen]);
 
   useEffect(() => {
-    if (!menuOpen) setPropertiesOpen(false);
-  }, [menuOpen]);
+    if (!menuOpen) {
+      setPropertiesOpen(false);
+      return;
+    }
+    if (propertiesActive) setPropertiesOpen(true);
+  }, [menuOpen, propertiesActive]);
 
   return (
     <>
@@ -50,12 +81,22 @@ export function Navbar() {
             aria-label="Primary"
             className="hidden items-center gap-8 lg:flex lg:gap-10"
           >
-            {navigation.map((item) =>
-              "hasDropdown" in item && item.hasDropdown ? (
+            {navigation.map((item) => {
+              const active =
+                "hasDropdown" in item && item.hasDropdown
+                  ? propertiesActive
+                  : isNavActive(pathname, item.href);
+
+              return "hasDropdown" in item && item.hasDropdown ? (
                 <div key={item.href} className="group relative">
                   <Link
                     href={item.href}
-                    className="inline-flex items-center gap-1 text-[0.95rem] font-semibold text-[var(--nav-text)] transition-colors group-hover:text-[var(--brand-red)]"
+                    aria-current={active ? "page" : undefined}
+                    className={`inline-flex items-center gap-1 text-[0.95rem] font-semibold transition-colors group-hover:text-[var(--brand-red)] ${
+                      active
+                        ? "text-[var(--brand-red)]"
+                        : "text-[var(--nav-text)]"
+                    }`}
                   >
                     {item.label}
                     <ChevronDown className="h-3.5 w-3.5 translate-y-[1px] text-current transition-transform duration-200 group-hover:rotate-180" />
@@ -65,14 +106,30 @@ export function Navbar() {
                     <div className="overflow-hidden rounded-xl border border-[#e8edf5] bg-white py-2 shadow-[0_16px_48px_rgba(15,23,42,0.12)]">
                       {propertyNavItems.map((subItem) => {
                         const { Icon } = subItem;
+                        const subActive = isSubNavActive(
+                          pathname,
+                          searchParams,
+                          subItem.href,
+                        );
 
                         return (
                           <Link
                             key={subItem.id}
                             href={subItem.href}
-                            className="flex items-center gap-3 px-4 py-2.5 text-[0.9rem] font-semibold text-[var(--nav-text)] transition-colors hover:bg-[#f8fafc] hover:text-[var(--brand-red)]"
+                            aria-current={subActive ? "page" : undefined}
+                            className={`flex items-center gap-3 px-4 py-2.5 text-[0.9rem] font-semibold transition-colors hover:bg-[#f8fafc] hover:text-[var(--brand-red)] ${
+                              subActive
+                                ? "bg-[#f8fafc] text-[var(--brand-red)]"
+                                : "text-[var(--nav-text)]"
+                            }`}
                           >
-                            <Icon className="h-4 w-4 shrink-0 text-[var(--brand-blue)]" />
+                            <Icon
+                              className={`h-4 w-4 shrink-0 ${
+                                subActive
+                                  ? "text-[var(--brand-red)]"
+                                  : "text-[var(--brand-blue)]"
+                              }`}
+                            />
                             {subItem.title}
                           </Link>
                         );
@@ -84,22 +141,25 @@ export function Navbar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="inline-flex items-center gap-1 text-[0.95rem] font-semibold text-[var(--nav-text)] transition-colors hover:text-[var(--brand-red)]"
+                  aria-current={active ? "page" : undefined}
+                  className={`inline-flex items-center gap-1 text-[0.95rem] font-semibold transition-colors hover:text-[var(--brand-red)] ${
+                    active
+                      ? "text-[var(--brand-red)]"
+                      : "text-[var(--nav-text)]"
+                  }`}
                 >
                   {item.label}
                 </Link>
-              ),
-            )}
+              );
+            })}
           </nav>
 
           <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+            href={callHref}
             className="hidden shrink-0 items-center gap-2 rounded-full bg-[var(--brand-red)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#c9181e] lg:inline-flex"
           >
-            <WhatsAppIcon className="h-4 w-4" />
-            WhatsApp Us
+            <PhoneIcon className="h-4 w-4" />
+            Phone Number
           </a>
 
           {/* Burger menu for tablet + mobile */}
@@ -152,36 +212,57 @@ export function Navbar() {
 
             <div className="flex min-h-0 flex-1 flex-col px-6 pb-6">
               <ul className="flex-1 space-y-6 overflow-y-auto pt-2">
-                {navigation.map((item) =>
-                  "hasDropdown" in item && item.hasDropdown ? (
+                {navigation.map((item) => {
+                  const active =
+                    "hasDropdown" in item && item.hasDropdown
+                      ? propertiesActive
+                      : isNavActive(pathname, item.href);
+
+                  return "hasDropdown" in item && item.hasDropdown ? (
                     <li key={item.href}>
                       <button
                         type="button"
                         onClick={() => setPropertiesOpen((open) => !open)}
-                        className="flex w-full items-center justify-between text-left text-[1.05rem] font-semibold text-white"
+                        className={`flex w-full items-center justify-between text-left text-[1.05rem] font-semibold transition-colors ${
+                          active ? "text-[var(--brand-red)]" : "text-white"
+                        }`}
                         aria-expanded={propertiesOpen}
+                        aria-current={active ? "page" : undefined}
                       >
                         <span>{item.label}</span>
                         <ChevronDown
-                          className={`h-4 w-4 text-white/80 transition-transform duration-200 ${
+                          className={`h-4 w-4 transition-transform duration-200 ${
                             propertiesOpen ? "rotate-180" : ""
-                          }`}
+                          } ${active ? "text-[var(--brand-red)]" : "text-white/80"}`}
                         />
                       </button>
 
                       {propertiesOpen ? (
                         <ul className="mt-4 space-y-3 border-l border-white/15 pl-4">
-                          {propertyNavItems.map((subItem) => (
-                            <li key={subItem.id}>
-                              <Link
-                                href={subItem.href}
-                                onClick={() => setMenuOpen(false)}
-                                className="block text-[0.95rem] font-medium text-white/80 transition-colors hover:text-white"
-                              >
-                                {subItem.title}
-                              </Link>
-                            </li>
-                          ))}
+                          {propertyNavItems.map((subItem) => {
+                            const subActive = isSubNavActive(
+                              pathname,
+                              searchParams,
+                              subItem.href,
+                            );
+
+                            return (
+                              <li key={subItem.id}>
+                                <Link
+                                  href={subItem.href}
+                                  onClick={() => setMenuOpen(false)}
+                                  aria-current={subActive ? "page" : undefined}
+                                  className={`block text-[0.95rem] font-medium transition-colors hover:text-white ${
+                                    subActive
+                                      ? "text-[var(--brand-red)]"
+                                      : "text-white/80"
+                                  }`}
+                                >
+                                  {subItem.title}
+                                </Link>
+                              </li>
+                            );
+                          })}
                         </ul>
                       ) : null}
                     </li>
@@ -190,23 +271,24 @@ export function Navbar() {
                       <Link
                         href={item.href}
                         onClick={() => setMenuOpen(false)}
-                        className="flex items-center justify-between text-[1.05rem] font-semibold text-white"
+                        aria-current={active ? "page" : undefined}
+                        className={`flex items-center justify-between text-[1.05rem] font-semibold transition-colors ${
+                          active ? "text-[var(--brand-red)]" : "text-white"
+                        }`}
                       >
                         <span>{item.label}</span>
                       </Link>
                     </li>
-                  ),
-                )}
+                  );
+                })}
               </ul>
 
               <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={callHref}
                 className="mt-6 flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[var(--brand-red)] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#c9181e]"
               >
-                <WhatsAppIcon className="h-4 w-4" />
-                WhatsApp Us
+                <PhoneIcon className="h-4 w-4" />
+                Phone Number
               </a>
             </div>
           </div>
