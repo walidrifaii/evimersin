@@ -9,10 +9,6 @@ type PropertyListingCardProps = {
   item: PropertyListing;
 };
 
-const badgeStyles: Record<string, string> = {
-  FEATURED: "bg-[var(--brand-red)]",
-};
-
 export function PropertyListingCard({ item }: PropertyListingCardProps) {
   return (
     <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-[#e8edf5] bg-white shadow-[0_6px_24px_rgba(15,23,42,0.07)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_14px_36px_rgba(15,23,42,0.12)]">
@@ -25,15 +21,16 @@ export function PropertyListingCard({ item }: PropertyListingCardProps) {
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute left-3 top-3 flex flex-wrap gap-2">
-          <span
-            className={`rounded-md px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.06em] text-white ${
-              item.featured
-                ? badgeStyles.FEATURED
-                : "bg-[var(--brand-blue)]"
-            }`}
-          >
-            {item.featured ? "FEATURED" : item.propertyType}
-          </span>
+          {item.featured ? (
+            <span className="rounded-md bg-[var(--brand-red)] px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.06em] text-white">
+              FEATURED
+            </span>
+          ) : null}
+          {item.city ? (
+            <span className="rounded-md bg-[var(--brand-blue)] px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.06em] text-white">
+              {item.city}
+            </span>
+          ) : null}
         </div>
       </Link>
 
@@ -45,7 +42,11 @@ export function PropertyListingCard({ item }: PropertyListingCardProps) {
             </h3>
           </Link>
           <p className="mt-1.5 text-[13px] font-normal text-[var(--muted)] sm:text-[14px]">
-            {item.location}
+            {item.propertyType ? (
+              <span className="text-[var(--brand-red)]">{item.propertyType}</span>
+            ) : null}
+            {item.propertyType && item.purpose ? " · " : null}
+            {item.purpose ? <span>{item.purpose}</span> : null}
           </p>
         </div>
 

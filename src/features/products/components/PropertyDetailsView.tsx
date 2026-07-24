@@ -37,11 +37,22 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
 
           <div className="lg:sticky lg:top-28">
             <div className="bg-white lg:rounded-2xl lg:border lg:border-[#e8edf5] lg:p-7 lg:shadow-[0_8px_28px_rgba(15,23,42,0.06)]">
+              {property.city ? (
+                <span className="mb-3 inline-flex rounded-md bg-[var(--brand-blue)] px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.06em] text-white sm:mb-4">
+                  {property.city}
+                </span>
+              ) : null}
               <h1 className="text-[1.55rem] font-bold leading-[1.2] tracking-[-0.02em] text-[var(--brand-navy)] sm:text-[1.9rem] lg:text-[2.1rem]">
                 {property.title}
               </h1>
               <p className="mt-2 text-[14px] text-[var(--muted)] sm:text-[15px]">
-                {property.location}
+                {property.propertyType ? (
+                  <span className="text-[var(--brand-red)]">
+                    {property.propertyType}
+                  </span>
+                ) : null}
+                {property.propertyType && property.purpose ? " · " : null}
+                {property.purpose ? <span>{property.purpose}</span> : null}
               </p>
 
               <div className="mt-5">
