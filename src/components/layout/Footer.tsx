@@ -107,7 +107,17 @@ export function Footer() {
           <p>
             © {new Date().getFullYear()} {config.appName}. All rights reserved.
           </p>
-          <p>{config.tagline}</p>
+          <p>
+            Powered by{" "}
+            <a
+              href="https://www.amctag.co/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-white/80 transition-colors hover:text-white"
+            >
+              Amctag
+            </a>
+          </p>
         </div>
       </div>
     </footer>
