@@ -42,7 +42,7 @@ export function HeroBanner({ filterOptions }: HeroBannerProps) {
           <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/35 to-black/55" />
         </div>
 
-        <div className="relative z-10 mx-auto flex h-full min-h-[78vh] w-full flex-col items-start justify-start px-4 pb-32 pt-14 text-left sm:px-6 md:px-4 md:pb-36 md:pt-16 lg:px-[100px] lg:pb-48 lg:pt-28">
+        <div className="relative z-30 mx-auto flex h-full min-h-[78vh] w-full flex-col items-start justify-start px-4 pb-32 pt-14 text-left sm:px-6 md:px-4 md:pb-36 md:pt-16 lg:px-[100px] lg:pb-48 lg:pt-28">
           <div className="w-full max-w-[640px] animate-[heroFade_700ms_ease-out]">
             <h1 className="text-[2.25rem] font-semibold leading-[1.1] tracking-[-0.02em] text-white sm:text-[3rem] lg:text-[3.75rem]">
               <span>{homeData.title}</span>
@@ -54,13 +54,13 @@ export function HeroBanner({ filterOptions }: HeroBannerProps) {
             </p>
           </div>
 
-          <div className="relative z-30 mt-8 w-full self-start animate-[heroFade_900ms_ease-out] sm:mt-10">
+          <div className="relative z-40 mt-8 w-full self-start animate-[heroFade_900ms_ease-out] sm:mt-10">
             <PropertySearchBar filterOptions={filterOptions} />
           </div>
         </div>
       </div>
 
-      <div className="relative z-20 mx-auto -mt-20 w-full px-4 sm:px-6 md:-mt-18 md:px-4 lg:-mt-28 lg:px-[100px]">
+      <div className="relative z-10 mx-auto -mt-20 w-full px-4 sm:px-6 md:-mt-18 md:px-4 lg:-mt-28 lg:px-[100px]">
         <div className="rounded-2xl bg-white p-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.12)] md:hidden">
           <div className="grid grid-cols-5 divide-x divide-[#eef2f7]">
             {mobileCards.map((item, index) => (

@@ -6,6 +6,7 @@ import {
 } from "@/server/database/repositories/lookup.repository";
 import type {
   Category,
+  CategoryWithStats,
   CreateCategoryInput,
   CreateCityInput,
   CreateCountryInput,
@@ -19,7 +20,7 @@ import { AppError } from "@/server/utils/errors";
 import { toRelativeUploadPath } from "@/server/utils/upload";
 import { toAbsoluteImageUrl } from "@/lib/image-url";
 
-function withAbsoluteCategoryIcon(category: Category): Category {
+function withAbsoluteCategoryIcon<T extends Category>(category: T): T {
   return {
     ...category,
     icon: toAbsoluteImageUrl(category.icon),
@@ -32,11 +33,20 @@ function normalizeStoredIcon(icon: string | null | undefined) {
   return toRelativeUploadPath(icon) ?? icon;
 }
 
+function normalizeProductsCount<T extends { products_count: number | string }>(
+  row: T,
+): T {
+  return {
+    ...row,
+    products_count: Number(row.products_count ?? 0),
+  };
+}
+
 export const countryService = {
-  list: () => countryRepository.findAll(),
+  list: () => countryRepository.findAllWithCities(),
 
   async getById(id: number) {
-    const country = await countryRepository.findById(id);
+    const country = await countryRepository.findByIdWithCities(id);
     if (!country) throw new AppError("Country not found", 404);
     return country;
   },
@@ -61,10 +71,15 @@ export const countryService = {
 };
 
 export const cityService = {
-  list: () => cityRepository.findAll(),
+  list: (countryId?: number) => cityRepository.findAllWithCountry(countryId),
+
+  async listByCountry(countryId: number) {
+    await countryService.getById(countryId);
+    return cityRepository.findAllWithCountry(countryId);
+  },
 
   async getById(id: number) {
-    const city = await cityRepository.findById(id);
+    const city = await cityRepository.findByIdWithCountry(id);
     if (!city) throw new AppError("City not found", 404);
     return city;
   },
@@ -96,15 +111,17 @@ export const cityService = {
 };
 
 export const categoryService = {
-  async list() {
-    const categories = await categoryRepository.findAll();
-    return categories.map(withAbsoluteCategoryIcon);
+  async list(): Promise<CategoryWithStats[]> {
+    const categories = await categoryRepository.findAllWithStats();
+    return categories.map((item) =>
+      withAbsoluteCategoryIcon(normalizeProductsCount(item)),
+    );
   },
 
   async getById(id: number) {
-    const category = await categoryRepository.findById(id);
+    const category = await categoryRepository.findByIdWithStats(id);
     if (!category) throw new AppError("Category not found", 404);
-    return withAbsoluteCategoryIcon(category);
+    return withAbsoluteCategoryIcon(normalizeProductsCount(category));
   },
 
   async create(input: CreateCategoryInput) {
@@ -138,12 +155,15 @@ export const categoryService = {
 };
 
 export const purposeService = {
-  list: () => purposeRepository.findAll(),
+  async list() {
+    const purposes = await purposeRepository.findAllWithStats();
+    return purposes.map(normalizeProductsCount);
+  },
 
   async getById(id: number) {
-    const purpose = await purposeRepository.findById(id);
+    const purpose = await purposeRepository.findByIdWithStats(id);
     if (!purpose) throw new AppError("Purpose not found", 404);
-    return purpose;
+    return normalizeProductsCount(purpose);
   },
 
   async create(input: CreatePurposeInput) {
@@ -165,5 +185,35 @@ export const purposeService = {
       );
     }
     await purposeRepository.delete(id);
+  },
+};
+
+/** Public website lookups: active countries with cities + categories + purposes */
+export const publicLookupService = {
+  async getAll() {
+    const [countries, categories, purposes] = await Promise.all([
+      countryRepository.findAllWithCities(),
+      categoryRepository.findAllWithStats(),
+      purposeRepository.findAllWithStats(),
+    ]);
+
+    return {
+      countries: countries
+        .filter((country) => Number(country.status) === 1)
+        .map((country) => ({
+          ...country,
+          cities: country.cities.filter((city) => Number(city.status) === 1),
+          cities_count: country.cities.filter((city) => Number(city.status) === 1)
+            .length,
+        })),
+      categories: categories
+        .filter((item) => Number(item.status) === 1)
+        .map((item) =>
+          withAbsoluteCategoryIcon(normalizeProductsCount(item)),
+        ),
+      purposes: purposes
+        .filter((item) => Number(item.status) === 1)
+        .map(normalizeProductsCount),
+    };
   },
 };

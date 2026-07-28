@@ -110,7 +110,7 @@ function FilterDropdown({
       {isOpen ? (
         <div
           role="listbox"
-          className="absolute left-0 right-0 top-full z-[60] mt-2 max-h-64 overflow-y-auto rounded-xl border border-[#e5e7eb] bg-white shadow-[0_12px_32px_rgba(0,0,0,0.12)]"
+          className="absolute left-0 right-0 top-full z-[100] mt-2 max-h-64 overflow-y-auto rounded-xl border border-[#e5e7eb] bg-white shadow-[0_12px_32px_rgba(0,0,0,0.18)]"
         >
           {options.map((opt) => (
             <button
@@ -188,9 +188,9 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
   }, [openDropdown]);
 
   return (
-    <div className="flex w-full flex-col gap-2 rounded-2xl bg-white p-3 text-left shadow-[0_12px_32px_rgba(0,0,0,0.14)] lg:flex-row lg:items-stretch lg:gap-0 lg:rounded-[20px] lg:p-4">
-      <div className="grid min-w-0 flex-1 grid-cols-1 divide-y divide-[#e5e7eb] lg:grid-cols-4 lg:items-stretch lg:divide-y-0">
-        <div className="flex w-full min-w-0 items-stretch lg:border-r lg:border-[#e5e7eb]">
+    <div className="relative z-50 flex w-full flex-col gap-2 overflow-visible rounded-2xl bg-white p-3 text-left shadow-[0_12px_32px_rgba(0,0,0,0.14)] lg:flex-row lg:items-stretch lg:gap-0 lg:rounded-[20px] lg:p-4">
+      <div className="grid min-w-0 flex-1 grid-cols-1 divide-y divide-[#e5e7eb] overflow-visible lg:grid-cols-4 lg:items-stretch lg:divide-y-0">
+        <div className="relative z-[1] flex w-full min-w-0 items-stretch overflow-visible lg:border-r lg:border-[#e5e7eb]">
           <FilterDropdown
             label={homeData.search.city.label}
             options={filterOptions.city}
@@ -263,7 +263,7 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
           </button>
 
           {openDropdown === "priceRange" ? (
-            <div className="absolute left-0 right-0 top-full z-[60] mt-2 max-h-64 overflow-y-auto rounded-xl border border-[#e5e7eb] bg-white shadow-[0_12px_32px_rgba(0,0,0,0.12)]">
+            <div className="absolute left-0 right-0 top-full z-[100] mt-2 max-h-64 overflow-y-auto rounded-xl border border-[#e5e7eb] bg-white shadow-[0_12px_32px_rgba(0,0,0,0.18)]">
               {getPriceRangeOptions(filterOptions.priceMax).map((opt) => (
                 <button
                   key={opt}

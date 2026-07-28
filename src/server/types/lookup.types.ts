@@ -14,6 +14,23 @@ export type City = {
   status: Status;
 };
 
+export type CountryWithCities = Country & {
+  cities_count: number;
+  cities: Array<{
+    id: number;
+    name: string;
+    status: Status;
+  }>;
+};
+
+export type CityWithCountry = City & {
+  country: {
+    id: number;
+    name: string;
+    status: Status;
+  };
+};
+
 export type Category = {
   id: number;
   name: string;
@@ -22,11 +39,19 @@ export type Category = {
   icon: string | null;
 };
 
+export type CategoryWithStats = Category & {
+  products_count: number;
+};
+
 export type Purpose = {
   id: number;
   name: string;
   status: Status;
   position: number;
+};
+
+export type PurposeWithStats = Purpose & {
+  products_count: number;
 };
 
 export type CreateCountryInput = Omit<Country, "id">;

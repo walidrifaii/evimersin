@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
 import { SafeImage } from "@/components/ui/SafeImage";
 import type { PropertyImage } from "@/features/products/types";
@@ -10,16 +10,41 @@ type PropertyGalleryProps = {
   images: PropertyImage[];
 };
 
+const VISIBLE_THUMBS = 5;
+
 export function PropertyGallery({ title, images }: PropertyGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const touchStartX = useRef<number | null>(null);
+  const thumbsRef = useRef<HTMLDivElement>(null);
   const total = images.length;
   const activeImage = images[activeIndex] ?? images[0];
+  const canScrollThumbs = total > VISIBLE_THUMBS;
 
   function goTo(index: number) {
     if (total === 0) return;
     setActiveIndex((index + total) % total);
   }
+
+  function scrollThumbs(direction: "left" | "right") {
+    const el = thumbsRef.current;
+    if (!el) return;
+    const amount = el.clientWidth * 0.8;
+    el.scrollBy({
+      left: direction === "left" ? -amount : amount,
+      behavior: "smooth",
+    });
+  }
+
+  useEffect(() => {
+    const el = thumbsRef.current;
+    if (!el) return;
+    const active = el.querySelector<HTMLElement>(`[data-thumb-index="${activeIndex}"]`);
+    active?.scrollIntoView({
+      behavior: "smooth",
+      inline: "nearest",
+      block: "nearest",
+    });
+  }, [activeIndex]);
 
   return (
     <div>
@@ -74,29 +99,58 @@ export function PropertyGallery({ title, images }: PropertyGalleryProps) {
       </div>
 
       {total > 1 ? (
-        <div className="mt-3 flex gap-2.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mt-4 sm:gap-3">
-          {images.map((image, index) => (
-            <button
-              key={`${title}-thumb-${index}`}
-              type="button"
-              onClick={() => setActiveIndex(index)}
-              className={`relative aspect-[4/3] w-[calc((100%-30px)/4)] min-w-[calc((100%-30px)/4)] shrink-0 overflow-hidden rounded-xl border-2 transition-all sm:h-20 sm:w-24 sm:min-w-24 sm:aspect-auto lg:h-[5.5rem] lg:w-28 lg:min-w-28 ${
-                index === activeIndex
-                  ? "border-[var(--brand-blue)] shadow-sm"
-                  : "border-transparent opacity-90 hover:opacity-100"
-              }`}
-              aria-label={`View photo ${index + 1}`}
-              aria-current={index === activeIndex}
-            >
-              <SafeImage
-                src={image}
-                alt=""
-                fill
-                sizes="(max-width: 640px) 25vw, 112px"
-                className="object-cover"
-              />
-            </button>
-          ))}
+        <div className="relative mt-3 sm:mt-4">
+          {canScrollThumbs ? (
+            <>
+              <button
+                type="button"
+                onClick={() => scrollThumbs("left")}
+                aria-label="Scroll thumbnails left"
+                className="absolute -left-1 top-1/2 z-10 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-[#e5eaf2] bg-white text-[var(--brand-navy)] shadow-sm transition-colors hover:bg-[#f8fafc] sm:inline-flex"
+              >
+                <HiChevronLeft className="h-4 w-4" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollThumbs("right")}
+                aria-label="Scroll thumbnails right"
+                className="absolute -right-1 top-1/2 z-10 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-[#e5eaf2] bg-white text-[var(--brand-navy)] shadow-sm transition-colors hover:bg-[#f8fafc] sm:inline-flex"
+              >
+                <HiChevronRight className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </>
+          ) : null}
+
+          <div
+            ref={thumbsRef}
+            className={`flex gap-2.5 overflow-x-auto scroll-smooth pb-1 sm:gap-3 ${
+              canScrollThumbs ? "sm:mx-9" : ""
+            } [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#cbd5e1]`}
+          >
+            {images.map((image, index) => (
+              <button
+                key={`${title}-thumb-${index}`}
+                type="button"
+                data-thumb-index={index}
+                onClick={() => setActiveIndex(index)}
+                className={`relative aspect-[4/3] w-[calc((100%-40px)/5)] min-w-[calc((100%-40px)/5)] shrink-0 overflow-hidden rounded-xl border-2 transition-all sm:h-20 sm:w-[calc((100%-48px)/5)] sm:min-w-[calc((100%-48px)/5)] sm:aspect-auto lg:h-[5.5rem] ${
+                  index === activeIndex
+                    ? "border-[var(--brand-blue)] shadow-sm"
+                    : "border-transparent opacity-90 hover:opacity-100"
+                }`}
+                aria-label={`View photo ${index + 1}`}
+                aria-current={index === activeIndex}
+              >
+                <SafeImage
+                  src={image}
+                  alt=""
+                  fill
+                  sizes="(max-width: 640px) 20vw, 120px"
+                  className="object-cover"
+                />
+              </button>
+            ))}
+          </div>
         </div>
       ) : null}
     </div>

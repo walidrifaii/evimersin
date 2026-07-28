@@ -1,13 +1,17 @@
 import { execute, query } from "@/server/database/connection";
 import type {
   Category,
+  CategoryWithStats,
   City,
+  CityWithCountry,
   Country,
+  CountryWithCities,
   CreateCategoryInput,
   CreateCityInput,
   CreateCountryInput,
   CreatePurposeInput,
   Purpose,
+  PurposeWithStats,
   UpdateCategoryInput,
   UpdateCityInput,
   UpdateCountryInput,
@@ -47,9 +51,49 @@ async function deleteRecord(
   return result.affectedRows > 0;
 }
 
+function mapCountryWithCities(
+  countries: Country[],
+  cities: Array<{
+    id: number;
+    name: string;
+    country_id: number;
+    status: 0 | 1;
+  }>,
+): CountryWithCities[] {
+  return countries.map((country) => {
+    const countryCities = cities
+      .filter((city) => city.country_id === country.id)
+      .map((city) => ({
+        id: city.id,
+        name: city.name,
+        status: city.status,
+      }));
+
+    return {
+      ...country,
+      cities_count: countryCities.length,
+      cities: countryCities,
+    };
+  });
+}
+
 export const countryRepository = {
   findAll: () =>
     query<Country[]>("SELECT id, name, status FROM country ORDER BY name ASC"),
+
+  async findAllWithCities(): Promise<CountryWithCities[]> {
+    const [countries, cities] = await Promise.all([
+      this.findAll(),
+      query<
+        Array<{ id: number; name: string; country_id: number; status: 0 | 1 }>
+      >(
+        `SELECT id, name, country_id, status
+         FROM cities
+         ORDER BY name ASC`,
+      ),
+    ]);
+    return mapCountryWithCities(countries, cities);
+  },
 
   async findById(id: number) {
     const rows = await query<Country[]>(
@@ -57,6 +101,23 @@ export const countryRepository = {
       { id },
     );
     return rows[0] ?? null;
+  },
+
+  async findByIdWithCities(id: number): Promise<CountryWithCities | null> {
+    const country = await this.findById(id);
+    if (!country) return null;
+
+    const cities = await query<
+      Array<{ id: number; name: string; country_id: number; status: 0 | 1 }>
+    >(
+      `SELECT id, name, country_id, status
+       FROM cities
+       WHERE country_id = :id
+       ORDER BY name ASC`,
+      { id },
+    );
+
+    return mapCountryWithCities([country], cities)[0] ?? null;
   },
 
   async create(input: CreateCountryInput) {
@@ -90,6 +151,17 @@ export const cityRepository = {
        ORDER BY cities.name ASC`,
     ),
 
+  findByCountryId: (countryId: number) =>
+    query<City[]>(
+      `SELECT cities.id, cities.name, cities.country_id,
+              country.name AS country_name, cities.status
+       FROM cities
+       INNER JOIN country ON country.id = cities.country_id
+       WHERE cities.country_id = :countryId
+       ORDER BY cities.name ASC`,
+      { countryId },
+    ),
+
   findActiveByCountry: (countryName: string) =>
     query<City[]>(
       `SELECT cities.id, cities.name, cities.country_id,
@@ -113,6 +185,80 @@ export const cityRepository = {
       { id },
     );
     return rows[0] ?? null;
+  },
+
+  async findByIdWithCountry(id: number): Promise<CityWithCountry | null> {
+    const rows = await query<
+      Array<
+        City & {
+          country_status: 0 | 1;
+        }
+      >
+    >(
+      `SELECT cities.id, cities.name, cities.country_id,
+              country.name AS country_name, cities.status,
+              country.status AS country_status
+       FROM cities
+       INNER JOIN country ON country.id = cities.country_id
+       WHERE cities.id = :id
+       LIMIT 1`,
+      { id },
+    );
+
+    const row = rows[0];
+    if (!row) return null;
+
+    return {
+      id: row.id,
+      name: row.name,
+      country_id: row.country_id,
+      country_name: row.country_name,
+      status: row.status,
+      country: {
+        id: row.country_id,
+        name: row.country_name,
+        status: row.country_status,
+      },
+    };
+  },
+
+  async findAllWithCountry(countryId?: number): Promise<CityWithCountry[]> {
+    const rows = await query<
+      Array<
+        City & {
+          country_status: 0 | 1;
+        }
+      >
+    >(
+      countryId
+        ? `SELECT cities.id, cities.name, cities.country_id,
+                country.name AS country_name, cities.status,
+                country.status AS country_status
+         FROM cities
+         INNER JOIN country ON country.id = cities.country_id
+         WHERE cities.country_id = :countryId
+         ORDER BY cities.name ASC`
+        : `SELECT cities.id, cities.name, cities.country_id,
+                country.name AS country_name, cities.status,
+                country.status AS country_status
+         FROM cities
+         INNER JOIN country ON country.id = cities.country_id
+         ORDER BY cities.name ASC`,
+      countryId ? { countryId } : undefined,
+    );
+
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      country_id: row.country_id,
+      country_name: row.country_name,
+      status: row.status,
+      country: {
+        id: row.country_id,
+        name: row.country_name,
+        status: row.country_status,
+      },
+    }));
   },
 
   async create(input: CreateCityInput) {
@@ -145,10 +291,38 @@ export const categoryRepository = {
        ORDER BY position ASC, name ASC`,
     ),
 
+  findAllWithStats: () =>
+    query<CategoryWithStats[]>(
+      `SELECT categories.id, categories.name, categories.status,
+              categories.position, categories.icon,
+              COUNT(products.id) AS products_count
+       FROM categories
+       LEFT JOIN products ON products.category_id = categories.id
+       GROUP BY categories.id, categories.name, categories.status,
+                categories.position, categories.icon
+       ORDER BY categories.position ASC, categories.name ASC`,
+    ),
+
   async findById(id: number) {
     const rows = await query<Category[]>(
       `SELECT id, name, status, position, icon
        FROM categories WHERE id = :id LIMIT 1`,
+      { id },
+    );
+    return rows[0] ?? null;
+  },
+
+  async findByIdWithStats(id: number): Promise<CategoryWithStats | null> {
+    const rows = await query<CategoryWithStats[]>(
+      `SELECT categories.id, categories.name, categories.status,
+              categories.position, categories.icon,
+              COUNT(products.id) AS products_count
+       FROM categories
+       LEFT JOIN products ON products.category_id = categories.id
+       WHERE categories.id = :id
+       GROUP BY categories.id, categories.name, categories.status,
+                categories.position, categories.icon
+       LIMIT 1`,
       { id },
     );
     return rows[0] ?? null;
@@ -184,10 +358,34 @@ export const purposeRepository = {
        ORDER BY position ASC, name ASC`,
     ),
 
+  findAllWithStats: () =>
+    query<PurposeWithStats[]>(
+      `SELECT purpose.id, purpose.name, purpose.status, purpose.position,
+              COUNT(products.id) AS products_count
+       FROM purpose
+       LEFT JOIN products ON products.purpose_id = purpose.id
+       GROUP BY purpose.id, purpose.name, purpose.status, purpose.position
+       ORDER BY purpose.position ASC, purpose.name ASC`,
+    ),
+
   async findById(id: number) {
     const rows = await query<Purpose[]>(
       `SELECT id, name, status, position
        FROM purpose WHERE id = :id LIMIT 1`,
+      { id },
+    );
+    return rows[0] ?? null;
+  },
+
+  async findByIdWithStats(id: number): Promise<PurposeWithStats | null> {
+    const rows = await query<PurposeWithStats[]>(
+      `SELECT purpose.id, purpose.name, purpose.status, purpose.position,
+              COUNT(products.id) AS products_count
+       FROM purpose
+       LEFT JOIN products ON products.purpose_id = purpose.id
+       WHERE purpose.id = :id
+       GROUP BY purpose.id, purpose.name, purpose.status, purpose.position
+       LIMIT 1`,
       { id },
     );
     return rows[0] ?? null;
