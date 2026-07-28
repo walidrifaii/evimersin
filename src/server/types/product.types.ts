@@ -114,6 +114,40 @@ export const PRODUCT_SPEC_COLUMN_KEYS: PropertySpecFieldKey[] = [
   "rooms",
 ];
 
+/** Columns that can be written to the products table (excludes join/computed fields). */
+export const PRODUCT_WRITABLE_KEYS = [
+  "name",
+  "image",
+  "position",
+  "description",
+  "price",
+  "discount_type",
+  "discount_value",
+  "category_id",
+  "purpose_id",
+  "city_id",
+  "status",
+  "is_hot_deal",
+  "is_featured",
+  ...PRODUCT_SPEC_COLUMN_KEYS,
+] as const;
+
+export function pickWritableProductInput(
+  input: UpdateProductInput,
+): UpdateProductInput {
+  const allowed = new Set<string>(PRODUCT_WRITABLE_KEYS);
+  const next: UpdateProductInput = {};
+
+  for (const key of PRODUCT_WRITABLE_KEYS) {
+    const value = input[key];
+    if (value !== undefined && allowed.has(key)) {
+      (next as Record<string, unknown>)[key] = value;
+    }
+  }
+
+  return next;
+}
+
 export function withProductPricing<
   T extends {
     price: number;

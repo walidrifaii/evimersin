@@ -7,7 +7,10 @@ import type {
   ProductImage,
   UpdateProductInput,
 } from "@/server/types/product.types";
-import { withProductPricing } from "@/server/types/product.types";
+import {
+  PRODUCT_WRITABLE_KEYS,
+  withProductPricing,
+} from "@/server/types/product.types";
 
 const productSelect = `
   products.id,
@@ -63,9 +66,10 @@ const productFrom = `
 async function updateProductRecord(id: number, input: UpdateProductInput) {
   const fields: string[] = [];
   const params: Record<string, string | number | null> = { id };
+  const allowed = new Set<string>(PRODUCT_WRITABLE_KEYS);
 
   for (const [key, value] of Object.entries(input)) {
-    if (value !== undefined) {
+    if (value !== undefined && allowed.has(key)) {
       fields.push(`${key} = :${key}`);
       params[key] = value as string | number | null;
     }

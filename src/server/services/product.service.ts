@@ -15,7 +15,7 @@ import type {
   ProductImage,
   UpdateProductInput,
 } from "@/server/types/product.types";
-import { PRODUCT_SPEC_COLUMN_KEYS } from "@/server/types/product.types";
+import { PRODUCT_SPEC_COLUMN_KEYS, pickWritableProductInput } from "@/server/types/product.types";
 import { AppError } from "@/server/utils/errors";
 import { removeUploadedFile, toRelativeUploadPath } from "@/server/utils/upload";
 import { hasActiveDiscount } from "@/lib/product-pricing";
@@ -193,10 +193,12 @@ export const productService = {
         ? normalizeStoredImagePath(normalized.image)
         : undefined;
 
-    await productRepository.update(id, {
+    const writable = pickWritableProductInput({
       ...normalized,
       image: nextImage,
     });
+
+    await productRepository.update(id, writable);
     await addGalleryImages(
       id,
       galleryImages

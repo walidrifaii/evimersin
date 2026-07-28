@@ -1,12 +1,16 @@
 import mysql, { type ResultSetHeader } from "mysql2/promise";
 
-type QueryParams = Record<string, string | number | boolean | null | Date> | unknown[];
+type QueryParams =
+  | Record<string, string | number | boolean | null | Date>
+  | unknown[];
 
 type Pool = mysql.Pool;
 
 declare global {
   // eslint-disable-next-line no-var
   var __mysqlPool: Pool | undefined;
+  // eslint-disable-next-line no-var
+  var __mysqlSpecMigration: Promise<void> | undefined;
 }
 
 function getDatabaseConfig() {
@@ -17,6 +21,48 @@ function getDatabaseConfig() {
   const database = process.env.DB_NAME ?? "evimersin";
 
   return { host, port, user, password, database };
+}
+
+const PRODUCT_SPEC_MIGRATIONS = [
+  "ALTER TABLE products ADD COLUMN land_area DOUBLE NULL AFTER city_id",
+  "ALTER TABLE products ADD COLUMN land_type VARCHAR(100) NULL AFTER land_area",
+  "ALTER TABLE products ADD COLUMN zoning VARCHAR(100) NULL AFTER land_type",
+  "ALTER TABLE products ADD COLUMN road_access TINYINT NULL AFTER zoning",
+  "ALTER TABLE products ADD COLUMN allowed_floors INT NULL AFTER road_access",
+  "ALTER TABLE products ADD COLUMN electricity TINYINT NULL AFTER allowed_floors",
+  "ALTER TABLE products ADD COLUMN water TINYINT NULL AFTER electricity",
+  "ALTER TABLE products ADD COLUMN built_area DOUBLE NULL AFTER water",
+  "ALTER TABLE products ADD COLUMN floors INT NULL AFTER built_area",
+  "ALTER TABLE products ADD COLUMN bedrooms INT NULL AFTER floors",
+  "ALTER TABLE products ADD COLUMN bathrooms INT NULL AFTER bedrooms",
+  "ALTER TABLE products ADD COLUMN living_rooms INT NULL AFTER bathrooms",
+  "ALTER TABLE products ADD COLUMN parking TINYINT NULL AFTER living_rooms",
+  "ALTER TABLE products ADD COLUMN garden TINYINT NULL AFTER parking",
+  "ALTER TABLE products ADD COLUMN pool TINYINT NULL AFTER garden",
+  "ALTER TABLE products ADD COLUMN furnished TINYINT NULL AFTER pool",
+  "ALTER TABLE products ADD COLUMN floor_number INT NULL AFTER furnished",
+  "ALTER TABLE products ADD COLUMN balconies INT NULL AFTER floor_number",
+  "ALTER TABLE products ADD COLUMN elevator TINYINT NULL AFTER balconies",
+  "ALTER TABLE products ADD COLUMN frontage DOUBLE NULL AFTER elevator",
+  "ALTER TABLE products ADD COLUMN storage TINYINT NULL AFTER frontage",
+  "ALTER TABLE products ADD COLUMN mezzanine TINYINT NULL AFTER storage",
+  "ALTER TABLE products ADD COLUMN rooms INT NULL AFTER mezzanine",
+];
+
+async function ensureProductSpecColumns(pool: Pool) {
+  for (const sql of PRODUCT_SPEC_MIGRATIONS) {
+    try {
+      await pool.execute(sql);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (
+        !message.includes("Duplicate column name") &&
+        !message.includes("already exists")
+      ) {
+        console.error("[db] Product spec migration failed:", message);
+      }
+    }
+  }
 }
 
 export function getPool(): Pool {
@@ -33,7 +79,15 @@ export function getPool(): Pool {
   return global.__mysqlPool;
 }
 
+async function ensureMigrations() {
+  if (!global.__mysqlSpecMigration) {
+    global.__mysqlSpecMigration = ensureProductSpecColumns(getPool());
+  }
+  await global.__mysqlSpecMigration;
+}
+
 export async function query<T>(sql: string, params?: QueryParams): Promise<T> {
+  await ensureMigrations();
   const pool = getPool();
   const [rows] = params
     ? await pool.execute(sql, params as never)
@@ -41,7 +95,11 @@ export async function query<T>(sql: string, params?: QueryParams): Promise<T> {
   return rows as T;
 }
 
-export async function execute(sql: string, params?: QueryParams): Promise<ResultSetHeader> {
+export async function execute(
+  sql: string,
+  params?: QueryParams,
+): Promise<ResultSetHeader> {
+  await ensureMigrations();
   const pool = getPool();
   const [result] = params
     ? await pool.execute(sql, params as never)
