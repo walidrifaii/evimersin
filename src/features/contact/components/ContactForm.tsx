@@ -195,7 +195,7 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={submitting}
-        className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-lg bg-[var(--brand-blue)] px-6 text-[15px] font-semibold text-white transition-colors hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+        className="mt-6 inline-flex h-12 w-full cursor-pointer items-center justify-center rounded-lg bg-[var(--brand-blue)] px-6 text-[15px] font-semibold text-white transition-colors hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
       >
         {submitting ? "Sending..." : "Send Message"}
       </button>

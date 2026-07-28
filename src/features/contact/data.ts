@@ -17,6 +17,7 @@ export const contactData = {
       "Buy a Property",
       "Sell a Property",
       "Investment Advice",
+      "Other",
     ],
   },
   info: {
