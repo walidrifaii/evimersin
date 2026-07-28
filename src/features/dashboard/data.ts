@@ -7,17 +7,29 @@ export type DashboardNavItem = {
   badge?: number;
 };
 
+export const DASHBOARD_TABS = [
+  "overview",
+  "products",
+  "categories",
+  "cities",
+  "purposes",
+  "security",
+  "settings",
+] as const;
+
+export type DashboardTabId = (typeof DASHBOARD_TABS)[number];
+
+export function isDashboardTab(value: string | null | undefined): value is DashboardTabId {
+  return !!value && (DASHBOARD_TABS as readonly string[]).includes(value);
+}
+
 export const dashboardNav: DashboardNavItem[] = [
   { id: "overview", label: "Overview", href: routes.dashboardTab("overview") },
   { id: "products", label: "Residential Units", href: routes.dashboardTab("products") },
   { id: "categories", label: "Categories", href: routes.dashboardTab("categories") },
   { id: "cities", label: "Cities", href: routes.dashboardTab("cities") },
   { id: "purposes", label: "Purposes", href: routes.dashboardTab("purposes") },
-  {
-    id: "account-security",
-    label: "Change Password",
-    href: routes.dashboardTab("account-security"),
-  },
+  { id: "security", label: "Change Password", href: routes.dashboardTab("security") },
   { id: "settings", label: "Settings", href: routes.dashboardTab("settings") },
 ];
 

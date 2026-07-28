@@ -19,7 +19,10 @@ export function DashboardTopbar({ onMenuOpen }: DashboardTopbarProps) {
   const { query, setQuery } = useDashboardSearch();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const deferredQuery = useDeferredValue(query.trim());
-  const skipSearch = deferredQuery.length < 1;
+  const canSearch = ["products", "categories", "cities", "purposes"].includes(
+    activeTab,
+  );
+  const skipSearch = !canSearch || deferredQuery.length < 1;
 
   const { data, isLoading, isFetching } = useSearchDashboardQuery(deferredQuery, {
     skip: skipSearch || !drawerOpen,
@@ -60,50 +63,54 @@ export function DashboardTopbar({ onMenuOpen }: DashboardTopbarProps) {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="relative w-[min(100%,14rem)] sm:w-64">
-            <label htmlFor="dashboard-search" className="sr-only">
-              Search dashboard
-            </label>
-            <input
-              id="dashboard-search"
-              type="search"
-              value={query}
-              onFocus={() => setDrawerOpen(true)}
-              onClick={() => setDrawerOpen(true)}
-              onChange={(event) => {
-                setQuery(event.target.value);
-                setDrawerOpen(true);
-              }}
-              placeholder="Search everything..."
-              className="h-10 w-full cursor-text rounded-full border border-[#e5eaf2] bg-[#f8fafc] pl-10 pr-3 text-[13px] text-[var(--brand-navy)] outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[var(--brand-blue)] focus:bg-white"
-            />
-            <svg
-              viewBox="0 0 24 24"
-              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a3b8]"
-              fill="none"
-              aria-hidden="true"
-            >
-              <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="1.7" />
-              <path
-                d="M16.5 16.5L20 20"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                strokeLinecap="round"
+          {canSearch ? (
+            <div className="relative w-[min(100%,14rem)] sm:w-64">
+              <label htmlFor="dashboard-search" className="sr-only">
+                Search dashboard
+              </label>
+              <input
+                id="dashboard-search"
+                type="search"
+                value={query}
+                onFocus={() => setDrawerOpen(true)}
+                onClick={() => setDrawerOpen(true)}
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                  setDrawerOpen(true);
+                }}
+                placeholder="Search everything..."
+                className="h-10 w-full cursor-text rounded-full border border-[#e5eaf2] bg-[#f8fafc] pl-10 pr-3 text-[13px] text-[var(--brand-navy)] outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[var(--brand-blue)] focus:bg-white"
               />
-            </svg>
-          </div>
+              <svg
+                viewBox="0 0 24 24"
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a3b8]"
+                fill="none"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="1.7" />
+                <path
+                  d="M16.5 16.5L20 20"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+          ) : null}
         </div>
       </header>
 
-      <DashboardSearchDrawer
-        open={drawerOpen}
-        query={query}
-        onQueryChange={setQuery}
-        onClose={closeDrawer}
-        results={data?.results ?? []}
-        isLoading={!skipSearch && isLoading}
-        isFetching={!skipSearch && isFetching}
-      />
+      {canSearch ? (
+        <DashboardSearchDrawer
+          open={drawerOpen}
+          query={query}
+          onQueryChange={setQuery}
+          onClose={closeDrawer}
+          results={data?.results ?? []}
+          isLoading={!skipSearch && isLoading}
+          isFetching={!skipSearch && isFetching}
+        />
+      ) : null}
     </>
   );
 }

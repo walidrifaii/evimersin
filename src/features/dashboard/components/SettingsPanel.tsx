@@ -66,7 +66,7 @@ export function SettingsPanel() {
     }
   }
 
-  if (isLoading) return <FormLoading />;
+  if (isLoading && !data) return <FormLoading />;
 
   return (
     <div className="space-y-6">

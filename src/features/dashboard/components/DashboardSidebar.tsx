@@ -80,6 +80,7 @@ function NavIcon({ id }: { id: string }) {
         </svg>
       );
     case "account-security":
+    case "security":
       return (
         <svg {...common}>
           <rect
@@ -98,6 +99,18 @@ function NavIcon({ id }: { id: string }) {
             strokeLinecap="round"
           />
           <circle cx="12" cy="15" r="1.4" fill="currentColor" />
+        </svg>
+      );
+    case "settings":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.7" />
+          <path
+            d="M12 4V6M12 18V20M4 12H6M18 12H20M6.5 6.5L8 8M16 16L17.5 17.5M6.5 17.5L8 16M16 8L17.5 6.5"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+          />
         </svg>
       );
     case "analytics":
@@ -217,6 +230,8 @@ export function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
               <Link
                 key={item.id}
                 href={item.href}
+                scroll={false}
+                prefetch
                 onClick={onClose}
                 className={`group flex cursor-pointer items-center gap-3 rounded-full px-3.5 py-2.5 text-[14px] font-medium transition-colors duration-200 ${
                   isActive
