@@ -15,10 +15,12 @@ import type {
   ProductImage,
   UpdateProductInput,
 } from "@/server/types/product.types";
+import { PRODUCT_SPEC_COLUMN_KEYS } from "@/server/types/product.types";
 import { AppError } from "@/server/utils/errors";
 import { removeUploadedFile, toRelativeUploadPath } from "@/server/utils/upload";
 import { hasActiveDiscount } from "@/lib/product-pricing";
 import { toAbsoluteImageUrl } from "@/lib/image-url";
+import { clearUnusedSpecValues } from "@/constants/property-specs";
 
 function normalizeStoredImagePath(image: string | null | undefined) {
   if (image === undefined) return undefined;
@@ -51,7 +53,6 @@ function normalizeDiscount(
   input: CreateProductInput | UpdateProductInput,
   price: number,
 ): CreateProductInput | UpdateProductInput {
-  // Partial updates: leave discount fields untouched when omitted.
   if (input.discount_type === undefined && input.discount_value === undefined) {
     return input;
   }
@@ -98,6 +99,20 @@ async function validateRelations(input: {
   if (!category) throw new AppError("Category not found", 404);
   if (!purpose) throw new AppError("Purpose not found", 404);
   if (!city) throw new AppError("City not found", 404);
+
+  return { category, purpose, city };
+}
+
+function applyCategorySpecCleanup(
+  categoryName: string,
+  input: CreateProductInput | UpdateProductInput,
+) {
+  const cleaned = clearUnusedSpecValues(categoryName, input);
+  const next = { ...input };
+  for (const key of PRODUCT_SPEC_COLUMN_KEYS) {
+    next[key] = cleaned[key] as never;
+  }
+  return next;
 }
 
 async function addGalleryImages(productId: number, images: string[]) {
@@ -127,8 +142,15 @@ export const productService = {
   },
 
   async create(input: CreateProductInput, galleryImages: string[] = []) {
-    await validateRelations(input);
-    const normalized = normalizeDiscount(input, input.price) as CreateProductInput;
+    const { category } = await validateRelations(input);
+    const withSpecs = applyCategorySpecCleanup(
+      category.name,
+      input,
+    ) as CreateProductInput;
+    const normalized = normalizeDiscount(
+      withSpecs,
+      withSpecs.price,
+    ) as CreateProductInput;
     const id = await productRepository.create({
       ...normalized,
       image: normalizeStoredImagePath(normalized.image) ?? null,
@@ -150,21 +172,20 @@ export const productService = {
     const current = await productRepository.findDetailById(id);
     if (!current) throw new AppError("Product not found", 404);
 
-    if (
-      input.category_id !== undefined ||
-      input.purpose_id !== undefined ||
-      input.city_id !== undefined
-    ) {
-      await validateRelations({
-        category_id: input.category_id ?? current.category_id,
-        purpose_id: input.purpose_id ?? current.purpose_id,
-        city_id: input.city_id ?? current.city_id,
-      });
-    }
+    const relations = await validateRelations({
+      category_id: input.category_id ?? current.category_id,
+      purpose_id: input.purpose_id ?? current.purpose_id,
+      city_id: input.city_id ?? current.city_id,
+    });
+
+    const withSpecs = applyCategorySpecCleanup(relations.category.name, {
+      ...current,
+      ...input,
+    }) as UpdateProductInput;
 
     const normalized = normalizeDiscount(
-      input,
-      input.price ?? current.price,
+      withSpecs,
+      withSpecs.price ?? current.price,
     ) as UpdateProductInput;
 
     const nextImage =
@@ -183,10 +204,7 @@ export const productService = {
         .filter((image): image is string => Boolean(image)),
     );
 
-    if (
-      nextImage !== undefined &&
-      nextImage !== current.image
-    ) {
+    if (nextImage !== undefined && nextImage !== current.image) {
       await removeUploadedFile(current.image);
     }
 

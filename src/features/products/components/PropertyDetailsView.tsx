@@ -5,6 +5,10 @@ import { BathIcon } from "@/components/icons/BathIcon";
 import { BedIcon } from "@/components/icons/BedIcon";
 import { SquareMeterIcon } from "@/components/icons/SquareMeterIcon";
 import { getWhatsAppUrlFromSettings } from "@/constants/config";
+import {
+  formatSpecValue,
+  getSpecFieldsForCategory,
+} from "@/constants/property-specs";
 import { routes } from "@/constants/routes";
 import { PropertyGallery } from "@/features/products/components/PropertyGallery";
 import type { PropertyListing } from "@/features/products/types";
@@ -25,6 +29,13 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
     settings,
     `Hello EviMersin, I am interested in this property:\n\n${property.title}\n${propertyUrl}`,
   );
+  const specRows = getSpecFieldsForCategory(property.propertyType)
+    .map((field) => {
+      const formatted = formatSpecValue(field, property.specs?.[field.key]);
+      if (!formatted) return null;
+      return { label: field.label, value: formatted };
+    })
+    .filter((item): item is { label: string; value: string } => item !== null);
 
   return (
     <section className="relative w-full bg-white pb-28 lg:pb-16">
@@ -101,6 +112,29 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
                   </span>
                 ) : null}
               </div>
+
+              {specRows.length > 0 ? (
+                <div className="mt-5 sm:mt-6">
+                  <h2 className="text-[1.1rem] font-bold text-[var(--brand-navy)] sm:text-[1.25rem]">
+                    Property Details
+                  </h2>
+                  <dl className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                    {specRows.map((row) => (
+                      <div
+                        key={row.label}
+                        className="rounded-xl border border-[#eef2f7] bg-[#f8fafc] px-3.5 py-2.5"
+                      >
+                        <dt className="text-[12px] font-medium text-[var(--muted)]">
+                          {row.label}
+                        </dt>
+                        <dd className="mt-0.5 text-[14px] font-semibold text-[var(--brand-navy)]">
+                          {row.value}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              ) : null}
 
               <div className="mt-5 sm:mt-6">
                 <h2 className="text-[1.1rem] font-bold text-[var(--brand-navy)] sm:text-[1.25rem]">

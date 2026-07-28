@@ -2,8 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SafeImage } from "@/components/ui/SafeImage";
+import {
+  ALL_PROPERTY_SPEC_KEYS,
+  emptySpecValues,
+  getSpecFieldsForCategory,
+  type PropertySpecFieldKey,
+} from "@/constants/property-specs";
 import { routes } from "@/constants/routes";
 import {
   FormLoading,
@@ -35,12 +41,9 @@ import {
 
 const backHref = routes.dashboardTab("products");
 
-export function ProductForm({ id }: { id?: number }) {
-  const { data, isLoading } = useGetProductQuery(id ?? 0, { skip: !id });
-
-  if (id && isLoading) return <FormLoading />;
-
-  return <ProductFormFields id={id} initial={data} />;
+function boolToSelect(value: number | boolean | null | undefined) {
+  if (value === null || value === undefined) return "";
+  return Number(value) === 1 ? "1" : "0";
 }
 
 function SelectField({
@@ -106,12 +109,18 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [error, setError] = useState<unknown>(null);
   const [galleryError, setGalleryError] = useState<unknown>(null);
-  const [previewUrl, setPreviewUrl] = useState(
-    toDisplayImageSrc(initial?.image),
-  );
+  const [previewUrl, setPreviewUrl] = useState(toDisplayImageSrc(initial?.image));
   const [galleryPreviewUrls, setGalleryPreviewUrls] = useState<string[]>([]);
-  const finalPrice = calculateFinalPrice(price, discountType, discountValue);
+  const [specValues, setSpecValues] = useState(() => {
+    const next = emptySpecValues();
+    if (!initial) return next;
+    for (const key of ALL_PROPERTY_SPEC_KEYS) {
+      next[key] = initial[key] ?? null;
+    }
+    return next;
+  });
 
+  const finalPrice = calculateFinalPrice(price, discountType, discountValue);
   const activeCategories = categories.filter(
     (item) => Number(item.status) === 1 || item.id === categoryId,
   );
@@ -121,13 +130,25 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
   const activeCities = cities.filter(
     (item) => Number(item.status) === 1 || item.id === cityId,
   );
+  const selectedCategoryName =
+    activeCategories.find((item) => item.id === categoryId)?.name ?? "";
+  const specFields = useMemo(
+    () => getSpecFieldsForCategory(selectedCategoryName),
+    [selectedCategoryName],
+  );
+
+  function updateSpec(
+    key: PropertySpecFieldKey,
+    value: string | number | boolean | null,
+  ) {
+    setSpecValues((prev) => ({ ...prev, [key]: value }));
+  }
 
   useEffect(() => {
     if (!imageFile) {
       setPreviewUrl(toDisplayImageSrc(initial?.image));
       return;
     }
-
     const objectUrl = URL.createObjectURL(imageFile);
     setPreviewUrl(objectUrl);
     return () => URL.revokeObjectURL(objectUrl);
@@ -147,19 +168,16 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
       setError({ data: { message: "Please select category, purpose, and city" } });
       return;
     }
-
     if (discountType && discountValue <= 0) {
       setError({ data: { message: "Discount value must be greater than 0" } });
       return;
     }
-
     if (discountType === "fixed" && discountValue > price) {
       setError({
         data: { message: "Fixed discount cannot exceed residential unit price" },
       });
       return;
     }
-
     if (discountType === "percentage" && discountValue > 100) {
       setError({ data: { message: "Percentage discount cannot exceed 100%" } });
       return;
@@ -179,14 +197,12 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
       is_featured: isFeatured,
       image: imageFile,
       images: galleryFiles,
+      ...specValues,
     };
 
     try {
-      if (id) {
-        await updateProduct({ id, data: payload }).unwrap();
-      } else {
-        await createProduct(payload).unwrap();
-      }
+      if (id) await updateProduct({ id, data: payload }).unwrap();
+      else await createProduct(payload).unwrap();
       router.push(backHref);
     } catch (err) {
       setError(err);
@@ -221,13 +237,9 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
             onChange={(event) => {
               const nextType = event.target.value;
               setDiscountType(
-                nextType === "fixed" || nextType === "percentage"
-                  ? nextType
-                  : null,
+                nextType === "fixed" || nextType === "percentage" ? nextType : null,
               );
-              if (nextType !== "fixed" && nextType !== "percentage") {
-                setDiscountValue(0);
-              }
+              if (nextType !== "fixed" && nextType !== "percentage") setDiscountValue(0);
             }}
             className="h-11 w-full rounded-xl border border-[#dbe3ef] bg-[#f8fafc] px-3 text-[14px] text-[var(--brand-navy)] outline-none focus:border-[var(--brand-blue)] focus:bg-white"
           >
@@ -292,6 +304,83 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
         />
         <StatusSelect value={status} onChange={setStatus} />
         <FeaturedSelect value={isFeatured} onChange={setIsFeatured} />
+
+        {specFields.length > 0 ? (
+          <div className="sm:col-span-2">
+            <p className="mb-3 text-[13px] font-bold text-[var(--brand-navy)]">
+              {selectedCategoryName} details
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {specFields.map((field) => {
+                if (field.type === "boolean") {
+                  return (
+                    <label key={field.key} className="block">
+                      <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
+                        {field.label}
+                      </span>
+                      <select
+                        value={boolToSelect(
+                          specValues[field.key] as number | boolean | null,
+                        )}
+                        onChange={(event) => {
+                          const next = event.target.value;
+                          updateSpec(
+                            field.key,
+                            next === "" ? null : next === "1" ? 1 : 0,
+                          );
+                        }}
+                        className="h-11 w-full rounded-xl border border-[#dbe3ef] bg-[#f8fafc] px-3 text-[14px] text-[var(--brand-navy)] outline-none focus:border-[var(--brand-blue)] focus:bg-white"
+                      >
+                        <option value="">Not set</option>
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                      </select>
+                    </label>
+                  );
+                }
+
+                if (field.type === "text") {
+                  return (
+                    <TextInput
+                      key={field.key}
+                      label={field.label}
+                      value={String(specValues[field.key] ?? "")}
+                      onChange={(value) =>
+                        updateSpec(field.key, value.trim() || null)
+                      }
+                    />
+                  );
+                }
+
+                return (
+                  <TextInput
+                    key={field.key}
+                    label={field.unit ? `${field.label} (${field.unit})` : field.label}
+                    type="number"
+                    value={
+                      specValues[field.key] === null ||
+                      specValues[field.key] === undefined
+                        ? ""
+                        : String(specValues[field.key])
+                    }
+                    onChange={(value) => {
+                      if (value.trim() === "") {
+                        updateSpec(field.key, null);
+                        return;
+                      }
+                      updateSpec(field.key, Number(value));
+                    }}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        ) : categoryId ? (
+          <p className="sm:col-span-2 text-[13px] text-[var(--muted)]">
+            No extra fields configured for this category.
+          </p>
+        ) : null}
+
         <label className="block sm:col-span-2">
           <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
             Description
@@ -367,13 +456,11 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
           <p className="mt-1 text-[13px] text-[var(--muted)]">
             Delete images already attached to this residential unit. Add new ones from the form above, then click Update.
           </p>
-
           {galleryError ? (
             <div className="mt-3 rounded-xl border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-[13px] font-medium text-[#b91c1c]">
               {getApiErrorMessage(galleryError)}
             </div>
           ) : null}
-
           <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
             {initial.images.length === 0 ? (
               <p className="col-span-full text-[13px] text-[var(--muted)]">
@@ -419,4 +506,10 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
       ) : null}
     </div>
   );
+}
+
+export function ProductForm({ id }: { id?: number }) {
+  const { data, isLoading } = useGetProductQuery(id ?? 0, { skip: !id });
+  if (id && isLoading) return <FormLoading />;
+  return <ProductFormFields id={id} initial={data} />;
 }

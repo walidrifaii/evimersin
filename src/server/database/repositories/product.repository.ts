@@ -21,6 +21,29 @@ const productSelect = `
   products.category_id,
   products.purpose_id,
   products.city_id,
+  products.land_area,
+  products.land_type,
+  products.zoning,
+  products.road_access,
+  products.allowed_floors,
+  products.electricity,
+  products.water,
+  products.built_area,
+  products.floors,
+  products.bedrooms,
+  products.bathrooms,
+  products.living_rooms,
+  products.parking,
+  products.garden,
+  products.pool,
+  products.furnished,
+  products.floor_number,
+  products.balconies,
+  products.elevator,
+  products.frontage,
+  products.storage,
+  products.mezzanine,
+  products.rooms,
   categories.name AS category_name,
   purpose.name AS purpose_name,
   cities.name AS city_name,
@@ -44,7 +67,7 @@ async function updateProductRecord(id: number, input: UpdateProductInput) {
   for (const [key, value] of Object.entries(input)) {
     if (value !== undefined) {
       fields.push(`${key} = :${key}`);
-      params[key] = value;
+      params[key] = value as string | number | null;
     }
   }
 
@@ -173,9 +196,23 @@ export const productRepository = {
   async create(input: CreateProductInput) {
     const result = await execute(
       `INSERT INTO products
-        (name, image, position, description, price, discount_type, discount_value, category_id, purpose_id, city_id, status, is_hot_deal, is_featured, date_created)
+        (
+          name, image, position, description, price, discount_type, discount_value,
+          category_id, purpose_id, city_id,
+          land_area, land_type, zoning, road_access, allowed_floors, electricity, water,
+          built_area, floors, bedrooms, bathrooms, living_rooms, parking, garden, pool, furnished,
+          floor_number, balconies, elevator, frontage, storage, mezzanine, rooms,
+          status, is_hot_deal, is_featured, date_created
+        )
        VALUES
-        (:name, :image, :position, :description, :price, :discount_type, :discount_value, :category_id, :purpose_id, :city_id, :status, :is_hot_deal, :is_featured, CURRENT_DATE())`,
+        (
+          :name, :image, :position, :description, :price, :discount_type, :discount_value,
+          :category_id, :purpose_id, :city_id,
+          :land_area, :land_type, :zoning, :road_access, :allowed_floors, :electricity, :water,
+          :built_area, :floors, :bedrooms, :bathrooms, :living_rooms, :parking, :garden, :pool, :furnished,
+          :floor_number, :balconies, :elevator, :frontage, :storage, :mezzanine, :rooms,
+          :status, :is_hot_deal, :is_featured, CURRENT_DATE()
+        )`,
       {
         name: input.name,
         image: input.image ?? null,
@@ -187,6 +224,29 @@ export const productRepository = {
         category_id: input.category_id,
         purpose_id: input.purpose_id,
         city_id: input.city_id,
+        land_area: input.land_area ?? null,
+        land_type: input.land_type ?? null,
+        zoning: input.zoning ?? null,
+        road_access: input.road_access ?? null,
+        allowed_floors: input.allowed_floors ?? null,
+        electricity: input.electricity ?? null,
+        water: input.water ?? null,
+        built_area: input.built_area ?? null,
+        floors: input.floors ?? null,
+        bedrooms: input.bedrooms ?? null,
+        bathrooms: input.bathrooms ?? null,
+        living_rooms: input.living_rooms ?? null,
+        parking: input.parking ?? null,
+        garden: input.garden ?? null,
+        pool: input.pool ?? null,
+        furnished: input.furnished ?? null,
+        floor_number: input.floor_number ?? null,
+        balconies: input.balconies ?? null,
+        elevator: input.elevator ?? null,
+        frontage: input.frontage ?? null,
+        storage: input.storage ?? null,
+        mezzanine: input.mezzanine ?? null,
+        rooms: input.rooms ?? null,
         status: input.status ?? 1,
         is_hot_deal: input.is_hot_deal ?? 0,
         is_featured: input.is_featured ?? 0,

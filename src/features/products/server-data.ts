@@ -9,6 +9,7 @@ import {
   hasActiveDiscount,
 } from "@/lib/product-pricing";
 import { buildPropertyFilterOptions } from "@/features/products/data";
+import { ALL_PROPERTY_SPEC_KEYS } from "@/constants/property-specs";
 import {
   categoryRepository,
   cityRepository,
@@ -32,6 +33,9 @@ function toPropertyListing(product: ProductDetail): PropertyListing {
     product.discount_type,
     product.discount_value,
   );
+  const specs = Object.fromEntries(
+    ALL_PROPERTY_SPEC_KEYS.map((key) => [key, product[key] ?? null]),
+  );
 
   return {
     id: String(product.id),
@@ -48,9 +52,9 @@ function toPropertyListing(product: ProductDetail): PropertyListing {
     originalPrice: discounted ? formatProductPrice(product.price) : undefined,
     priceValue: product.final_price,
     originalPriceValue: product.price,
-    beds: 0,
-    baths: 0,
-    sqm: 0,
+    beds: Number(product.bedrooms ?? 0),
+    baths: Number(product.bathrooms ?? 0),
+    sqm: Number(product.built_area ?? product.land_area ?? 0),
     image,
     images: [image, ...gallery],
     description: product.description ?? "",
@@ -62,6 +66,7 @@ function toPropertyListing(product: ProductDetail): PropertyListing {
       product.discount_type,
       product.discount_value,
     ),
+    specs,
   };
 }
 

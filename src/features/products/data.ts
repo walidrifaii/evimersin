@@ -366,6 +366,7 @@ export const propertiesListings: PropertyListing[] = [
     beds: 4,
     baths: 3,
     sqm: 280,
+    specs: {},
     image: featuredPropertyImage,
     images: gallery(
       featuredPropertyImage,
@@ -396,6 +397,7 @@ export const propertiesListings: PropertyListing[] = [
     beds: 2,
     baths: 2,
     sqm: 120,
+    specs: {},
     image: aboutBuildingImage,
     images: gallery(
       aboutBuildingImage,
@@ -423,6 +425,7 @@ export const propertiesListings: PropertyListing[] = [
     beds: 1,
     baths: 1,
     sqm: 45,
+    specs: {},
     image: featuredPropertyImage,
     images: gallery(featuredPropertyImage, aboutBuildingImage, featuredPropertyImage),
     description:
@@ -445,6 +448,7 @@ export const propertiesListings: PropertyListing[] = [
     beds: 0,
     baths: 0,
     sqm: 500,
+    specs: {},
     image: aboutBuildingImage,
     images: gallery(aboutBuildingImage, featuredPropertyImage, aboutBuildingImage),
     description:
@@ -467,6 +471,7 @@ export const propertiesListings: PropertyListing[] = [
     beds: 5,
     baths: 3,
     sqm: 320,
+    specs: {},
     image: featuredPropertyImage,
     images: gallery(
       featuredPropertyImage,
@@ -496,6 +501,7 @@ export const propertiesListings: PropertyListing[] = [
     beds: 3,
     baths: 3,
     sqm: 210,
+    specs: {},
     image: aboutBuildingImage,
     images: gallery(
       aboutBuildingImage,
@@ -524,6 +530,7 @@ export const propertiesListings: PropertyListing[] = [
     beds: 0,
     baths: 1,
     sqm: 160,
+    specs: {},
     image: featuredPropertyImage,
     images: gallery(featuredPropertyImage, aboutBuildingImage, featuredPropertyImage),
     description:
@@ -546,6 +553,7 @@ export const propertiesListings: PropertyListing[] = [
     beds: 2,
     baths: 1,
     sqm: 95,
+    specs: {},
     image: aboutBuildingImage,
     images: gallery(aboutBuildingImage, featuredPropertyImage, aboutBuildingImage),
     description:

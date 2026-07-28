@@ -1,6 +1,14 @@
+import { ALL_PROPERTY_SPEC_KEYS } from "@/constants/property-specs";
 import { productService } from "@/server/services/product.service";
-import { compose, validateBody, withAuth, withHandler, type ApiContext } from "@/server/middleware";
+import {
+  compose,
+  validateBody,
+  withAuth,
+  withHandler,
+  type ApiContext,
+} from "@/server/middleware";
 import { AppError } from "@/server/utils/errors";
+import { parseProductSpecFieldsFromFormData } from "@/server/utils/product-specs";
 import { ok } from "@/server/utils/response";
 import { revalidateListingsCache } from "@/server/utils/revalidate";
 import { saveImageUpload, toRelativeUploadPath } from "@/server/utils/upload";
@@ -47,6 +55,14 @@ export const PUT = compose(withAuth, withHandler)(async (request, context: ApiCo
     ),
   );
 
+  const parsedSpecs = parseProductSpecFieldsFromFormData(formData);
+  const specs = Object.fromEntries(
+    ALL_PROPERTY_SPEC_KEYS.map((key) => [
+      key,
+      formData.has(key) ? (parsedSpecs[key] ?? null) : current[key],
+    ]),
+  );
+
   const input = validateBody(updateProductSchema, {
     name: formData.get("name"),
     position: Number(formData.get("position") ?? current.position),
@@ -64,6 +80,7 @@ export const PUT = compose(withAuth, withHandler)(async (request, context: ApiCo
     status: Number(formData.get("status") ?? current.status),
     is_featured: Number(formData.get("is_featured") ?? current.is_featured),
     image: nextImage,
+    ...specs,
   });
 
   const updated = await productService.update(id, input, galleryImages);

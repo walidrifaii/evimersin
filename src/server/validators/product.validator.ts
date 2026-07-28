@@ -1,8 +1,39 @@
 import { z } from "zod";
+import { ALL_PROPERTY_SPEC_KEYS } from "@/constants/property-specs";
 
 const statusSchema = z.union([z.literal(0), z.literal(1)]);
+const nullableStatusSchema = z.union([z.literal(0), z.literal(1)]).nullable();
 const nameSchema = z.string().trim().min(1).max(200);
 const discountTypeSchema = z.enum(["fixed", "percentage"]).nullable();
+const nullableNumberSchema = z.coerce.number().nullable().optional();
+const nullableIntSchema = z.coerce.number().int().nullable().optional();
+const nullableTextSchema = z.string().trim().max(100).nullable().optional();
+
+const productSpecSchema = {
+  land_area: nullableNumberSchema,
+  land_type: nullableTextSchema,
+  zoning: nullableTextSchema,
+  road_access: nullableStatusSchema.optional(),
+  allowed_floors: nullableIntSchema,
+  electricity: nullableStatusSchema.optional(),
+  water: nullableStatusSchema.optional(),
+  built_area: nullableNumberSchema,
+  floors: nullableIntSchema,
+  bedrooms: nullableIntSchema,
+  bathrooms: nullableIntSchema,
+  living_rooms: nullableIntSchema,
+  parking: nullableStatusSchema.optional(),
+  garden: nullableStatusSchema.optional(),
+  pool: nullableStatusSchema.optional(),
+  furnished: nullableStatusSchema.optional(),
+  floor_number: nullableIntSchema,
+  balconies: nullableIntSchema,
+  elevator: nullableStatusSchema.optional(),
+  frontage: nullableNumberSchema,
+  storage: nullableStatusSchema.optional(),
+  mezzanine: nullableStatusSchema.optional(),
+  rooms: nullableIntSchema,
+} as const;
 
 function validateDiscount(
   data: {
@@ -72,6 +103,7 @@ export const createProductSchema = z
     city_id: z.coerce.number().int().positive(),
     status: statusSchema.optional().default(1),
     is_featured: statusSchema.optional().default(0),
+    ...productSpecSchema,
   })
   .superRefine(validateDiscount);
 
@@ -88,6 +120,12 @@ export const updateProductSchema = requireOneField({
   city_id: z.coerce.number().int().positive().optional(),
   status: statusSchema.optional(),
   is_featured: statusSchema.optional(),
+  ...Object.fromEntries(
+    ALL_PROPERTY_SPEC_KEYS.map((key) => [
+      key,
+      productSpecSchema[key],
+    ]),
+  ),
 }).superRefine((data, ctx) => {
   if (
     data.price === undefined &&

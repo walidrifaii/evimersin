@@ -3,6 +3,7 @@ import { compose, validateBody, withAuth, withHandler } from "@/server/middlewar
 import { ok } from "@/server/utils/response";
 import { revalidateListingsCache } from "@/server/utils/revalidate";
 import { saveImageUpload } from "@/server/utils/upload";
+import { parseProductSpecFieldsFromFormData } from "@/server/utils/product-specs";
 import { createProductSchema } from "@/server/validators/product.validator";
 
 export const runtime = "nodejs";
@@ -48,6 +49,7 @@ export const POST = compose(withAuth, withHandler)(async (request) => {
     status: Number(formData.get("status") ?? 1),
     is_featured: Number(formData.get("is_featured") ?? 0),
     image,
+    ...parseProductSpecFieldsFromFormData(formData),
   });
 
   const created = await productService.create(input, galleryImages);

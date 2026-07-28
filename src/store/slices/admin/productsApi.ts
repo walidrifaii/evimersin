@@ -1,5 +1,6 @@
 import { api } from "@/store/api/baseApi";
 import type { ApiResponse } from "@/store/api/types";
+import { ALL_PROPERTY_SPEC_KEYS } from "@/constants/property-specs";
 import type {
   Product,
   ProductDetail,
@@ -32,6 +33,19 @@ function toProductFormData(body: Partial<ProductFormInput>) {
   if (body.is_featured !== undefined) {
     formData.set("is_featured", String(body.is_featured));
   }
+
+  for (const key of ALL_PROPERTY_SPEC_KEYS) {
+    if (body[key] === undefined) continue;
+    const value = body[key];
+    if (value === null || value === "") {
+      formData.set(key, "");
+    } else if (typeof value === "boolean") {
+      formData.set(key, value ? "1" : "0");
+    } else {
+      formData.set(key, String(value));
+    }
+  }
+
   if (body.image instanceof File) {
     formData.set("image", body.image);
   }

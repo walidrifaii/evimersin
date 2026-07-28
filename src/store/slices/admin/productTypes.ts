@@ -1,9 +1,36 @@
 import type { Status } from "@/store/slices/admin/lookupTypes";
 import type { DiscountType } from "@/lib/product-pricing";
+import type { PropertySpecFieldKey } from "@/constants/property-specs";
 
 export type { DiscountType };
 
-export type Product = {
+export type ProductSpecFields = {
+  land_area: number | null;
+  land_type: string | null;
+  zoning: string | null;
+  road_access: Status | null;
+  allowed_floors: number | null;
+  electricity: Status | null;
+  water: Status | null;
+  built_area: number | null;
+  floors: number | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  living_rooms: number | null;
+  parking: Status | null;
+  garden: Status | null;
+  pool: Status | null;
+  furnished: Status | null;
+  floor_number: number | null;
+  balconies: number | null;
+  elevator: Status | null;
+  frontage: number | null;
+  storage: Status | null;
+  mezzanine: Status | null;
+  rooms: number | null;
+};
+
+export type Product = ProductSpecFields & {
   id: number;
   name: string;
   image: string | null;
@@ -36,7 +63,9 @@ export type ProductDetail = Product & {
   images: ProductImage[];
 };
 
-export type ProductFormInput = {
+export type ProductFormInput = Partial<
+  Record<PropertySpecFieldKey, string | number | boolean | null>
+> & {
   name: string;
   description?: string | null;
   price: number;

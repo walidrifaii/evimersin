@@ -1,4 +1,5 @@
 import type { StaticImageData } from "next/image";
+import type { PropertySpecFieldKey } from "@/constants/property-specs";
 
 export type PropertyImage = StaticImageData | string;
 
@@ -33,6 +34,7 @@ export type PropertyListing = {
   featured?: boolean;
   hotDeal?: boolean;
   discountLabel?: string | null;
+  specs: Partial<Record<PropertySpecFieldKey, string | number | boolean | null>>;
 };
 
 export type PropertyFiltersState = {
