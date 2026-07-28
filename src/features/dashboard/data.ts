@@ -13,6 +13,11 @@ export const dashboardNav: DashboardNavItem[] = [
   { id: "categories", label: "Categories", href: routes.dashboardTab("categories") },
   { id: "cities", label: "Cities", href: routes.dashboardTab("cities") },
   { id: "purposes", label: "Purposes", href: routes.dashboardTab("purposes") },
+  {
+    id: "account-security",
+    label: "Change Password",
+    href: routes.dashboardTab("account-security"),
+  },
   { id: "settings", label: "Settings", href: routes.dashboardTab("settings") },
 ];
 

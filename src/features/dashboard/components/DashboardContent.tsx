@@ -7,6 +7,7 @@ import { CategoriesPanel } from "@/features/dashboard/components/lookups/Categor
 import { CitiesPanel } from "@/features/dashboard/components/lookups/CitiesPanel";
 import { PurposesPanel } from "@/features/dashboard/components/lookups/PurposesPanel";
 import { ProductsPanel } from "@/features/dashboard/components/lookups/ProductsPanel";
+import { AccountSecurityPanel } from "@/features/dashboard/components/AccountSecurityPanel";
 import { SettingsPanel } from "@/features/dashboard/components/SettingsPanel";
 import { DashboardOverview } from "@/features/dashboard/components/DashboardOverview";
 
@@ -45,6 +46,8 @@ export function DashboardContent() {
       return <PurposesPanel />;
     case "products":
       return <ProductsPanel />;
+    case "account-security":
+      return <AccountSecurityPanel />;
     case "settings":
       return <SettingsPanel />;
     default:

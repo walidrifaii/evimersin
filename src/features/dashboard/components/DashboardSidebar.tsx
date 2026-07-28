@@ -79,6 +79,27 @@ function NavIcon({ id }: { id: string }) {
           />
         </svg>
       );
+    case "account-security":
+      return (
+        <svg {...common}>
+          <rect
+            x="5"
+            y="10"
+            width="14"
+            height="10"
+            rx="2"
+            stroke="currentColor"
+            strokeWidth="1.7"
+          />
+          <path
+            d="M8 10V8C8 5.8 9.8 4 12 4C14.2 4 16 5.8 16 8V10"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+          />
+          <circle cx="12" cy="15" r="1.4" fill="currentColor" />
+        </svg>
+      );
     case "analytics":
       return (
         <svg {...common}>

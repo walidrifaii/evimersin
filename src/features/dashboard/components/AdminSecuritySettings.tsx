@@ -157,18 +157,10 @@ export function AdminSecuritySettings() {
   return (
     <div className="max-w-3xl overflow-hidden rounded-[24px] border border-[#e8eef6] bg-white shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
       <div className="border-b border-[#eef2f7] bg-[#f8fafc] px-5 py-4 sm:px-6">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-[11px] font-bold tracking-[0.08em] text-[var(--brand-red)] uppercase">
-              Admin account
-            </p>
-            <h2 className="mt-1 text-[1.05rem] font-bold text-[var(--brand-navy)]">
-              Change password & email
-            </h2>
-            <p className="mt-1 text-[13px] text-[var(--muted)]">
-              2-step OTP verification. Code is sent to the email you enter below.
-            </p>
-          </div>
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-[13px] font-semibold text-[var(--brand-navy)]">
+            Step {step === "details" ? "1" : "2"} of 2
+          </p>
           <span className="rounded-full bg-[#eff6ff] px-2.5 py-1 text-[11px] font-semibold text-[var(--brand-blue)]">
             OTP protected
           </span>
