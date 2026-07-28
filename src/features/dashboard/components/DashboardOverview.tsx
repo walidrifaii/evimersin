@@ -1,16 +1,10 @@
 "use client";
 
-import { HotDealsPanel } from "@/features/dashboard/components/HotDealsPanel";
 import { KpiCards } from "@/features/dashboard/components/KpiCards";
 import { ListingsByTypeChart } from "@/features/dashboard/components/ListingsByTypeChart";
 import { ListingsTable } from "@/features/dashboard/components/ListingsTable";
 import { OverviewHero } from "@/features/dashboard/components/OverviewHero";
-import {
-  FeaturedPropertiesPanel,
-  HotDealsPreview,
-  WebsiteStatusPanel,
-} from "@/features/dashboard/components/OverviewWebsitePanels";
-import { ViewsChart } from "@/features/dashboard/components/ViewsChart";
+import { WebsiteStatusPanel } from "@/features/dashboard/components/OverviewWebsitePanels";
 import { getApiErrorMessage } from "@/store/api/errors";
 import { useGetDashboardAnalyticsQuery } from "@/store/slices/admin";
 
@@ -57,25 +51,12 @@ export function DashboardOverview() {
 
       {data.kpis.length > 0 ? <KpiCards items={data.kpis} /> : null}
 
-      <FeaturedPropertiesPanel items={data.featuredProducts} />
-
-      <HotDealsPreview items={data.hotDeals} />
-
-      <ViewsChart data={data.productsByDay} />
-
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <ListingsByTypeChart data={data.productsByCategory} />
         <WebsiteStatusPanel summary={data.summary} />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-5">
-        <div className="xl:col-span-3">
-          <ListingsTable items={data.recentProducts} />
-        </div>
-        <div className="xl:col-span-2">
-          <HotDealsPanel items={data.hotDeals} />
-        </div>
-      </div>
+      <ListingsTable items={data.recentProducts} />
     </div>
   );
 }

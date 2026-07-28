@@ -219,6 +219,8 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
         submitting={createState.isLoading || updateState.isLoading}
         submitLabel={id ? "Update" : "Create"}
         error={error}
+        columns={4}
+        wide
       >
         <TextInput label="Name" value={name} required onChange={setName} />
         <TextInput
@@ -260,7 +262,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
           value={discountValue}
           onChange={(value) => setDiscountValue(Number(value) || 0)}
         />
-        <div className="rounded-xl border border-[#e5eaf2] bg-[#f8fafc] px-4 py-3 sm:col-span-2">
+        <div className="rounded-xl border border-[#e5eaf2] bg-[#f8fafc] px-4 py-3 col-span-full sm:col-span-2 lg:col-span-2">
           <p className="text-[12px] font-semibold uppercase tracking-[0.06em] text-[var(--muted)]">
             Final price
           </p>
@@ -306,11 +308,11 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
         <FeaturedSelect value={isFeatured} onChange={setIsFeatured} />
 
         {specFields.length > 0 ? (
-          <div className="sm:col-span-2">
+          <div className="col-span-full">
             <p className="mb-3 text-[13px] font-bold text-[var(--brand-navy)]">
               {selectedCategoryName} details
             </p>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {specFields.map((field) => {
                 if (field.type === "boolean") {
                   return (
@@ -376,12 +378,12 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
             </div>
           </div>
         ) : categoryId ? (
-          <p className="sm:col-span-2 text-[13px] text-[var(--muted)]">
+          <p className="col-span-full text-[13px] text-[var(--muted)]">
             No extra fields configured for this category.
           </p>
         ) : null}
 
-        <label className="block sm:col-span-2">
+        <label className="block col-span-full">
           <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
             Description
           </span>
@@ -392,7 +394,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
             className="w-full rounded-xl border border-[#dbe3ef] bg-[#f8fafc] px-3 py-2.5 text-[14px] text-[var(--brand-navy)] outline-none focus:border-[var(--brand-blue)] focus:bg-white"
           />
         </label>
-        <label className="block sm:col-span-2">
+        <label className="block col-span-full sm:col-span-2">
           <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
             Cover image
           </span>
@@ -414,7 +416,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
             </div>
           ) : null}
         </label>
-        <label className="block sm:col-span-2">
+        <label className="block col-span-full sm:col-span-2">
           <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
             Other residential unit images
           </span>
@@ -428,7 +430,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
             className="block w-full rounded-xl border border-[#dbe3ef] bg-[#f8fafc] px-3 py-2.5 text-[14px] text-[var(--brand-navy)] outline-none file:mr-3 file:rounded-full file:border-0 file:bg-[var(--brand-blue)] file:px-3 file:py-2 file:text-[12px] file:font-semibold file:text-white"
           />
           {galleryPreviewUrls.length > 0 ? (
-            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {galleryPreviewUrls.map((url, index) => (
                 <div
                   key={url}
@@ -449,7 +451,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
       </LookupFormLayout>
 
       {id && initial ? (
-        <div className="max-w-2xl rounded-[24px] border border-[#e8eef6] bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+        <div className="max-w-6xl rounded-[24px] border border-[#e8eef6] bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
           <h2 className="text-[16px] font-bold text-[var(--brand-navy)]">
             Saved residential unit images
           </h2>
@@ -461,7 +463,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
               {getApiErrorMessage(galleryError)}
             </div>
           ) : null}
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {initial.images.length === 0 ? (
               <p className="col-span-full text-[13px] text-[var(--muted)]">
                 No saved gallery images yet.

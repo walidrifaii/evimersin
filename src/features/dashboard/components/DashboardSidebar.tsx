@@ -247,7 +247,7 @@ export function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
                 {admin?.name ?? "Admin"}
               </p>
               <p className="truncate text-[11px] text-white/60">
-                @{admin?.username ?? "admin"}
+                {admin?.email ?? "—"}
               </p>
             </div>
           </div>

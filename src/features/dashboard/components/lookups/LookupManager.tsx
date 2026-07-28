@@ -67,6 +67,8 @@ export function LookupFormLayout({
   submitLabel,
   error,
   children,
+  columns = 2,
+  wide = false,
 }: {
   title: string;
   description: string;
@@ -76,7 +78,16 @@ export function LookupFormLayout({
   submitLabel: string;
   error?: unknown;
   children: ReactNode;
+  columns?: 2 | 3 | 4;
+  wide?: boolean;
 }) {
+  const gridClass =
+    columns === 4
+      ? "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+      : columns === 3
+        ? "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        : "grid grid-cols-1 gap-4 sm:grid-cols-2";
+
   return (
     <div className="space-y-6">
       <div>
@@ -103,9 +114,9 @@ export function LookupFormLayout({
 
       <form
         onSubmit={onSubmit}
-        className="max-w-2xl rounded-[24px] border border-[#e8eef6] bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)]"
+        className={`${wide ? "max-w-6xl" : "max-w-2xl"} rounded-[24px] border border-[#e8eef6] bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)]`}
       >
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>
+        <div className={gridClass}>{children}</div>
 
         {error ? (
           <div className="mt-4 rounded-xl border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-[13px] font-medium text-[#b91c1c]">

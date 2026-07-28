@@ -92,28 +92,6 @@ export function DashboardTopbar({ onMenuOpen }: DashboardTopbarProps) {
               />
             </svg>
           </div>
-
-          <button
-            type="button"
-            aria-label="Notifications"
-            className="relative inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#e5eaf2] text-[var(--brand-navy)] transition-colors hover:bg-[#f5f7fa]"
-          >
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-              <path
-                d="M6 9.5C6 6.5 8.5 4 12 4C15.5 4 18 6.5 18 9.5V14L20 16H4L6 14V9.5Z"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M10 18C10.4 19.1 11.1 19.8 12 19.8C12.9 19.8 13.6 19.1 14 18"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                strokeLinecap="round"
-              />
-            </svg>
-            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[var(--brand-red)]" />
-          </button>
         </div>
       </header>
 
