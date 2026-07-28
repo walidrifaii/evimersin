@@ -2,6 +2,7 @@
 
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
+import { AdminSecuritySettings } from "@/features/dashboard/components/AdminSecuritySettings";
 import {
   FormLoading,
   TextInput,
@@ -72,23 +73,34 @@ export function SettingsPanel() {
     <div className="space-y-6">
       <div>
         <h1 className="text-[1.75rem] font-bold tracking-tight text-[var(--brand-navy)]">
-          Website Settings
+          Settings
         </h1>
         <p className="mt-2 max-w-2xl text-[14px] text-[var(--muted)]">
-          Update the email, phone number, WhatsApp, and social media links shown
-          across the website.
+          Manage website contact details and your admin account security.
         </p>
       </div>
+
+      <AdminSecuritySettings />
 
       <form
         onSubmit={onSubmit}
         className="max-w-3xl rounded-[24px] border border-[#e8eef6] bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)] sm:p-6"
       >
         <div className="space-y-6">
-          <section>
+          <div>
             <h2 className="text-[15px] font-semibold text-[var(--brand-navy)]">
-              Contact
+              Website settings
             </h2>
+            <p className="mt-1 text-[13px] text-[var(--muted)]">
+              Update the email, phone number, WhatsApp, and social media links
+              shown across the website.
+            </p>
+          </div>
+
+          <section>
+            <h3 className="text-[14px] font-semibold text-[var(--brand-navy)]">
+              Contact
+            </h3>
             <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <TextInput
                 label="Email"
@@ -108,9 +120,9 @@ export function SettingsPanel() {
           </section>
 
           <section>
-            <h2 className="text-[15px] font-semibold text-[var(--brand-navy)]">
+            <h3 className="text-[14px] font-semibold text-[var(--brand-navy)]">
               WhatsApp
-            </h2>
+            </h3>
             <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <TextInput
                 label="WhatsApp number"
@@ -136,9 +148,9 @@ export function SettingsPanel() {
           </section>
 
           <section>
-            <h2 className="text-[15px] font-semibold text-[var(--brand-navy)]">
+            <h3 className="text-[14px] font-semibold text-[var(--brand-navy)]">
               Social media
-            </h2>
+            </h3>
             <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <TextInput
                 label="Instagram URL"

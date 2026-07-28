@@ -3,6 +3,10 @@ import type { ApiResponse } from "@/store/api/types";
 import type {
   AuthAdmin,
   AuthSession,
+  ChangePasswordConfirmRequest,
+  ChangePasswordConfirmResult,
+  ChangePasswordRequest,
+  ChangePasswordRequestResult,
   ForgotPasswordRequest,
   LoginRequest,
   ResetPasswordRequest,
@@ -65,6 +69,33 @@ export const authApi = api.injectEndpoints({
       transformResponse: (response: ApiResponse<{ message: string }>) =>
         response.data,
     }),
+
+    requestChangePassword: builder.mutation<
+      ChangePasswordRequestResult,
+      ChangePasswordRequest
+    >({
+      query: (body) => ({
+        url: "/admin/auth/change-password/request",
+        method: "POST",
+        body,
+      }),
+      transformResponse: (response: ApiResponse<ChangePasswordRequestResult>) =>
+        response.data,
+    }),
+
+    confirmChangePassword: builder.mutation<
+      ChangePasswordConfirmResult,
+      ChangePasswordConfirmRequest
+    >({
+      query: (body) => ({
+        url: "/admin/auth/change-password/confirm",
+        method: "POST",
+        body,
+      }),
+      transformResponse: (response: ApiResponse<ChangePasswordConfirmResult>) =>
+        response.data,
+      invalidatesTags: ["Admin"],
+    }),
   }),
 });
 
@@ -75,4 +106,6 @@ export const {
   useForgotPasswordMutation,
   useVerifyOtpMutation,
   useResetPasswordMutation,
+  useRequestChangePasswordMutation,
+  useConfirmChangePasswordMutation,
 } = authApi;

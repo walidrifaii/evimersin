@@ -10,7 +10,9 @@ import {
 import {
   getRefreshExpiryDate,
   signAccessToken,
+  signChangePasswordChallenge,
   signRefreshJwt,
+  verifyChangePasswordChallenge,
   verifyRefreshJwt,
 } from "@/server/auth/jwt";
 import { hashPassword, verifyPassword } from "@/server/auth/password";
@@ -18,6 +20,8 @@ import { mailService } from "@/server/services/mail.service";
 import { AppError } from "@/server/utils/errors";
 import type {
   AdminPublic,
+  ChangePasswordConfirmInput,
+  ChangePasswordRequestInput,
   CreateAdminInput,
   ForgotPasswordInput,
   LoginInput,
@@ -27,6 +31,14 @@ import type {
 } from "@/server/types/admin.types";
 
 const OTP_EXPIRY_MINUTES = 10;
+
+function maskEmail(email: string) {
+  const [local, domain] = email.split("@");
+  if (!local || !domain) return email;
+  const visible = local.slice(0, Math.min(2, local.length));
+  return `${visible}${"*".repeat(Math.max(local.length - visible.length, 1))}@${domain}`;
+}
+
 
 async function findActiveAdminByIdentifier(identifier: string) {
   const admin = await adminRepository.findByEmailOrUsername(identifier.trim());
@@ -246,5 +258,80 @@ export const adminService = {
     await refreshTokenRepository.revokeAllForAdmin(admin.id);
 
     return { message: "Password updated successfully. You can sign in now." };
+  },
+
+  async requestChangePassword(adminId: number, input: ChangePasswordRequestInput) {
+    const admin = await adminRepository.findById(adminId);
+    if (!admin || admin.status !== 1) {
+      throw new AppError("Admin not found", 404);
+    }
+
+    const valid = await verifyPassword(input.currentPassword, admin.password);
+    if (!valid) throw new AppError("Current password is incorrect", 400);
+
+    if (input.currentPassword === input.newPassword) {
+      throw new AppError("New password must be different from the current password", 400);
+    }
+
+    const email = input.email.trim().toLowerCase();
+    const passwordHash = await hashPassword(input.newPassword);
+    const otp = generateOtpCode();
+    const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
+
+    await passwordResetRepository.create(admin.id, otp, expiresAt);
+    const challengeToken = await signChangePasswordChallenge({
+      sub: admin.id,
+      passwordHash,
+      email,
+    });
+
+    await mailService.sendChangePasswordOtp({
+      to: email,
+      username: admin.username,
+      adminName: admin.name,
+      otp,
+    });
+
+    return {
+      message: `OTP sent to ${maskEmail(email)}. Enter it to confirm your changes.`,
+      challengeToken,
+      emailMasked: maskEmail(email),
+    };
+  },
+
+  async confirmChangePassword(adminId: number, input: ChangePasswordConfirmInput) {
+    let challenge;
+    try {
+      challenge = await verifyChangePasswordChallenge(input.challengeToken);
+    } catch {
+      throw new AppError("Security challenge expired. Start again.", 400);
+    }
+
+    if (challenge.sub !== adminId) {
+      throw new AppError("Unauthorized", 401);
+    }
+
+    const admin = await adminRepository.findById(adminId);
+    if (!admin || admin.status !== 1) {
+      throw new AppError("Admin not found", 404);
+    }
+
+    const record = await passwordResetRepository.findLatestValid(admin.id);
+    if (!record || !verifyOtpHash(input.otp, record.otp_hash)) {
+      throw new AppError("Invalid or expired OTP", 400);
+    }
+
+    await adminRepository.update(admin.id, {
+      password: challenge.passwordHash,
+      email: challenge.email,
+    });
+    await passwordResetRepository.markUsed(record.id);
+    await refreshTokenRepository.revokeAllForAdmin(admin.id);
+
+    const updated = await this.getById(admin.id);
+    return {
+      message: "Password and email updated successfully.",
+      admin: updated,
+    };
   },
 };

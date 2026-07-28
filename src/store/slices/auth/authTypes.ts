@@ -33,3 +33,25 @@ export type ResetPasswordRequest = {
   otp: string;
   password: string;
 };
+
+export type ChangePasswordRequest = {
+  currentPassword: string;
+  newPassword: string;
+  email: string;
+};
+
+export type ChangePasswordRequestResult = {
+  message: string;
+  challengeToken: string;
+  emailMasked: string;
+};
+
+export type ChangePasswordConfirmRequest = {
+  otp: string;
+  challengeToken: string;
+};
+
+export type ChangePasswordConfirmResult = {
+  message: string;
+  admin: AuthAdmin;
+};

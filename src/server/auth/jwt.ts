@@ -81,6 +81,49 @@ export async function verifyRefreshJwt(token: string): Promise<AuthTokenPayload>
   };
 }
 
+export async function signChangePasswordChallenge(payload: {
+  sub: number;
+  passwordHash: string;
+  email: string;
+}): Promise<string> {
+  return new SignJWT({
+    passwordHash: payload.passwordHash,
+    email: payload.email,
+    purpose: "change-password",
+  })
+    .setProtectedHeader({ alg: "HS256" })
+    .setSubject(String(payload.sub))
+    .setIssuedAt()
+    .setExpirationTime("10m")
+    .sign(getAccessSecret());
+}
+
+export async function verifyChangePasswordChallenge(token: string): Promise<{
+  sub: number;
+  passwordHash: string;
+  email: string;
+}> {
+  const { payload } = await jwtVerify(token, getAccessSecret());
+
+  if (payload.purpose !== "change-password") {
+    throw new Error("Invalid change password challenge");
+  }
+
+  const sub = payload.sub;
+  const passwordHash = payload.passwordHash;
+  const email = payload.email;
+
+  if (!sub || typeof passwordHash !== "string" || typeof email !== "string") {
+    throw new Error("Invalid change password challenge payload");
+  }
+
+  return {
+    sub: Number(sub),
+    passwordHash,
+    email,
+  };
+}
+
 export function getRefreshExpiryDate(): Date {
   const expires = new Date();
   expires.setDate(expires.getDate() + REFRESH_TOKEN_TTL_DAYS);

@@ -60,3 +60,21 @@ export type AuthTokenPayload = {
   username: string;
   name: string;
 };
+
+export type ChangePasswordRequestInput = {
+  currentPassword: string;
+  newPassword: string;
+  email: string;
+};
+
+export type ChangePasswordConfirmInput = {
+  otp: string;
+  challengeToken: string;
+};
+
+export type ChangePasswordChallengePayload = {
+  sub: number;
+  passwordHash: string;
+  email: string;
+  purpose: "change-password";
+};

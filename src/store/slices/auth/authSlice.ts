@@ -43,11 +43,15 @@ const authSlice = createSlice({
         hydrated: true,
       };
     },
+    updateAdmin(state, action: PayloadAction<AuthAdmin>) {
+      state.admin = action.payload;
+    },
     clearCredentials() {
       return { ...initialState, hydrated: true };
     },
   },
 });
 
-export const { hydrateAuth, setCredentials, clearCredentials } = authSlice.actions;
+export const { hydrateAuth, setCredentials, updateAdmin, clearCredentials } =
+  authSlice.actions;
 export default authSlice.reducer;

@@ -197,13 +197,15 @@ export function TextInput({
   type = "text",
   required = false,
   placeholder,
+  autoComplete,
 }: {
   label: string;
   value: string | number;
   onChange: (value: string) => void;
-  type?: "text" | "number";
+  type?: "text" | "number" | "password" | "email";
   required?: boolean;
   placeholder?: string;
+  autoComplete?: string;
 }) {
   return (
     <label className="block">
@@ -213,6 +215,14 @@ export function TextInput({
         value={value}
         required={required}
         placeholder={placeholder}
+        autoComplete={
+          autoComplete ??
+          (type === "password"
+            ? "new-password"
+            : type === "email"
+              ? "email"
+              : undefined)
+        }
         onChange={(e) => onChange(e.target.value)}
         className="h-11 w-full rounded-xl border border-[#dbe3ef] bg-[#f8fafc] px-3 text-[14px] text-[var(--brand-navy)] outline-none focus:border-[var(--brand-blue)] focus:bg-white"
       />

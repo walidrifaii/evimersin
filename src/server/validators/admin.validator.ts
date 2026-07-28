@@ -54,9 +54,22 @@ export const resetPasswordSchema = z.object({
   password: z.string().min(6).max(128),
 });
 
+export const changePasswordRequestSchema = z.object({
+  currentPassword: z.string().min(6).max(128),
+  newPassword: z.string().min(6).max(128),
+  email: z.string().trim().email().max(255),
+});
+
+export const changePasswordConfirmSchema = z.object({
+  otp: z.string().trim().regex(/^\d{6}$/, "OTP must be 6 digits"),
+  challengeToken: z.string().trim().min(20),
+});
+
 export type ForgotPasswordSchema = z.infer<typeof forgotPasswordSchema>;
 export type VerifyOtpSchema = z.infer<typeof verifyOtpSchema>;
 export type ResetPasswordSchema = z.infer<typeof resetPasswordSchema>;
+export type ChangePasswordRequestSchema = z.infer<typeof changePasswordRequestSchema>;
+export type ChangePasswordConfirmSchema = z.infer<typeof changePasswordConfirmSchema>;
 export type LoginSchema = z.infer<typeof loginSchema>;
 export type CreateAdminSchema = z.infer<typeof createAdminSchema>;
 export type UpdateAdminSchema = z.infer<typeof updateAdminSchema>;

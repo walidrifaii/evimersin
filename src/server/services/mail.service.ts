@@ -107,6 +107,52 @@ export const mailService = {
     }
   },
 
+  async sendChangePasswordOtp(input: {
+    to: string;
+    username: string;
+    adminName: string;
+    otp: string;
+  }) {
+    const config = getMailConfig();
+    const transporter = getTransporter();
+
+    const text = [
+      "Admin security verification",
+      "",
+      `Username: ${input.username}`,
+      `Name: ${input.adminName}`,
+      "",
+      `Your OTP code: ${input.otp}`,
+      "",
+      "Use this code to confirm your password and email update.",
+      "This code expires in 10 minutes.",
+      "If you did not request this, you can ignore this email.",
+    ].join("\n");
+
+    const html = `
+      <h2>Confirm account security changes</h2>
+      <p><strong>Username:</strong> ${escapeHtml(input.username)}</p>
+      <p><strong>Name:</strong> ${escapeHtml(input.adminName)}</p>
+      <p style="margin:24px 0;font-size:28px;font-weight:700;letter-spacing:0.2em">${escapeHtml(input.otp)}</p>
+      <p>Use this code to confirm your password and email update.</p>
+      <p>This code expires in <strong>10 minutes</strong>.</p>
+      <p>If you did not request this, you can ignore this email.</p>
+    `;
+
+    try {
+      await transporter.sendMail({
+        from: `"${config.fromName}" <${config.fromAddress}>`,
+        to: input.to,
+        subject: "[EviMersin Admin] Verify security changes",
+        text,
+        html,
+      });
+    } catch (error) {
+      console.error("[mail] Failed to send change password OTP:", error);
+      throw new AppError("Unable to send OTP email right now. Please try again later.", 502);
+    }
+  },
+
   async sendContactNotification(input: ContactEmailInput) {
     const config = getMailConfig();
     const notifyTo = getAdminNotifyEmail(config);

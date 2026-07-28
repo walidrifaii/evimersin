@@ -9,13 +9,14 @@ import "@/store/slices/admin";
 import authReducer, {
   clearCredentials,
   setCredentials,
+  updateAdmin,
 } from "@/store/slices/auth/authSlice";
 import { removeAuth, saveAuth } from "@/store/slices/auth/authStorage";
 
 const authListener = createListenerMiddleware();
 
 authListener.startListening({
-  matcher: isAnyOf(setCredentials, clearCredentials),
+  matcher: isAnyOf(setCredentials, clearCredentials, updateAdmin),
   effect: (_action, listenerApi) => {
     const auth = (listenerApi.getState() as RootState).auth;
 
