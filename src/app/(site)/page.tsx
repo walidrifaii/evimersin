@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export default async function HomePage() {
   const [filterOptions, featuredListings, hotDeals] = await Promise.all([
     getPropertyFilterOptions(),
-    getFeaturedPropertyListings(4),
+    getFeaturedPropertyListings(12),
     getHotDealPropertyListings(4),
   ]);
 
