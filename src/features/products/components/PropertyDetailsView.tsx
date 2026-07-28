@@ -118,16 +118,16 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
                   <h2 className="text-[1.1rem] font-bold text-[var(--brand-navy)] sm:text-[1.25rem]">
                     Property Details
                   </h2>
-                  <dl className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                  <dl className="mt-3 grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-2">
                     {specRows.map((row) => (
                       <div
                         key={row.label}
-                        className="rounded-xl border border-[#eef2f7] bg-[#f8fafc] px-3.5 py-2.5"
+                        className="rounded-lg border border-[#eef2f7] bg-[#f8fafc] px-2.5 py-1.5"
                       >
-                        <dt className="text-[12px] font-medium text-[var(--muted)]">
+                        <dt className="text-[11px] font-medium leading-tight text-[var(--muted)]">
                           {row.label}
                         </dt>
-                        <dd className="mt-0.5 text-[14px] font-semibold text-[var(--brand-navy)]">
+                        <dd className="mt-0.5 text-[13px] font-semibold leading-tight text-[var(--brand-navy)]">
                           {row.value}
                         </dd>
                       </div>
