@@ -155,169 +155,174 @@ export function AdminSecuritySettings() {
   }
 
   return (
-    <div className="max-w-3xl rounded-[24px] border border-[#e8eef6] bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)] sm:p-6">
-      <div className="mb-1 flex items-start justify-between gap-3">
-        <div>
-          <h2 className="text-[15px] font-semibold text-[var(--brand-navy)]">
-            Account security
-          </h2>
-          <p className="mt-1 text-[13px] text-[var(--muted)]">
-            Change your password and verify a new email with a 2-step OTP check.
-          </p>
-        </div>
-        <span className="rounded-full bg-[#eff6ff] px-2.5 py-1 text-[11px] font-semibold text-[var(--brand-blue)]">
-          OTP protected
-        </span>
-      </div>
-
-      <div className="mt-5">
-        <StepIndicator step={step} />
-      </div>
-
-      {step === "details" ? (
-        <form onSubmit={onRequest} className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <TextInput
-              label="Current password"
-              type="password"
-              value={currentPassword}
-              required
-              placeholder="Enter current password"
-              autoComplete="current-password"
-              onChange={setCurrentPassword}
-            />
-            <TextInput
-              label="Admin email"
-              type="email"
-              value={email}
-              required
-              placeholder="admin@evimersin.com"
-              onChange={setEmail}
-            />
-            <TextInput
-              label="New password"
-              type="password"
-              value={newPassword}
-              required
-              placeholder="At least 6 characters"
-              autoComplete="new-password"
-              onChange={setNewPassword}
-            />
-            <TextInput
-              label="Confirm new password"
-              type="password"
-              value={confirmPassword}
-              required
-              placeholder="Repeat new password"
-              autoComplete="new-password"
-              onChange={setConfirmPassword}
-            />
-          </div>
-
-          <p className="text-[12px] text-[var(--muted)]">
-            An OTP will be sent to the email above. Use a new email if you want
-            to update it, then verify ownership in step 2.
-          </p>
-
-          {error ? (
-            <div className="rounded-xl border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-[13px] font-medium text-[#b91c1c]">
-              {error}
-            </div>
-          ) : null}
-
-          {message && !challengeToken ? (
-            <div className="rounded-xl border border-[#bbf7d0] bg-[#f0fdf4] px-3 py-2 text-[13px] font-medium text-[#15803d]">
-              {message}
-            </div>
-          ) : null}
-
-          <button
-            type="submit"
-            disabled={requestState.isLoading}
-            className="inline-flex h-11 cursor-pointer items-center justify-center rounded-full bg-[var(--brand-red)] px-5 text-[13px] font-semibold text-white transition-colors hover:bg-[#c9181e] disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {requestState.isLoading ? "Sending OTP..." : "Continue to OTP"}
-          </button>
-        </form>
-      ) : (
-        <form onSubmit={onConfirm} className="space-y-4">
-          <div className="rounded-2xl border border-[#dbeafe] bg-[#eff6ff] px-4 py-3">
-            <p className="text-[13px] font-semibold text-[var(--brand-navy)]">
-              Check your inbox
+    <div className="max-w-3xl overflow-hidden rounded-[24px] border border-[#e8eef6] bg-white shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+      <div className="border-b border-[#eef2f7] bg-[#f8fafc] px-5 py-4 sm:px-6">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-bold tracking-[0.08em] text-[var(--brand-red)] uppercase">
+              Admin account
             </p>
+            <h2 className="mt-1 text-[1.05rem] font-bold text-[var(--brand-navy)]">
+              Change password & email
+            </h2>
             <p className="mt-1 text-[13px] text-[var(--muted)]">
-              We sent a 6-digit code to{" "}
-              <span className="font-semibold text-[var(--brand-blue)]">
-                {emailMasked || email}
-              </span>
-              . Enter it below to finish updating your password and email.
+              2-step OTP verification. Code is sent to the email you enter below.
             </p>
           </div>
+          <span className="rounded-full bg-[#eff6ff] px-2.5 py-1 text-[11px] font-semibold text-[var(--brand-blue)]">
+            OTP protected
+          </span>
+        </div>
+      </div>
 
-          <label className="block max-w-xs">
-            <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
-              OTP code
-            </span>
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="\d{6}"
-              maxLength={6}
-              value={otp}
-              onChange={(event) =>
-                setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))
-              }
-              className="h-12 w-full rounded-xl border border-[#dbe3ef] bg-[#f8fafc] px-4 text-center text-[18px] tracking-[0.35em] text-[var(--brand-navy)] outline-none focus:border-[var(--brand-blue)] focus:bg-white"
-              placeholder="123456"
-              required
-            />
-          </label>
+      <div className="p-5 sm:p-6">
+        <StepIndicator step={step} />
 
-          {error ? (
-            <div className="rounded-xl border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-[13px] font-medium text-[#b91c1c]">
-              {error}
+        {step === "details" ? (
+          <form onSubmit={onRequest} className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <TextInput
+                label="Current password"
+                type="password"
+                value={currentPassword}
+                required
+                placeholder="Enter current password"
+                autoComplete="current-password"
+                onChange={setCurrentPassword}
+              />
+              <TextInput
+                label="Admin email"
+                type="email"
+                value={email}
+                required
+                placeholder="admin@evimersin.com"
+                onChange={setEmail}
+              />
+              <TextInput
+                label="New password"
+                type="password"
+                value={newPassword}
+                required
+                placeholder="At least 6 characters"
+                autoComplete="new-password"
+                onChange={setNewPassword}
+              />
+              <TextInput
+                label="Confirm new password"
+                type="password"
+                value={confirmPassword}
+                required
+                placeholder="Repeat new password"
+                autoComplete="new-password"
+                onChange={setConfirmPassword}
+              />
             </div>
-          ) : null}
 
-          {message ? (
-            <div className="rounded-xl border border-[#bbf7d0] bg-[#f0fdf4] px-3 py-2 text-[13px] font-medium text-[#15803d]">
-              {message}
-            </div>
-          ) : null}
+            <p className="text-[12px] text-[var(--muted)]">
+              An OTP will be sent to the email above. Use a new email if you want
+              to update it, then verify ownership in step 2.
+            </p>
 
-          <div className="flex flex-wrap items-center gap-2">
+            {error ? (
+              <div className="rounded-xl border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-[13px] font-medium text-[#b91c1c]">
+                {error}
+              </div>
+            ) : null}
+
+            {message && !challengeToken ? (
+              <div className="rounded-xl border border-[#bbf7d0] bg-[#f0fdf4] px-3 py-2 text-[13px] font-medium text-[#15803d]">
+                {message}
+              </div>
+            ) : null}
+
             <button
               type="submit"
-              disabled={confirmState.isLoading || otp.length !== 6}
+              disabled={requestState.isLoading}
               className="inline-flex h-11 cursor-pointer items-center justify-center rounded-full bg-[var(--brand-red)] px-5 text-[13px] font-semibold text-white transition-colors hover:bg-[#c9181e] disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {confirmState.isLoading ? "Verifying..." : "Verify & save"}
+              {requestState.isLoading ? "Sending OTP..." : "Continue to OTP"}
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                void onResend();
-              }}
-              disabled={requestState.isLoading}
-              className="inline-flex h-11 cursor-pointer items-center justify-center rounded-full border border-[#d7dee8] bg-white px-5 text-[13px] font-semibold text-[var(--brand-navy)] transition-colors hover:bg-[#f8fafc] disabled:opacity-70"
-            >
-              {requestState.isLoading ? "Resending..." : "Resend OTP"}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setStep("details");
-                setOtp("");
-                setError(null);
-                setMessage(null);
-              }}
-              className="inline-flex h-11 cursor-pointer items-center justify-center rounded-full px-4 text-[13px] font-semibold text-[var(--muted)] transition-colors hover:text-[var(--brand-navy)]"
-            >
-              Back
-            </button>
-          </div>
-        </form>
-      )}
+          </form>
+        ) : (
+          <form onSubmit={onConfirm} className="space-y-4">
+            <div className="rounded-2xl border border-[#dbeafe] bg-[#eff6ff] px-4 py-3">
+              <p className="text-[13px] font-semibold text-[var(--brand-navy)]">
+                Check your inbox
+              </p>
+              <p className="mt-1 text-[13px] text-[var(--muted)]">
+                We sent a 6-digit code to{" "}
+                <span className="font-semibold text-[var(--brand-blue)]">
+                  {emailMasked || email}
+                </span>
+                . Enter it below to finish updating your password and email.
+              </p>
+            </div>
+
+            <label className="block max-w-xs">
+              <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
+                OTP code
+              </span>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="\d{6}"
+                maxLength={6}
+                value={otp}
+                onChange={(event) =>
+                  setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))
+                }
+                className="h-12 w-full rounded-xl border border-[#dbe3ef] bg-[#f8fafc] px-4 text-center text-[18px] tracking-[0.35em] text-[var(--brand-navy)] outline-none focus:border-[var(--brand-blue)] focus:bg-white"
+                placeholder="123456"
+                required
+              />
+            </label>
+
+            {error ? (
+              <div className="rounded-xl border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-[13px] font-medium text-[#b91c1c]">
+                {error}
+              </div>
+            ) : null}
+
+            {message ? (
+              <div className="rounded-xl border border-[#bbf7d0] bg-[#f0fdf4] px-3 py-2 text-[13px] font-medium text-[#15803d]">
+                {message}
+              </div>
+            ) : null}
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="submit"
+                disabled={confirmState.isLoading || otp.length !== 6}
+                className="inline-flex h-11 cursor-pointer items-center justify-center rounded-full bg-[var(--brand-red)] px-5 text-[13px] font-semibold text-white transition-colors hover:bg-[#c9181e] disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {confirmState.isLoading ? "Verifying..." : "Verify & save"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  void onResend();
+                }}
+                disabled={requestState.isLoading}
+                className="inline-flex h-11 cursor-pointer items-center justify-center rounded-full border border-[#d7dee8] bg-white px-5 text-[13px] font-semibold text-[var(--brand-navy)] transition-colors hover:bg-[#f8fafc] disabled:opacity-70"
+              >
+                {requestState.isLoading ? "Resending..." : "Resend OTP"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setStep("details");
+                  setOtp("");
+                  setError(null);
+                  setMessage(null);
+                }}
+                className="inline-flex h-11 cursor-pointer items-center justify-center rounded-full px-4 text-[13px] font-semibold text-[var(--muted)] transition-colors hover:text-[var(--brand-navy)]"
+              >
+                Back
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
     </div>
   );
 }
