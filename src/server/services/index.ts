@@ -7,6 +7,7 @@ export {
   purposeService,
 } from "@/server/services/lookup.service";
 export { productService } from "@/server/services/product.service";
+export { searchService } from "@/server/services/search.service";
 export { settingsService } from "@/server/services/settings.service";
 export { contactService } from "@/server/services/contact.service";
 export { mailService } from "@/server/services/mail.service";
