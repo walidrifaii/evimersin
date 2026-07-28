@@ -11,7 +11,46 @@ import {
   useRequestChangePasswordMutation,
 } from "@/store/slices/auth/authApi";
 
+type Mode = "password" | "email";
 type Step = "details" | "verify";
+
+function ModeTabs({
+  mode,
+  onChange,
+  disabled,
+}: {
+  mode: Mode;
+  onChange: (mode: Mode) => void;
+  disabled?: boolean;
+}) {
+  const tabs: Array<{ id: Mode; label: string }> = [
+    { id: "password", label: "Change password" },
+    { id: "email", label: "Change email" },
+  ];
+
+  return (
+    <div className="flex gap-2 rounded-2xl bg-[#f1f5f9] p-1">
+      {tabs.map((tab) => {
+        const active = mode === tab.id;
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            disabled={disabled}
+            onClick={() => onChange(tab.id)}
+            className={`flex-1 cursor-pointer rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+              active
+                ? "bg-white text-[var(--brand-navy)] shadow-[0_1px_3px_rgba(15,23,42,0.08)]"
+                : "text-[var(--muted)] hover:text-[var(--brand-navy)]"
+            }`}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 function StepIndicator({ step }: { step: Step }) {
   const steps = [
@@ -64,6 +103,7 @@ function StepIndicator({ step }: { step: Step }) {
 export function AdminSecuritySettings() {
   const dispatch = useAppDispatch();
   const admin = useAppSelector((state) => state.auth.admin);
+  const [mode, setMode] = useState<Mode>("password");
   const [step, setStep] = useState<Step>("details");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -84,40 +124,68 @@ export function AdminSecuritySettings() {
     }
   }, [admin?.email, challengeToken, step]);
 
+  function resetFormFields(keepEmail = true) {
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setOtp("");
+    setChallengeToken("");
+    setEmailMasked("");
+    setError(null);
+    setMessage(null);
+    setStep("details");
+    if (keepEmail) setEmail(admin?.email ?? "");
+  }
+
+  function switchMode(next: Mode) {
+    if (next === mode) return;
+    setMode(next);
+    resetFormFields(true);
+  }
+
   async function submitRequest() {
     setError(null);
     setMessage(null);
-
-    const nextEmail = email.trim();
-    const nextPassword = newPassword.trim();
-    const emailChanged =
-      nextEmail.toLowerCase() !== (admin?.email ?? "").trim().toLowerCase();
 
     if (!currentPassword.trim()) {
       setError("Current password is required.");
       return;
     }
 
-    if (!emailChanged && !nextPassword) {
-      setError("Change the email and/or enter a new password.");
-      return;
-    }
-
-    if (nextPassword && nextPassword !== confirmPassword.trim()) {
-      setError("New passwords do not match.");
-      return;
-    }
-
-    if (nextPassword && nextPassword.length < 6) {
-      setError("New password must be at least 6 characters.");
-      return;
+    if (mode === "password") {
+      if (!newPassword.trim()) {
+        setError("Enter a new password.");
+        return;
+      }
+      if (newPassword.trim().length < 6) {
+        setError("New password must be at least 6 characters.");
+        return;
+      }
+      if (newPassword.trim() !== confirmPassword.trim()) {
+        setError("New passwords do not match.");
+        return;
+      }
+    } else {
+      const nextEmail = email.trim().toLowerCase();
+      const currentEmail = (admin?.email ?? "").trim().toLowerCase();
+      if (!nextEmail) {
+        setError("Enter a new email.");
+        return;
+      }
+      if (nextEmail === currentEmail) {
+        setError("Enter a different email address.");
+        return;
+      }
     }
 
     try {
       const result = await requestChangePassword({
         currentPassword,
-        email: nextEmail,
-        ...(nextPassword ? { newPassword: nextPassword } : {}),
+        email:
+          mode === "email"
+            ? email.trim()
+            : (admin?.email ?? email).trim(),
+        ...(mode === "password" ? { newPassword: newPassword.trim() } : {}),
       }).unwrap();
       setChallengeToken(result.challengeToken);
       setEmailMasked(result.emailMasked);
@@ -159,83 +227,89 @@ export function AdminSecuritySettings() {
     }
   }
 
-  async function onResend() {
-    await submitRequest();
-  }
-
   return (
     <div className="max-w-3xl overflow-hidden rounded-[24px] border border-[#e8eef6] bg-white shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
       <div className="border-b border-[#eef2f7] bg-[#f8fafc] px-5 py-4 sm:px-6">
-        <div className="flex items-center justify-between gap-3">
+        <ModeTabs
+          mode={mode}
+          disabled={step === "verify"}
+          onChange={switchMode}
+        />
+      </div>
+
+      <div className="p-5 sm:p-6">
+        <div className="mb-4 flex items-center justify-between gap-3">
           <p className="text-[13px] font-semibold text-[var(--brand-navy)]">
-            Step {step === "details" ? "1" : "2"} of 2
+            {mode === "password" ? "Update password" : "Update email"} · Step{" "}
+            {step === "details" ? "1" : "2"} of 2
           </p>
           <span className="rounded-full bg-[#eff6ff] px-2.5 py-1 text-[11px] font-semibold text-[var(--brand-blue)]">
             OTP protected
           </span>
         </div>
-      </div>
 
-      <div className="p-5 sm:p-6">
         <StepIndicator step={step} />
 
         {step === "details" ? (
           <form onSubmit={onRequest} className="space-y-4">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <TextInput
-                label="Current password"
-                type="password"
-                value={currentPassword}
-                required
-                placeholder="Confirm it’s you"
-                autoComplete="current-password"
-                onChange={setCurrentPassword}
-              />
-              <TextInput
-                label="Admin email"
-                type="email"
-                value={email}
-                required
-                placeholder="admin@evimersin.com"
-                onChange={setEmail}
-              />
-              <TextInput
-                label="New password (optional)"
-                type="password"
-                value={newPassword}
-                placeholder="Leave blank to keep current password"
-                autoComplete="new-password"
-                onChange={setNewPassword}
-              />
-              <TextInput
-                label="Confirm new password"
-                type="password"
-                value={confirmPassword}
-                placeholder="Only if changing password"
-                autoComplete="new-password"
-                onChange={setConfirmPassword}
-              />
-            </div>
+            {mode === "password" ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <TextInput
+                  label="Current password"
+                  type="password"
+                  value={currentPassword}
+                  required
+                  placeholder="Enter current password"
+                  autoComplete="current-password"
+                  onChange={setCurrentPassword}
+                />
+                <div className="hidden sm:block" />
+                <TextInput
+                  label="New password"
+                  type="password"
+                  value={newPassword}
+                  required
+                  placeholder="At least 6 characters"
+                  autoComplete="new-password"
+                  onChange={setNewPassword}
+                />
+                <TextInput
+                  label="Confirm new password"
+                  type="password"
+                  value={confirmPassword}
+                  required
+                  placeholder="Repeat new password"
+                  autoComplete="new-password"
+                  onChange={setConfirmPassword}
+                />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <TextInput
+                  label="Current password"
+                  type="password"
+                  value={currentPassword}
+                  required
+                  placeholder="Confirm it’s you"
+                  autoComplete="current-password"
+                  onChange={setCurrentPassword}
+                />
+                <TextInput
+                  label="New email"
+                  type="email"
+                  value={email}
+                  required
+                  placeholder="new@email.com"
+                  onChange={setEmail}
+                />
+              </div>
+            )}
 
-            <div className="rounded-2xl border border-[#e5eaf2] bg-[#f8fafc] px-4 py-3 text-[12px] text-[var(--muted)]">
-              <p className="font-semibold text-[var(--brand-navy)]">How to use</p>
-              <ul className="mt-1 list-disc space-y-0.5 pl-4">
-                <li>
-                  <strong>Email only:</strong> enter current password + new email, leave
-                  password fields empty.
-                </li>
-                <li>
-                  <strong>Password only:</strong> keep the same email, fill new password.
-                </li>
-                <li>
-                  <strong>Both:</strong> change email and fill new password.
-                </li>
-              </ul>
-              <p className="mt-2">
-                OTP is always sent to the email shown above (the new one if you changed
-                it).
-              </p>
-            </div>
+            <p className="text-[12px] text-[var(--muted)]">
+              {mode === "password"
+                ? `OTP will be sent to your current email (${admin?.email ?? "admin email"}).`
+                : "OTP will be sent to the new email so we can verify you own it."}
+            </p>
 
             {error ? (
               <div className="rounded-xl border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-[13px] font-medium text-[#b91c1c]">
@@ -268,7 +342,8 @@ export function AdminSecuritySettings() {
                 <span className="font-semibold text-[var(--brand-blue)]">
                   {emailMasked || email}
                 </span>
-                . Enter it below to finish saving your changes.
+                . Enter it to confirm your{" "}
+                {mode === "password" ? "password" : "email"} change.
               </p>
             </div>
 
@@ -314,7 +389,7 @@ export function AdminSecuritySettings() {
               <button
                 type="button"
                 onClick={() => {
-                  void onResend();
+                  void submitRequest();
                 }}
                 disabled={requestState.isLoading}
                 className="inline-flex h-11 cursor-pointer items-center justify-center rounded-full border border-[#d7dee8] bg-white px-5 text-[13px] font-semibold text-[var(--brand-navy)] transition-colors hover:bg-[#f8fafc] disabled:opacity-70"

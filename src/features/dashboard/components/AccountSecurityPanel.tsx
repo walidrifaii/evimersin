@@ -13,10 +13,11 @@ export function AccountSecurityPanel() {
           Security
         </p>
         <h1 className="mt-1 text-[1.75rem] font-bold tracking-tight text-[var(--brand-navy)]">
-          Change password & email
+          Account security
         </h1>
         <p className="mt-2 max-w-2xl text-[14px] text-[var(--muted)]">
-          Change your email, password, or both. OTP verification is required
+          Use the tabs below to change your password or email. Both flows use
+          OTP verification
           {admin?.email ? (
             <>
               . Current email:{" "}
