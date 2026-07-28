@@ -23,6 +23,7 @@ export function HotDeals({ listings }: HotDealsProps) {
     if (!scroller || listings.length === 0) return;
 
     function updateControls() {
+      if (!scroller) return;
       const maxScroll = scroller.scrollWidth - scroller.clientWidth;
       const scrollLeft = scroller.scrollLeft;
       setCanPrev(scrollLeft > 8);
