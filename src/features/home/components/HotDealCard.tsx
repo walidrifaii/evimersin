@@ -20,9 +20,21 @@ export function HotDealCard({ item }: HotDealCardProps) {
           sizes="(max-width: 1280px) 50vw, 25vw"
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <span className="absolute left-2 top-2 rounded-md bg-[var(--brand-red)] px-2 py-0.5 text-[10px] font-bold text-white sm:left-3 sm:top-3 sm:px-2.5 sm:py-1 sm:text-[11px]">
-          {item.discountLabel ?? "Hot Deal"}
-        </span>
+        <div className="absolute left-2 top-2 flex flex-wrap gap-1.5 sm:left-3 sm:top-3 sm:gap-2">
+          <span className="rounded-md bg-[var(--brand-red)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.06em] text-white sm:px-2.5 sm:py-1 sm:text-[11px]">
+            {item.discountLabel ?? "Hot Deal"}
+          </span>
+          {item.propertyType ? (
+            <span className="rounded-md bg-[var(--brand-blue)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.06em] text-white sm:px-2.5 sm:py-1 sm:text-[11px]">
+              {item.propertyType}
+            </span>
+          ) : null}
+          {item.purpose ? (
+            <span className="rounded-md bg-[var(--brand-navy)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.06em] text-white sm:px-2.5 sm:py-1 sm:text-[11px]">
+              {item.purpose}
+            </span>
+          ) : null}
+        </div>
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 p-3 sm:gap-2 sm:p-4">
