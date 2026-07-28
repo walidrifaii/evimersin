@@ -83,7 +83,7 @@ export async function verifyRefreshJwt(token: string): Promise<AuthTokenPayload>
 
 export async function signChangePasswordChallenge(payload: {
   sub: number;
-  passwordHash: string;
+  passwordHash: string | null;
   email: string;
 }): Promise<string> {
   return new SignJWT({
@@ -100,7 +100,7 @@ export async function signChangePasswordChallenge(payload: {
 
 export async function verifyChangePasswordChallenge(token: string): Promise<{
   sub: number;
-  passwordHash: string;
+  passwordHash: string | null;
   email: string;
 }> {
   const { payload } = await jwtVerify(token, getAccessSecret());
@@ -110,16 +110,19 @@ export async function verifyChangePasswordChallenge(token: string): Promise<{
   }
 
   const sub = payload.sub;
-  const passwordHash = payload.passwordHash;
   const email = payload.email;
+  const passwordHash =
+    payload.passwordHash === null || payload.passwordHash === undefined
+      ? null
+      : String(payload.passwordHash);
 
-  if (!sub || typeof passwordHash !== "string" || typeof email !== "string") {
+  if (!sub || typeof email !== "string") {
     throw new Error("Invalid change password challenge payload");
   }
 
   return {
     sub: Number(sub),
-    passwordHash,
+    passwordHash: passwordHash && passwordHash.length > 0 ? passwordHash : null,
     email,
   };
 }

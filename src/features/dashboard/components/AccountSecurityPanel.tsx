@@ -16,7 +16,7 @@ export function AccountSecurityPanel() {
           Change password & email
         </h1>
         <p className="mt-2 max-w-2xl text-[14px] text-[var(--muted)]">
-          Update your admin password and email with a 2-step OTP verification
+          Change your email, password, or both. OTP verification is required
           {admin?.email ? (
             <>
               . Current email:{" "}

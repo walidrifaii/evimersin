@@ -54,11 +54,28 @@ export const resetPasswordSchema = z.object({
   password: z.string().min(6).max(128),
 });
 
-export const changePasswordRequestSchema = z.object({
-  currentPassword: z.string().min(6).max(128),
-  newPassword: z.string().min(6).max(128),
-  email: z.string().trim().email().max(255),
-});
+export const changePasswordRequestSchema = z
+  .object({
+    currentPassword: z.string().min(6).max(128),
+    newPassword: z
+      .string()
+      .max(128)
+      .optional()
+      .transform((value) => {
+        const trimmed = value?.trim() ?? "";
+        return trimmed.length > 0 ? trimmed : undefined;
+      }),
+    email: z.string().trim().email().max(255),
+  })
+  .superRefine((data, ctx) => {
+    if (data.newPassword !== undefined && data.newPassword.length < 6) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "New password must be at least 6 characters",
+        path: ["newPassword"],
+      });
+    }
+  });
 
 export const changePasswordConfirmSchema = z.object({
   otp: z.string().trim().regex(/^\d{6}$/, "OTP must be 6 digits"),

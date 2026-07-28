@@ -84,21 +84,40 @@ export function AdminSecuritySettings() {
     }
   }, [admin?.email, challengeToken, step]);
 
-  async function onRequest(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function submitRequest() {
     setError(null);
     setMessage(null);
 
-    if (newPassword !== confirmPassword) {
+    const nextEmail = email.trim();
+    const nextPassword = newPassword.trim();
+    const emailChanged =
+      nextEmail.toLowerCase() !== (admin?.email ?? "").trim().toLowerCase();
+
+    if (!currentPassword.trim()) {
+      setError("Current password is required.");
+      return;
+    }
+
+    if (!emailChanged && !nextPassword) {
+      setError("Change the email and/or enter a new password.");
+      return;
+    }
+
+    if (nextPassword && nextPassword !== confirmPassword.trim()) {
       setError("New passwords do not match.");
+      return;
+    }
+
+    if (nextPassword && nextPassword.length < 6) {
+      setError("New password must be at least 6 characters.");
       return;
     }
 
     try {
       const result = await requestChangePassword({
         currentPassword,
-        newPassword,
-        email: email.trim(),
+        email: nextEmail,
+        ...(nextPassword ? { newPassword: nextPassword } : {}),
       }).unwrap();
       setChallengeToken(result.challengeToken);
       setEmailMasked(result.emailMasked);
@@ -108,6 +127,11 @@ export function AdminSecuritySettings() {
     } catch (err) {
       setError(getApiErrorMessage(err));
     }
+  }
+
+  async function onRequest(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await submitRequest();
   }
 
   async function onConfirm(event: FormEvent<HTMLFormElement>) {
@@ -136,22 +160,7 @@ export function AdminSecuritySettings() {
   }
 
   async function onResend() {
-    setError(null);
-    setMessage(null);
-
-    try {
-      const result = await requestChangePassword({
-        currentPassword,
-        newPassword,
-        email: email.trim(),
-      }).unwrap();
-      setChallengeToken(result.challengeToken);
-      setEmailMasked(result.emailMasked);
-      setMessage(result.message);
-      setOtp("");
-    } catch (err) {
-      setError(getApiErrorMessage(err));
-    }
+    await submitRequest();
   }
 
   return (
@@ -178,7 +187,7 @@ export function AdminSecuritySettings() {
                 type="password"
                 value={currentPassword}
                 required
-                placeholder="Enter current password"
+                placeholder="Confirm it’s you"
                 autoComplete="current-password"
                 onChange={setCurrentPassword}
               />
@@ -191,11 +200,10 @@ export function AdminSecuritySettings() {
                 onChange={setEmail}
               />
               <TextInput
-                label="New password"
+                label="New password (optional)"
                 type="password"
                 value={newPassword}
-                required
-                placeholder="At least 6 characters"
+                placeholder="Leave blank to keep current password"
                 autoComplete="new-password"
                 onChange={setNewPassword}
               />
@@ -203,17 +211,31 @@ export function AdminSecuritySettings() {
                 label="Confirm new password"
                 type="password"
                 value={confirmPassword}
-                required
-                placeholder="Repeat new password"
+                placeholder="Only if changing password"
                 autoComplete="new-password"
                 onChange={setConfirmPassword}
               />
             </div>
 
-            <p className="text-[12px] text-[var(--muted)]">
-              An OTP will be sent to the email above. Use a new email if you want
-              to update it, then verify ownership in step 2.
-            </p>
+            <div className="rounded-2xl border border-[#e5eaf2] bg-[#f8fafc] px-4 py-3 text-[12px] text-[var(--muted)]">
+              <p className="font-semibold text-[var(--brand-navy)]">How to use</p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-4">
+                <li>
+                  <strong>Email only:</strong> enter current password + new email, leave
+                  password fields empty.
+                </li>
+                <li>
+                  <strong>Password only:</strong> keep the same email, fill new password.
+                </li>
+                <li>
+                  <strong>Both:</strong> change email and fill new password.
+                </li>
+              </ul>
+              <p className="mt-2">
+                OTP is always sent to the email shown above (the new one if you changed
+                it).
+              </p>
+            </div>
 
             {error ? (
               <div className="rounded-xl border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-[13px] font-medium text-[#b91c1c]">
@@ -246,7 +268,7 @@ export function AdminSecuritySettings() {
                 <span className="font-semibold text-[var(--brand-blue)]">
                   {emailMasked || email}
                 </span>
-                . Enter it below to finish updating your password and email.
+                . Enter it below to finish saving your changes.
               </p>
             </div>
 

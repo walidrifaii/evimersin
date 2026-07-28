@@ -63,7 +63,7 @@ export type AuthTokenPayload = {
 
 export type ChangePasswordRequestInput = {
   currentPassword: string;
-  newPassword: string;
+  newPassword?: string | null;
   email: string;
 };
 
@@ -74,7 +74,7 @@ export type ChangePasswordConfirmInput = {
 
 export type ChangePasswordChallengePayload = {
   sub: number;
-  passwordHash: string;
+  passwordHash: string | null;
   email: string;
   purpose: "change-password";
 };

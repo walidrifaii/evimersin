@@ -36,7 +36,7 @@ export type ResetPasswordRequest = {
 
 export type ChangePasswordRequest = {
   currentPassword: string;
-  newPassword: string;
+  newPassword?: string;
   email: string;
 };
 

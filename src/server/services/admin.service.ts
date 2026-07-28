@@ -269,12 +269,24 @@ export const adminService = {
     const valid = await verifyPassword(input.currentPassword, admin.password);
     if (!valid) throw new AppError("Current password is incorrect", 400);
 
-    if (input.currentPassword === input.newPassword) {
+    const email = input.email.trim().toLowerCase();
+    const newPassword = input.newPassword?.trim() || "";
+    const emailChanged = email !== admin.email.trim().toLowerCase();
+    const passwordChanged = newPassword.length > 0;
+
+    if (!emailChanged && !passwordChanged) {
+      throw new AppError("Change your email and/or enter a new password", 400);
+    }
+
+    if (passwordChanged && newPassword === input.currentPassword) {
       throw new AppError("New password must be different from the current password", 400);
     }
 
-    const email = input.email.trim().toLowerCase();
-    const passwordHash = await hashPassword(input.newPassword);
+    if (passwordChanged && newPassword.length < 6) {
+      throw new AppError("New password must be at least 6 characters", 400);
+    }
+
+    const passwordHash = passwordChanged ? await hashPassword(newPassword) : null;
     const otp = generateOtpCode();
     const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
 
@@ -292,8 +304,15 @@ export const adminService = {
       otp,
     });
 
+    const changing = [
+      passwordChanged ? "password" : null,
+      emailChanged ? "email" : null,
+    ]
+      .filter(Boolean)
+      .join(" and ");
+
     return {
-      message: `OTP sent to ${maskEmail(email)}. Enter it to confirm your changes.`,
+      message: `OTP sent to ${maskEmail(email)}. Enter it to confirm your ${changing} update.`,
       challengeToken,
       emailMasked: maskEmail(email),
     };
@@ -321,16 +340,27 @@ export const adminService = {
       throw new AppError("Invalid or expired OTP", 400);
     }
 
-    await adminRepository.update(admin.id, {
-      password: challenge.passwordHash,
+    const updatePayload: { email: string; password?: string } = {
       email: challenge.email,
-    });
+    };
+    if (challenge.passwordHash) {
+      updatePayload.password = challenge.passwordHash;
+    }
+
+    await adminRepository.update(admin.id, updatePayload);
     await passwordResetRepository.markUsed(record.id);
-    await refreshTokenRepository.revokeAllForAdmin(admin.id);
+
+    if (challenge.passwordHash) {
+      await refreshTokenRepository.revokeAllForAdmin(admin.id);
+    }
 
     const updated = await this.getById(admin.id);
+    const message = challenge.passwordHash
+      ? "Password and email updated successfully."
+      : "Email updated successfully.";
+
     return {
-      message: "Password and email updated successfully.",
+      message,
       admin: updated,
     };
   },
