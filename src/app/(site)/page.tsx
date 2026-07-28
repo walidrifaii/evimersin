@@ -14,7 +14,7 @@ export default async function HomePage() {
   const [filterOptions, featuredListings, hotDeals] = await Promise.all([
     getPropertyFilterOptions(),
     getFeaturedPropertyListings(12),
-    getHotDealPropertyListings(4),
+    getHotDealPropertyListings(12),
   ]);
 
   return (
