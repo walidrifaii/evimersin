@@ -47,12 +47,22 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
               </h1>
               <p className="mt-2 text-[14px] text-[var(--muted)] sm:text-[15px]">
                 {property.propertyType ? (
-                  <span className="text-[var(--brand-red)]">
-                    {property.propertyType}
+                  <span>
+                    Property Type:{" "}
+                    <span className="font-semibold text-[var(--brand-red)]">
+                      {property.propertyType}
+                    </span>
                   </span>
                 ) : null}
                 {property.propertyType && property.purpose ? " · " : null}
-                {property.purpose ? <span>{property.purpose}</span> : null}
+                {property.purpose ? (
+                  <span>
+                    Purpose:{" "}
+                    <span className="font-semibold text-[var(--brand-navy)]">
+                      {property.purpose}
+                    </span>
+                  </span>
+                ) : null}
               </p>
 
               <div className="mt-5">
