@@ -16,9 +16,14 @@ type PropertyDetailsViewProps = {
 
 export async function PropertyDetailsView({ property }: PropertyDetailsViewProps) {
   const settings = await getSiteSettings();
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(
+    /\/$/,
+    "",
+  );
+  const propertyUrl = `${appUrl}${property.href}`;
   const whatsappUrl = getWhatsAppUrlFromSettings(
     settings,
-    `Hello EviMersin, I am interested in ${property.title} (${property.location}).`,
+    `Hello EviMersin, I am interested in this property:\n\n${property.title}\n${propertyUrl}`,
   );
 
   return (
