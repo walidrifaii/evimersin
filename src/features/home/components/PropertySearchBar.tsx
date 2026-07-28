@@ -92,15 +92,15 @@ function FilterDropdown({
           e.stopPropagation();
           onToggle();
         }}
-        className="flex h-full min-h-[60px] w-full min-w-0 flex-col justify-center gap-3 px-8 py-4 text-left transition-colors hover:bg-black/[0.02] lg:min-h-[68px] lg:gap-4 lg:px-12 lg:py-5"
+        className="group flex h-full min-h-[60px] w-full min-w-0 flex-col justify-center gap-3 px-8 py-4 text-left transition-colors lg:min-h-[68px] lg:gap-4 lg:px-12 lg:py-5"
       >
         <span className="text-[14px] font-medium leading-none text-[#9ca3af] lg:text-[15px]">
           {label}
         </span>
-        <span className="flex w-full min-w-0 items-center text-[18px] font-semibold leading-none text-[#1f2937] lg:text-[20px]">
+        <span className="flex w-full min-w-0 items-center text-[18px] font-semibold leading-none text-[#1f2937] transition-colors group-hover:text-[var(--brand-red)] lg:text-[20px]">
           <span className="truncate">{selectedLabel}</span>
           <ChevronDown
-            className={`ml-auto h-4 w-4 shrink-0 text-[#6b7280] transition-transform duration-200 ${
+            className={`ml-auto h-4 w-4 shrink-0 text-[#6b7280] transition-all duration-200 group-hover:text-[var(--brand-red)] ${
               isOpen ? "rotate-180" : ""
             }`}
           />
@@ -126,9 +126,9 @@ function FilterDropdown({
                 onChange(opt.id);
                 onClose();
               }}
-              className={`flex w-full px-6 py-3.5 text-left text-[15px] font-medium transition-colors hover:bg-[#f3f4f6] lg:text-[16px] ${
+              className={`flex w-full px-6 py-3.5 text-left text-[15px] font-medium transition-colors hover:text-[var(--brand-red)] lg:text-[16px] ${
                 opt.id === value
-                  ? "bg-[#eff6ff] text-[var(--brand-blue)]"
+                  ? "text-[var(--brand-red)]"
                   : "text-[#374151]"
               }`}
             >
@@ -224,15 +224,15 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
                 prev === "priceRange" ? null : "priceRange",
               )
             }
-            className="flex h-full min-h-[60px] w-full min-w-0 flex-col justify-center gap-3 px-8 py-4 text-left transition-colors hover:bg-black/[0.02] lg:min-h-[68px] lg:gap-4 lg:px-12 lg:py-5"
+            className="group flex h-full min-h-[60px] w-full min-w-0 flex-col justify-center gap-3 px-8 py-4 text-left transition-colors lg:min-h-[68px] lg:gap-4 lg:px-12 lg:py-5"
           >
             <span className="text-[14px] font-medium leading-none text-[#9ca3af] lg:text-[15px]">
               {homeData.search.priceRange.label}
             </span>
-            <span className="flex w-full min-w-0 items-center text-[18px] font-semibold leading-none text-[#1f2937] lg:text-[20px]">
+            <span className="flex w-full min-w-0 items-center text-[18px] font-semibold leading-none text-[#1f2937] transition-colors group-hover:text-[var(--brand-red)] lg:text-[20px]">
               <span className="truncate">{priceRange}</span>
               <ChevronDown
-                className={`ml-auto h-4 w-4 shrink-0 text-[#6b7280] transition-transform duration-200 ${
+                className={`ml-auto h-4 w-4 shrink-0 text-[#6b7280] transition-all duration-200 group-hover:text-[var(--brand-red)] ${
                   openDropdown === "priceRange" ? "rotate-180" : ""
                 }`}
               />
@@ -250,9 +250,9 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
                     setPriceRange(opt);
                     setOpenDropdown(null);
                   }}
-                  className={`flex w-full px-6 py-3.5 text-left text-[15px] font-medium transition-colors hover:bg-[#f3f4f6] lg:text-[16px] ${
+                  className={`flex w-full px-6 py-3.5 text-left text-[15px] font-medium transition-colors hover:text-[var(--brand-red)] lg:text-[16px] ${
                     opt === priceRange
-                      ? "bg-[#eff6ff] text-[var(--brand-blue)]"
+                      ? "text-[var(--brand-red)]"
                       : "text-[#374151]"
                   }`}
                 >

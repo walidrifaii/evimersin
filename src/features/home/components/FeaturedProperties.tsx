@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
 import { PropertyCard } from "@/features/home/components/PropertyCard";
 import { routes } from "@/constants/routes";
 import type { PropertyListing } from "@/features/products/types";
@@ -27,7 +31,83 @@ type FeaturedPropertiesProps = {
 };
 
 export function FeaturedProperties({ listings }: FeaturedPropertiesProps) {
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [canPrev, setCanPrev] = useState(false);
+  const [canNext, setCanNext] = useState(false);
+  const [activePage, setActivePage] = useState(0);
+  const [pageCount, setPageCount] = useState(1);
+
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller || listings.length === 0) return;
+
+    function updateControls() {
+      if (!scroller) return;
+      const maxScroll = scroller.scrollWidth - scroller.clientWidth;
+      const scrollLeft = scroller.scrollLeft;
+      setCanPrev(scrollLeft > 8);
+      setCanNext(scrollLeft < maxScroll - 8);
+
+      const firstCard = scroller.querySelector<HTMLElement>("[data-carousel-item]");
+      const cardWidth = firstCard?.offsetWidth ?? scroller.clientWidth;
+      const gap = 24;
+      const visible = Math.max(
+        1,
+        Math.round((scroller.clientWidth + gap) / (cardWidth + gap)),
+      );
+      const pages = Math.max(1, Math.ceil(listings.length / visible));
+      setPageCount(pages);
+      const page = Math.min(
+        pages - 1,
+        Math.round(scrollLeft / Math.max(1, cardWidth + gap) / visible),
+      );
+      setActivePage(page);
+    }
+
+    updateControls();
+    scroller.addEventListener("scroll", updateControls, { passive: true });
+    window.addEventListener("resize", updateControls);
+    return () => {
+      scroller.removeEventListener("scroll", updateControls);
+      window.removeEventListener("resize", updateControls);
+    };
+  }, [listings.length]);
+
+  function scrollByPage(direction: -1 | 1) {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    const firstCard = scroller.querySelector<HTMLElement>("[data-carousel-item]");
+    const cardWidth = firstCard?.offsetWidth ?? scroller.clientWidth;
+    const gap = 24;
+    const visible = Math.max(
+      1,
+      Math.round((scroller.clientWidth + gap) / (cardWidth + gap)),
+    );
+    scroller.scrollBy({
+      left: direction * visible * (cardWidth + gap),
+      behavior: "smooth",
+    });
+  }
+
+  function goToPage(page: number) {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    const firstCard = scroller.querySelector<HTMLElement>("[data-carousel-item]");
+    const cardWidth = firstCard?.offsetWidth ?? scroller.clientWidth;
+    const gap = 24;
+    const visible = Math.max(
+      1,
+      Math.round((scroller.clientWidth + gap) / (cardWidth + gap)),
+    );
+    scroller.scrollTo({
+      left: page * visible * (cardWidth + gap),
+      behavior: "smooth",
+    });
+  }
+
   if (listings.length === 0) return null;
+
+  const showControls = listings.length > 1;
 
   return (
     <section className="w-full bg-white">
@@ -43,25 +123,72 @@ export function FeaturedProperties({ listings }: FeaturedPropertiesProps) {
             </p>
           </div>
 
-          <Link
-            href={routes.properties}
-            className="inline-flex h-12 shrink-0 items-center justify-center self-start rounded-lg border border-[var(--brand-blue)] px-6 text-[15px] font-semibold text-[var(--brand-blue)] transition-colors hover:bg-[#eff6ff]"
-          >
-            View All Properties
-          </Link>
+          <div className="flex flex-wrap items-center gap-3 self-start">
+            {showControls ? (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  aria-label="Previous featured properties"
+                  onClick={() => scrollByPage(-1)}
+                  disabled={!canPrev}
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#e8edf5] bg-white text-[var(--brand-navy)] transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[#e8edf5] disabled:hover:text-[var(--brand-navy)]"
+                >
+                  <HiChevronLeft className="h-5 w-5" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Next featured properties"
+                  onClick={() => scrollByPage(1)}
+                  disabled={!canNext}
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#e8edf5] bg-white text-[var(--brand-navy)] transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[#e8edf5] disabled:hover:text-[var(--brand-navy)]"
+                >
+                  <HiChevronRight className="h-5 w-5" aria-hidden="true" />
+                </button>
+              </div>
+            ) : null}
+
+            <Link
+              href={routes.properties}
+              className="inline-flex h-12 shrink-0 items-center justify-center rounded-lg border border-[var(--brand-blue)] px-6 text-[15px] font-semibold text-[var(--brand-blue)] transition-colors hover:bg-[#eff6ff]"
+            >
+              View All Properties
+            </Link>
+          </div>
         </div>
 
-        <div className="-mr-4 flex snap-x snap-mandatory gap-6 overflow-x-auto pr-4 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mr-6 sm:pr-6 md:-mr-4 md:pr-4 xl:mr-0 xl:grid xl:grid-cols-4 xl:overflow-visible xl:pr-0 xl:snap-none">
+        <div
+          ref={scrollerRef}
+          className="-mx-4 flex snap-x snap-mandatory gap-6 overflow-x-auto px-4 pb-2 scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mx-6 sm:px-6 md:-mx-4 md:px-4 lg:mx-0 lg:px-0"
+        >
           {listings.map((item, index) => (
             <div
               key={item.id}
-              className="w-[min(300px,82vw)] shrink-0 snap-start animate-[fadeUp_600ms_ease-out] [animation-fill-mode:both] xl:w-auto xl:shrink"
-              style={{ animationDelay: `${100 + index * 120}ms` }}
+              data-carousel-item
+              className="w-[min(300px,82vw)] shrink-0 snap-start sm:w-[min(320px,70vw)] lg:w-[calc((100%-4.5rem)/4)]"
             >
               <PropertyCard item={item} index={index} />
             </div>
           ))}
         </div>
+
+        {showControls && pageCount > 1 ? (
+          <div className="mt-8 flex items-center justify-center gap-2">
+            {Array.from({ length: pageCount }, (_, page) => (
+              <button
+                key={page}
+                type="button"
+                aria-label={`Go to featured page ${page + 1}`}
+                aria-current={page === activePage ? "true" : undefined}
+                onClick={() => goToPage(page)}
+                className={`h-2.5 rounded-full transition-all ${
+                  page === activePage
+                    ? "w-7 bg-[var(--brand-red)]"
+                    : "w-2.5 bg-[#dbe3ef] hover:bg-[var(--brand-red)]/50"
+                }`}
+              />
+            ))}
+          </div>
+        ) : null}
       </div>
     </section>
   );

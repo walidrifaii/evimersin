@@ -55,7 +55,7 @@ function FilterSelect({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex h-12 w-full items-center justify-between rounded-xl border border-[#e5eaf2] bg-white px-4 text-left text-[14px] font-medium text-[var(--brand-navy)] transition-colors hover:border-[#c7d2e5]"
+        className="flex h-12 w-full items-center justify-between rounded-xl border border-[#e5eaf2] bg-white px-4 text-left text-[14px] font-medium text-[var(--brand-navy)] transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
       >
         <span className="truncate">{selectedLabel}</span>
         <HiChevronDown
@@ -79,9 +79,9 @@ function FilterSelect({
                 onChange(option.id);
                 setOpen(false);
               }}
-              className={`flex w-full px-4 py-3 text-left text-[14px] font-medium transition-colors hover:bg-[#f3f4f6] ${
+              className={`flex w-full px-4 py-3 text-left text-[14px] font-medium transition-colors hover:text-[var(--brand-red)] ${
                 option.id === value
-                  ? "bg-[#eff6ff] text-[var(--brand-blue)]"
+                  ? "text-[var(--brand-red)]"
                   : "text-[var(--brand-navy)]"
               }`}
             >
