@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { routes } from "@/constants/routes";
 import { SafeImage } from "@/components/ui/SafeImage";
 import {
@@ -9,6 +9,10 @@ import {
   RowActions,
   StatusBadge,
 } from "@/features/dashboard/components/lookups/LookupManager";
+import {
+  matchesDashboardSearch,
+  useDashboardSearchQuery,
+} from "@/features/dashboard/hooks/useDashboardSearch";
 import {
   formatProductPrice,
   hasActiveDiscount,
@@ -22,6 +26,24 @@ export function ProductsPanel() {
   const { data = [], isLoading, error } = useGetProductsQuery();
   const [deleteProduct, deleteState] = useDeleteProductMutation();
   const [actionError, setActionError] = useState<unknown>(null);
+  const deferredQuery = useDashboardSearchQuery();
+
+  const filtered = useMemo(
+    () =>
+      data.filter((item) =>
+        matchesDashboardSearch(
+          deferredQuery,
+          item.id,
+          item.name,
+          item.category_name,
+          item.city_name,
+          item.purpose_name,
+          item.price,
+          item.final_price,
+        ),
+      ),
+    [data, deferredQuery],
+  );
 
   return (
     <LookupListLayout
@@ -35,6 +57,10 @@ export function ProductsPanel() {
       {data.length === 0 ? (
         <div className="px-5 py-10 text-center text-[14px] text-[var(--muted)]">
           No residential units yet.
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="px-5 py-10 text-center text-[14px] text-[var(--muted)]">
+          No residential units match “{deferredQuery.trim()}”.
         </div>
       ) : (
         <LookupTable
@@ -50,7 +76,7 @@ export function ProductsPanel() {
             "Status",
             "Actions",
           ]}
-          rows={data.map((item) => (
+          rows={filtered.map((item) => (
             <tr key={item.id} className="border-t border-[#eef2f7]">
               <td className="px-5 py-3 text-[var(--muted)]">{item.id}</td>
               <td className="px-5 py-3">

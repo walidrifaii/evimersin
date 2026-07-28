@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { routes } from "@/constants/routes";
 import {
   LookupListLayout,
@@ -8,6 +8,10 @@ import {
   RowActions,
   StatusBadge,
 } from "@/features/dashboard/components/lookups/LookupManager";
+import {
+  matchesDashboardSearch,
+  useDashboardSearchQuery,
+} from "@/features/dashboard/hooks/useDashboardSearch";
 import {
   useDeleteCityMutation,
   useGetCitiesQuery,
@@ -17,6 +21,15 @@ export function CitiesPanel() {
   const { data = [], isLoading, error } = useGetCitiesQuery();
   const [deleteCity, deleteState] = useDeleteCityMutation();
   const [actionError, setActionError] = useState<unknown>(null);
+  const deferredQuery = useDashboardSearchQuery();
+
+  const filtered = useMemo(
+    () =>
+      data.filter((item) =>
+        matchesDashboardSearch(deferredQuery, item.id, item.name),
+      ),
+    [data, deferredQuery],
+  );
 
   return (
     <LookupListLayout
@@ -31,10 +44,14 @@ export function CitiesPanel() {
         <div className="px-5 py-10 text-center text-[14px] text-[var(--muted)]">
           No cities yet. Add your first city in Lebanon.
         </div>
+      ) : filtered.length === 0 ? (
+        <div className="px-5 py-10 text-center text-[14px] text-[var(--muted)]">
+          No cities match “{deferredQuery.trim()}”.
+        </div>
       ) : (
         <LookupTable
           headers={["ID", "Name", "Status", "Actions"]}
-          rows={data.map((item) => (
+          rows={filtered.map((item) => (
             <tr key={item.id} className="border-t border-[#eef2f7]">
               <td className="px-5 py-3 text-[var(--muted)]">{item.id}</td>
               <td className="px-5 py-3 font-semibold text-[var(--brand-navy)]">{item.name}</td>

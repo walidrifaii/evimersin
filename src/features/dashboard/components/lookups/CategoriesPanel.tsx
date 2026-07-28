@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { routes } from "@/constants/routes";
 import { SafeImage } from "@/components/ui/SafeImage";
 import {
@@ -10,6 +10,10 @@ import {
   StatusBadge,
 } from "@/features/dashboard/components/lookups/LookupManager";
 import {
+  matchesDashboardSearch,
+  useDashboardSearchQuery,
+} from "@/features/dashboard/hooks/useDashboardSearch";
+import {
   useDeleteCategoryMutation,
   useGetCategoriesQuery,
 } from "@/store/slices/admin";
@@ -18,6 +22,15 @@ export function CategoriesPanel() {
   const { data = [], isLoading, error } = useGetCategoriesQuery();
   const [deleteCategory, deleteState] = useDeleteCategoryMutation();
   const [actionError, setActionError] = useState<unknown>(null);
+  const deferredQuery = useDashboardSearchQuery();
+
+  const filtered = useMemo(
+    () =>
+      data.filter((item) =>
+        matchesDashboardSearch(deferredQuery, item.id, item.name, item.position),
+      ),
+    [data, deferredQuery],
+  );
 
   return (
     <LookupListLayout
@@ -32,10 +45,14 @@ export function CategoriesPanel() {
         <div className="px-5 py-10 text-center text-[14px] text-[var(--muted)]">
           No categories yet.
         </div>
+      ) : filtered.length === 0 ? (
+        <div className="px-5 py-10 text-center text-[14px] text-[var(--muted)]">
+          No categories match “{deferredQuery.trim()}”.
+        </div>
       ) : (
         <LookupTable
           headers={["ID", "Name", "Position", "Icon", "Status", "Actions"]}
-          rows={data.map((item) => (
+          rows={filtered.map((item) => (
             <tr key={item.id} className="border-t border-[#eef2f7]">
               <td className="px-5 py-3 text-[var(--muted)]">{item.id}</td>
               <td className="px-5 py-3 font-semibold text-[var(--brand-navy)]">{item.name}</td>

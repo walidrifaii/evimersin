@@ -1,10 +1,23 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
+import { dashboardNav } from "@/features/dashboard/data";
+import { useDashboardSearch } from "@/features/dashboard/hooks/useDashboardSearch";
+
 type DashboardTopbarProps = {
   onMenuOpen: () => void;
 };
 
 export function DashboardTopbar({ onMenuOpen }: DashboardTopbarProps) {
+  const searchParams = useSearchParams();
+  const activeTab = searchParams.get("tab") ?? "overview";
+  const activeLabel =
+    dashboardNav.find((item) => item.id === activeTab)?.label ?? "Overview";
+  const { query, setQuery } = useDashboardSearch();
+  const canSearch = ["products", "categories", "cities", "purposes"].includes(
+    activeTab,
+  );
+
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-4 border-b border-[#eef2f7] bg-white/90 px-4 backdrop-blur-md sm:px-6 lg:rounded-t-[28px] lg:px-8">
       <div className="flex min-w-0 items-center gap-3">
@@ -29,37 +42,41 @@ export function DashboardTopbar({ onMenuOpen }: DashboardTopbarProps) {
             EviMersin Admin · Updated just now
           </p>
           <p className="truncate text-[16px] font-bold text-[var(--brand-navy)] sm:text-[17px]">
-            Dashboard Overview
+            {activeLabel}
           </p>
         </div>
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
-        <div className="relative hidden md:block">
-          <label htmlFor="dashboard-search" className="sr-only">
-            Search listings
-          </label>
-          <input
-            id="dashboard-search"
-            type="search"
-            placeholder="Search listings, clients..."
-            className="h-10 w-64 rounded-full border border-[#e5eaf2] bg-[#f8fafc] pl-10 pr-3 text-[13px] text-[var(--brand-navy)] outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[var(--brand-blue)] focus:bg-white"
-          />
-          <svg
-            viewBox="0 0 24 24"
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a3b8]"
-            fill="none"
-            aria-hidden="true"
-          >
-            <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="1.7" />
-            <path
-              d="M16.5 16.5L20 20"
-              stroke="currentColor"
-              strokeWidth="1.7"
-              strokeLinecap="round"
+        {canSearch ? (
+          <div className="relative w-[min(100%,14rem)] sm:w-64">
+            <label htmlFor="dashboard-search" className="sr-only">
+              Search {activeLabel}
+            </label>
+            <input
+              id="dashboard-search"
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={`Search ${activeLabel.toLowerCase()}...`}
+              className="h-10 w-full rounded-full border border-[#e5eaf2] bg-[#f8fafc] pl-10 pr-3 text-[13px] text-[var(--brand-navy)] outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[var(--brand-blue)] focus:bg-white"
             />
-          </svg>
-        </div>
+            <svg
+              viewBox="0 0 24 24"
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a3b8]"
+              fill="none"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="1.7" />
+              <path
+                d="M16.5 16.5L20 20"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+        ) : null}
 
         <button
           type="button"
