@@ -5,6 +5,7 @@ export type PropertyImage = StaticImageData | string;
 export type FilterOption = {
   id: number | null;
   label: string;
+  count?: number;
 };
 
 export type PropertyListing = {

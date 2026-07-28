@@ -111,19 +111,42 @@ export function buildPropertyFilterOptions(
       ? lookups.purposes
       : listings.map((item) => ({ id: item.purposeId, label: item.purpose }));
 
+  const totalCount = listings.length;
+
+  const cityOptions = uniqueById(cities.filter((item) => item.id !== null)).map(
+    (option) => ({
+      ...option,
+      count: listings.filter((item) => item.cityId === option.id).length,
+    }),
+  );
+
+  const propertyTypeOptions = uniqueById(
+    propertyTypes.filter((item) => item.id !== null),
+  ).map((option) => ({
+    ...option,
+    count: listings.filter((item) => item.categoryId === option.id).length,
+  }));
+
+  const purposeOptions = uniqueById(
+    purposes.filter((item) => item.id !== null),
+  ).map((option) => ({
+    ...option,
+    count: listings.filter((item) => item.purposeId === option.id).length,
+  }));
+
   return {
     ...propertyFilterOptions,
     city: [
-      { id: null, label: "All Cities" },
-      ...uniqueById(cities.filter((item) => item.id !== null)),
+      { id: null, label: "All Cities", count: totalCount },
+      ...cityOptions,
     ],
     propertyType: [
-      { id: null, label: "All Types" },
-      ...uniqueById(propertyTypes.filter((item) => item.id !== null)),
+      { id: null, label: "All Types", count: totalCount },
+      ...propertyTypeOptions,
     ],
     purpose: [
-      { id: null, label: "Buy / Rent" },
-      ...uniqueById(purposes.filter((item) => item.id !== null)),
+      { id: null, label: "Buy / Rent", count: totalCount },
+      ...purposeOptions,
     ],
     priceMax: maxPrice,
   };
@@ -208,7 +231,16 @@ export function getFilterOptionLabel(
   id: number | null,
   fallback: string,
 ) {
-  return findOptionById(id, options)?.label ?? fallback;
+  const option = findOptionById(id, options);
+  if (!option) return fallback;
+  return formatFilterOptionLabel(option);
+}
+
+export function formatFilterOptionLabel(option: FilterOption) {
+  if (typeof option.count === "number") {
+    return `${option.label} (${option.count})`;
+  }
+  return option.label;
 }
 
 export function filtersFromSearchParams(

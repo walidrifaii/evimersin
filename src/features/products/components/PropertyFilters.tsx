@@ -79,13 +79,18 @@ function FilterSelect({
                 onChange(option.id);
                 setOpen(false);
               }}
-              className={`flex w-full px-4 py-3 text-left text-[14px] font-medium transition-colors hover:text-[var(--brand-red)] ${
+              className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-[14px] font-medium transition-colors hover:text-[var(--brand-red)] ${
                 option.id === value
                   ? "text-[var(--brand-red)]"
                   : "text-[var(--brand-navy)]"
               }`}
             >
-              {option.label}
+              <span className="truncate">{option.label}</span>
+              {typeof option.count === "number" ? (
+                <span className="shrink-0 text-[12px] font-semibold text-[var(--muted)]">
+                  {option.count}
+                </span>
+              ) : null}
             </button>
           ))}
         </div>

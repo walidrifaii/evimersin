@@ -126,13 +126,18 @@ function FilterDropdown({
                 onChange(opt.id);
                 onClose();
               }}
-              className={`flex w-full px-6 py-3.5 text-left text-[15px] font-medium transition-colors hover:text-[var(--brand-red)] lg:text-[16px] ${
+              className={`flex w-full items-center justify-between gap-3 px-6 py-3.5 text-left text-[15px] font-medium transition-colors hover:text-[var(--brand-red)] lg:text-[16px] ${
                 opt.id === value
                   ? "text-[var(--brand-red)]"
                   : "text-[#374151]"
               }`}
             >
-              {opt.label}
+              <span className="truncate">{opt.label}</span>
+              {typeof opt.count === "number" ? (
+                <span className="shrink-0 text-[13px] font-semibold text-[#9ca3af]">
+                  {opt.count}
+                </span>
+              ) : null}
             </button>
           ))}
         </div>
