@@ -142,6 +142,7 @@ function FilterDropdown({
 }
 
 export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
+  const priceRangeRef = useRef<HTMLDivElement>(null);
   const [filters, setFilters] = useState<
     Pick<PropertyFiltersState, "cityId" | "categoryId" | "purposeId">
   >({
@@ -163,6 +164,23 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
     },
     filterOptions,
   );
+
+  useEffect(() => {
+    if (openDropdown !== "priceRange") return;
+
+    function handlePointerDown(event: PointerEvent) {
+      if (
+        priceRangeRef.current &&
+        !priceRangeRef.current.contains(event.target as Node)
+      ) {
+        setOpenDropdown(null);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () =>
+      document.removeEventListener("pointerdown", handlePointerDown);
+  }, [openDropdown]);
 
   return (
     <div className="flex w-full flex-col gap-2 rounded-2xl bg-white p-3 text-left shadow-[0_12px_32px_rgba(0,0,0,0.14)] lg:flex-row lg:items-stretch lg:gap-0 lg:rounded-[20px] lg:p-4">
@@ -215,7 +233,7 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
           />
         </div>
 
-        <div className="relative flex w-full min-w-0 items-stretch">
+        <div ref={priceRangeRef} className="relative flex w-full min-w-0 items-stretch">
           <button
             type="button"
             aria-expanded={openDropdown === "priceRange"}

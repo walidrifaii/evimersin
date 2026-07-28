@@ -25,9 +25,16 @@ export function PropertyCard({ item }: PropertyCardProps) {
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute left-4 top-4 flex flex-wrap gap-2">
-          <span className="rounded-md bg-[var(--brand-blue)] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.06em] text-white">
-            {item.propertyType}
-          </span>
+          {item.propertyType ? (
+            <span className="rounded-md bg-[var(--brand-blue)] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.06em] text-white">
+              {item.propertyType}
+            </span>
+          ) : null}
+          {item.purpose ? (
+            <span className="rounded-md bg-[var(--brand-red)] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.06em] text-white">
+              {item.purpose}
+            </span>
+          ) : null}
         </div>
       </div>
 

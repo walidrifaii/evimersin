@@ -159,7 +159,7 @@ export function Navbar() {
             className="hidden shrink-0 items-center gap-2 rounded-full bg-[var(--brand-red)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#c9181e] lg:inline-flex"
           >
             <PhoneIcon className="h-4 w-4" />
-            Phone Number
+            Call Us
           </a>
 
           {/* Burger menu for tablet + mobile */}
@@ -288,7 +288,7 @@ export function Navbar() {
                 className="mt-6 flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[var(--brand-red)] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#c9181e]"
               >
                 <PhoneIcon className="h-4 w-4" />
-                Phone Number
+                Call Us
               </a>
             </div>
           </div>
