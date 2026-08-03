@@ -3,6 +3,7 @@ import type { ApiResponse } from "@/store/api/types";
 
 type FcmConfigResponse = {
   enabled: boolean;
+  adminReady: boolean;
   config: {
     apiKey: string;
     authDomain: string;

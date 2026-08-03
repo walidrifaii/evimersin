@@ -12,10 +12,28 @@ type FirebasePublicConfig = {
   appId: string;
 };
 
+function isEnvPlaceholder(value: string | undefined | null) {
+  if (!value?.trim()) return true;
+  const normalized = value.trim();
+  return (
+    normalized.includes("PASTE_") ||
+    normalized.includes("YOUR_") ||
+    normalized === "change-me-to-a-long-random-string"
+  );
+}
+
 function getServiceAccount() {
   const projectId = process.env.FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
   const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+
+  if (
+    isEnvPlaceholder(projectId) ||
+    isEnvPlaceholder(clientEmail) ||
+    isEnvPlaceholder(privateKey)
+  ) {
+    return null;
+  }
 
   if (!projectId || !clientEmail || !privateKey) {
     return null;
@@ -58,10 +76,8 @@ export function isFirebaseAdminConfigured() {
 }
 
 export function isFirebaseClientConfigured() {
-  return (
-    getFirebasePublicConfig() !== null &&
-    Boolean(process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY)
-  );
+  const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
+  return getFirebasePublicConfig() !== null && !isEnvPlaceholder(vapidKey);
 }
 
 let adminApp: App | null = null;

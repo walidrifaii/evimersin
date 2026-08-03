@@ -37,25 +37,39 @@ export async function requestFcmToken(input: {
   vapidKey: string;
 }) {
   const app = await getFirebaseApp(input.config);
-  if (!app) return null;
+  if (!app) {
+    throw new Error("Firebase could not initialize in this browser.");
+  }
 
   const registration = await registerFirebaseServiceWorker();
-  if (!registration) return null;
+  if (!registration) {
+    throw new Error("Service worker is not supported or failed to register.");
+  }
 
   const { getMessaging, getToken, isSupported } = await import(
     "firebase/messaging"
   );
 
-  if (!(await isSupported())) return null;
+  if (!(await isSupported())) {
+    throw new Error("Firebase Cloud Messaging is not supported in this browser.");
+  }
 
   const messaging = getMessaging(app);
   const permission = await Notification.requestPermission();
-  if (permission !== "granted") return null;
+  if (permission !== "granted") {
+    return null;
+  }
 
-  return getToken(messaging, {
-    vapidKey: input.vapidKey,
-    serviceWorkerRegistration: registration,
-  });
+  try {
+    return await getToken(messaging, {
+      vapidKey: input.vapidKey,
+      serviceWorkerRegistration: registration,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to get FCM token.";
+    throw new Error(message);
+  }
 }
 
 export async function listenForForegroundMessages(

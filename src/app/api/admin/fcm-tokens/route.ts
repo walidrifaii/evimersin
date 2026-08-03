@@ -8,6 +8,7 @@ import {
 import { fcmTokenService } from "@/server/services/visit.service";
 import {
   getFirebasePublicConfig,
+  isFirebaseAdminConfigured,
   isFirebaseClientConfigured,
 } from "@/server/services/firebase.service";
 import { ok } from "@/server/utils/response";
@@ -24,8 +25,11 @@ export const GET = compose(withAuth, withHandler)(async (_request, context) => {
 
   return ok({
     enabled: isFirebaseClientConfigured(),
+    adminReady: isFirebaseAdminConfigured(),
     config: getFirebasePublicConfig(),
-    vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY ?? null,
+    vapidKey: isFirebaseClientConfigured()
+      ? (process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY ?? null)
+      : null,
     tokens: tokens.map((item) => ({
       id: item.id,
       deviceLabel: item.device_label,
