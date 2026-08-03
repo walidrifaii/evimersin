@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
+import { VisitTracker } from "@/components/visits/VisitTracker";
 import { SiteSettingsProvider } from "@/components/providers/SiteSettingsProvider";
 import { getSiteSettings } from "@/lib/site-settings";
 
@@ -25,6 +26,9 @@ export default async function SiteLayout({
         </Suspense>
         <main className="flex flex-1 flex-col">{children}</main>
         <Footer />
+        <Suspense fallback={null}>
+          <VisitTracker />
+        </Suspense>
       </div>
     </SiteSettingsProvider>
   );

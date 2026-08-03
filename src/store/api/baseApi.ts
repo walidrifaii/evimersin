@@ -75,6 +75,7 @@ export const api = createApi({
     "Purpose",
     "Analytics",
     "Settings",
+    "FcmToken",
   ],
   endpoints: () => ({}),
 });

@@ -210,6 +210,34 @@ CREATE TABLE IF NOT EXISTS newsletter_subscribers (
   KEY idx_newsletter_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS admin_fcm_tokens (
+  id INT NOT NULL AUTO_INCREMENT,
+  admin_id INT NOT NULL,
+  token VARCHAR(512) NOT NULL,
+  device_label VARCHAR(150) NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_admin_fcm_token (token),
+  KEY idx_admin_fcm_admin_id (admin_id),
+  CONSTRAINT fk_admin_fcm_admin
+    FOREIGN KEY (admin_id) REFERENCES admin(id)
+    ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS site_visits (
+  id INT NOT NULL AUTO_INCREMENT,
+  session_id VARCHAR(64) NOT NULL,
+  path VARCHAR(500) NOT NULL,
+  locale VARCHAR(5) NOT NULL DEFAULT 'en',
+  referrer VARCHAR(500) NULL,
+  user_agent VARCHAR(500) NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_site_visits_session_id (session_id),
+  KEY idx_site_visits_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 INSERT IGNORE INTO site_settings (
   id,
   email,

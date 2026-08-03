@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AdminNotificationPrompt } from "@/features/dashboard/components/AdminNotificationPrompt";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopbar } from "@/features/dashboard/components/DashboardTopbar";
 
@@ -9,6 +10,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
+      <AdminNotificationPrompt />
       <div
         className="pointer-events-none absolute inset-0"
         aria-hidden="true"

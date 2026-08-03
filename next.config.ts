@@ -32,6 +32,10 @@ const nextConfig: NextConfig = {
         destination: "/favicon.jpg",
       },
       {
+        source: "/firebase-messaging-sw.js",
+        destination: "/api/firebase/messaging-sw",
+      },
+      {
         source: "/uploads/:path*",
         destination: "/api/media/:path*",
       },

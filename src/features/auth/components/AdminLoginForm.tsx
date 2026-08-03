@@ -7,6 +7,7 @@ import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
 import logoImage from "@/assets/images/logo.png";
 import { routes } from "@/constants/routes";
+import { ADMIN_FCM_LOGIN_PROMPT_KEY } from "@/hooks/useEnableAdminNotifications";
 import { useLoginMutation } from "@/store/slices/auth/authApi";
 import { setCredentials } from "@/store/slices/auth/authSlice";
 import { getApiErrorMessage } from "@/store/api/errors";
@@ -35,6 +36,7 @@ export function AdminLoginForm() {
     try {
       const session = await login({ username: username.trim(), password }).unwrap();
       dispatch(setCredentials(session));
+      sessionStorage.setItem(ADMIN_FCM_LOGIN_PROMPT_KEY, "1");
       router.replace(routes.dashboard);
     } catch (err) {
       setError(getApiErrorMessage(err));
