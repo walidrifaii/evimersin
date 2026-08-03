@@ -56,13 +56,6 @@ export type ContactEmailInput = {
   message: string;
 };
 
-export type NewsletterSubscriptionEmailInput = {
-  email: string;
-  name: string | null;
-  locale: string;
-  subscribedAt: string;
-};
-
 async function resolveAdminNotifyEmail(config: MailConfig): Promise<string> {
   try {
     const adminEmail = await adminRepository.findPrimaryNotifyEmail();
@@ -214,51 +207,6 @@ export const mailService = {
       });
     } catch (error) {
       console.error("[mail] Failed to send contact notification:", error);
-      throw new AppError("Unable to send email right now. Please try again later.", 502);
-    }
-  },
-
-  async sendNewsletterSubscriptionNotification(
-    input: NewsletterSubscriptionEmailInput,
-  ) {
-    const config = getMailConfig();
-    const notifyTo = await resolveAdminNotifyEmail(config);
-    const transporter = getTransporter();
-    const displayName = input.name?.trim() || "Not provided";
-    const localeLabel = input.locale === "ar" ? "Arabic" : "English";
-    const subscribedAt = new Date(input.subscribedAt).toLocaleString("en-GB", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
-
-    const text = [
-      "New newsletter subscription",
-      "",
-      `Name: ${displayName}`,
-      `Email: ${input.email}`,
-      `Language: ${localeLabel}`,
-      `Subscribed at: ${subscribedAt}`,
-    ].join("\n");
-
-    const html = `
-      <h2>New newsletter subscription</h2>
-      <p><strong>Name:</strong> ${escapeHtml(displayName)}</p>
-      <p><strong>Email:</strong> <a href="mailto:${escapeHtml(input.email)}">${escapeHtml(input.email)}</a></p>
-      <p><strong>Language:</strong> ${escapeHtml(localeLabel)}</p>
-      <p><strong>Subscribed at:</strong> ${escapeHtml(subscribedAt)}</p>
-    `;
-
-    try {
-      await transporter.sendMail({
-        from: `"${config.fromName}" <${config.fromAddress}>`,
-        to: notifyTo,
-        replyTo: input.name ? `"${input.name}" <${input.email}>` : input.email,
-        subject: `[EviMersin] New newsletter subscriber`,
-        text,
-        html,
-      });
-    } catch (error) {
-      console.error("[mail] Failed to send newsletter notification:", error);
       throw new AppError("Unable to send email right now. Please try again later.", 502);
     }
   },

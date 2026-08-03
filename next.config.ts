@@ -26,8 +26,11 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
-    // Serve runtime uploads via API (public/ alone is wiped/ignored on redeploy).
     return [
+      {
+        source: "/favicon.ico",
+        destination: "/favicon.jpg",
+      },
       {
         source: "/uploads/:path*",
         destination: "/api/media/:path*",

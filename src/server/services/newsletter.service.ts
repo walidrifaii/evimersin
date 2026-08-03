@@ -1,5 +1,4 @@
 import { newsletterRepository } from "@/server/database/repositories/newsletter.repository";
-import { mailService } from "@/server/services/mail.service";
 import type { CreateNewsletterSubscriberInput } from "@/server/types/newsletter.types";
 import { AppError } from "@/server/utils/errors";
 
@@ -17,13 +16,6 @@ export const newsletterService = {
       name: input.name?.trim() || null,
       locale: input.locale ?? "en",
     };
-
-    await mailService.sendNewsletterSubscriptionNotification({
-      email: payload.email,
-      name: payload.name,
-      locale: payload.locale,
-      subscribedAt: new Date().toISOString(),
-    });
 
     const id = await newsletterRepository.create(payload);
     const subscriber = await newsletterRepository.findById(id);
