@@ -60,6 +60,25 @@ export type UpdateCountryInput = Partial<CreateCountryInput>;
 export type CreateCityInput = Omit<City, "id" | "country_name">;
 export type UpdateCityInput = Partial<CreateCityInput>;
 
+export type Region = {
+  id: number;
+  name: string;
+  city_id: number;
+  city_name: string;
+  status: Status;
+};
+
+export type RegionWithCity = Region & {
+  city: {
+    id: number;
+    name: string;
+    status: Status;
+  };
+};
+
+export type CreateRegionInput = Omit<Region, "id" | "city_name">;
+export type UpdateRegionInput = Partial<CreateRegionInput>;
+
 export type CreateCategoryInput = Omit<Category, "id">;
 export type UpdateCategoryInput = Partial<CreateCategoryInput>;
 

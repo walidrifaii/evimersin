@@ -44,9 +44,11 @@ export type Product = ProductSpecFields & {
   category_id: number;
   purpose_id: number;
   city_id: number;
+  region_id: number | null;
   category_name: string;
   purpose_name: string;
   city_name: string;
+  region_name: string | null;
   status: Status;
   is_hot_deal: Status;
   is_featured: Status;
@@ -75,6 +77,7 @@ export type CreateProductInput = Partial<ProductSpecFields> & {
   category_id: number;
   purpose_id: number;
   city_id: number;
+  region_id?: number | null;
   status?: Status;
   is_hot_deal?: Status;
   is_featured?: Status;
@@ -126,6 +129,7 @@ export const PRODUCT_WRITABLE_KEYS = [
   "category_id",
   "purpose_id",
   "city_id",
+  "region_id",
   "status",
   "is_hot_deal",
   "is_featured",

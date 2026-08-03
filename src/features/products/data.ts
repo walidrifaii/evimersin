@@ -7,6 +7,7 @@ import type {
   PropertyFilterOptions,
   PropertyFiltersState,
   PropertyListing,
+  RegionFilterOption,
 } from "./types";
 
 export const propertyFilterOptions: PropertyFilterOptions = {
@@ -19,6 +20,7 @@ export const propertyFilterOptions: PropertyFilterOptions = {
     { id: 5, label: "Anamur" },
     { id: 6, label: "Mut" },
   ],
+  region: [],
   propertyType: [
     { id: null, label: "All Types" },
     { id: 1, label: "Villa" },
@@ -45,6 +47,7 @@ export const propertyFilterOptions: PropertyFilterOptions = {
 
 export const defaultPropertyFilters: PropertyFiltersState = {
   cityId: null,
+  regionId: null,
   categoryId: null,
   purposeId: null,
   priceMin: propertyFilterOptions.priceMin,
@@ -75,6 +78,8 @@ export function buildPropertyFilterOptions(
       PropertyListing,
       | "cityId"
       | "city"
+      | "regionId"
+      | "region"
       | "categoryId"
       | "propertyType"
       | "purposeId"
@@ -84,6 +89,7 @@ export function buildPropertyFilterOptions(
   >,
   lookups?: {
     cities?: FilterOption[];
+    regions?: RegionFilterOption[];
     propertyTypes?: FilterOption[];
     purposes?: FilterOption[];
   },
@@ -111,6 +117,17 @@ export function buildPropertyFilterOptions(
       ? lookups.purposes
       : listings.map((item) => ({ id: item.purposeId, label: item.purpose }));
 
+  const regions =
+    lookups?.regions && lookups.regions.length > 0
+      ? lookups.regions
+      : listings
+          .filter((item) => item.regionId !== null && item.region)
+          .map((item) => ({
+            id: item.regionId,
+            label: item.region as string,
+            cityId: item.cityId,
+          }));
+
   const totalCount = listings.length;
 
   const cityOptions = uniqueById(cities.filter((item) => item.id !== null)).map(
@@ -134,12 +151,20 @@ export function buildPropertyFilterOptions(
     count: listings.filter((item) => item.purposeId === option.id).length,
   }));
 
+  const regionOptions = uniqueById(
+    regions.filter((item) => item.id !== null),
+  ).map((option) => ({
+    ...option,
+    count: listings.filter((item) => item.regionId === option.id).length,
+  })) as RegionFilterOption[];
+
   return {
     ...propertyFilterOptions,
     city: [
       { id: null, label: "All Cities", count: totalCount },
       ...cityOptions,
     ],
+    region: regionOptions,
     propertyType: [
       { id: null, label: "All Types", count: totalCount },
       ...propertyTypeOptions,
@@ -157,6 +182,7 @@ export function getDefaultPropertyFilters(
 ): PropertyFiltersState {
   return {
     cityId: null,
+    regionId: null,
     categoryId: null,
     purposeId: null,
     priceMin: options.priceMin,
@@ -243,9 +269,30 @@ export function formatFilterOptionLabel(option: FilterOption) {
   return option.label;
 }
 
+export function getRegionOptionsForCity(
+  options: PropertyFilterOptions,
+  cityId: number | null,
+  listings?: Array<Pick<PropertyListing, "cityId" | "regionId">>,
+): FilterOption[] {
+  if (cityId === null) {
+    return [{ id: null, label: "All Regions" }];
+  }
+
+  const regionsInCity = options.region.filter((region) => region.cityId === cityId);
+  const allCount =
+    listings?.filter((item) => item.cityId === cityId).length ??
+    regionsInCity.reduce((sum, region) => sum + (region.count ?? 0), 0);
+
+  return [
+    { id: null, label: "All Regions", count: allCount },
+    ...regionsInCity.map(({ cityId: _cityId, ...region }) => region),
+  ];
+}
+
 export function filtersFromSearchParams(
   params: {
     cityId?: string | null;
+    regionId?: string | null;
     categoryId?: string | null;
     purposeId?: string | null;
     /** @deprecated name/slug support for old links */
@@ -273,6 +320,10 @@ export function filtersFromSearchParams(
     cityFromId ??
     findOptionByLabel(params.city, options.city) ??
     findOptionById(null, options.city);
+  const regionFromId = findOptionById(
+    parseIdParam(params.regionId),
+    getRegionOptionsForCity(options, city?.id ?? null),
+  );
   const propertyType =
     categoryFromId ??
     findOptionByLabel(params.type, options.propertyType) ??
@@ -299,6 +350,8 @@ export function filtersFromSearchParams(
   return {
     ...defaults,
     cityId: city?.id ?? null,
+    regionId:
+      city?.id != null && regionFromId?.id != null ? regionFromId.id : null,
     categoryId: propertyType?.id ?? null,
     purposeId: purpose?.id ?? null,
     priceMin,
@@ -309,13 +362,14 @@ export function filtersFromSearchParams(
 export function buildPropertiesSearchHref(
   filters: Pick<
     PropertyFiltersState,
-    "cityId" | "categoryId" | "purposeId" | "priceMin" | "priceMax"
+    "cityId" | "regionId" | "categoryId" | "purposeId" | "priceMin" | "priceMax"
   >,
   options: PropertyFilterOptions = propertyFilterOptions,
 ) {
   const params = new URLSearchParams();
 
   if (filters.cityId !== null) params.set("cityId", String(filters.cityId));
+  if (filters.regionId !== null) params.set("regionId", String(filters.regionId));
   if (filters.categoryId !== null) {
     params.set("categoryId", String(filters.categoryId));
   }
@@ -357,6 +411,8 @@ export const propertiesListings: PropertyListing[] = [
     location: "Mezitli, Mersin",
     cityId: 1,
     city: "Mersin",
+    regionId: null,
+    region: null,
     categoryId: 1,
     propertyType: "Villa",
     purposeId: 1,
@@ -388,6 +444,8 @@ export const propertiesListings: PropertyListing[] = [
     location: "Yenişehir, Mersin",
     cityId: 1,
     city: "Mersin",
+    regionId: null,
+    region: null,
     categoryId: 2,
     propertyType: "Apartment",
     purposeId: 1,
@@ -416,6 +474,8 @@ export const propertiesListings: PropertyListing[] = [
     location: "Mersin, City Center",
     cityId: 1,
     city: "Mersin",
+    regionId: null,
+    region: null,
     categoryId: 3,
     propertyType: "Studio",
     purposeId: 2,
@@ -439,6 +499,8 @@ export const propertiesListings: PropertyListing[] = [
     location: "Erdemli, Mersin",
     cityId: 3,
     city: "Erdemli",
+    regionId: null,
+    region: null,
     categoryId: 4,
     propertyType: "Land",
     purposeId: 1,
@@ -462,6 +524,8 @@ export const propertiesListings: PropertyListing[] = [
     location: "Tarsus, Mersin",
     cityId: 2,
     city: "Tarsus",
+    regionId: null,
+    region: null,
     categoryId: 1,
     propertyType: "Villa",
     purposeId: 1,
@@ -492,6 +556,8 @@ export const propertiesListings: PropertyListing[] = [
     location: "Marina District, Mersin",
     cityId: 1,
     city: "Mersin",
+    regionId: null,
+    region: null,
     categoryId: 6,
     propertyType: "Penthouse",
     purposeId: 1,
@@ -521,6 +587,8 @@ export const propertiesListings: PropertyListing[] = [
     location: "Silifke, Mersin",
     cityId: 4,
     city: "Silifke",
+    regionId: null,
+    region: null,
     categoryId: 5,
     propertyType: "Commercial",
     purposeId: 2,
@@ -544,6 +612,8 @@ export const propertiesListings: PropertyListing[] = [
     location: "Anamur, Mersin",
     cityId: 5,
     city: "Anamur",
+    regionId: null,
+    region: null,
     categoryId: 2,
     propertyType: "Apartment",
     purposeId: 1,
@@ -585,6 +655,9 @@ export function filterProperties(
 ) {
   let result = listings.filter((item) => {
     if (filters.cityId !== null && item.cityId !== filters.cityId) {
+      return false;
+    }
+    if (filters.regionId !== null && item.regionId !== filters.regionId) {
       return false;
     }
     if (filters.categoryId !== null && item.categoryId !== filters.categoryId) {

@@ -23,6 +23,13 @@ function parseDiscountType(value: FormDataEntryValue | null) {
   return null;
 }
 
+function parseOptionalRegionId(value: FormDataEntryValue | null) {
+  if (value == null || String(value).trim() === "") return null;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) return null;
+  return parsed;
+}
+
 export const POST = compose(withAuth, withHandler)(async (request) => {
   const formData = await request.formData();
   const imageFile = formData.get("image");
@@ -46,6 +53,7 @@ export const POST = compose(withAuth, withHandler)(async (request) => {
     category_id: Number(formData.get("category_id")),
     purpose_id: Number(formData.get("purpose_id")),
     city_id: Number(formData.get("city_id")),
+    region_id: parseOptionalRegionId(formData.get("region_id")),
     status: Number(formData.get("status") ?? 1),
     is_featured: Number(formData.get("is_featured") ?? 0),
     image,

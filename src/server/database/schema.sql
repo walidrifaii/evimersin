@@ -68,6 +68,20 @@ CREATE TABLE IF NOT EXISTS cities (
     ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS regions (
+  id INT NOT NULL AUTO_INCREMENT,
+  name VARCHAR(150) NOT NULL,
+  city_id INT NOT NULL,
+  status TINYINT NOT NULL DEFAULT 1 COMMENT '1 = active, 0 = inactive',
+  PRIMARY KEY (id),
+  KEY idx_regions_city_id (city_id),
+  KEY idx_regions_status (status),
+  CONSTRAINT fk_regions_city
+    FOREIGN KEY (city_id) REFERENCES cities(id)
+    ON UPDATE CASCADE
+    ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS categories (
   id INT NOT NULL AUTO_INCREMENT,
   name VARCHAR(150) NOT NULL,
@@ -102,6 +116,7 @@ CREATE TABLE IF NOT EXISTS products (
   category_id INT NOT NULL,
   purpose_id INT NOT NULL,
   city_id INT NOT NULL,
+  region_id INT NULL,
   land_area DOUBLE NULL,
   land_type VARCHAR(100) NULL,
   zoning VARCHAR(100) NULL,
@@ -135,6 +150,7 @@ CREATE TABLE IF NOT EXISTS products (
   KEY idx_products_category_id (category_id),
   KEY idx_products_purpose_id (purpose_id),
   KEY idx_products_city_id (city_id),
+  KEY idx_products_region_id (region_id),
   KEY idx_products_status_featured (status, is_featured),
   KEY idx_products_status_hot_deal (status, is_hot_deal),
   KEY idx_products_status_position (status, position),
@@ -149,7 +165,11 @@ CREATE TABLE IF NOT EXISTS products (
   CONSTRAINT fk_products_city
     FOREIGN KEY (city_id) REFERENCES cities(id)
     ON UPDATE CASCADE
-    ON DELETE RESTRICT
+    ON DELETE RESTRICT,
+  CONSTRAINT fk_products_region
+    FOREIGN KEY (region_id) REFERENCES regions(id)
+    ON UPDATE CASCADE
+    ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS product_images (

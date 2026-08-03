@@ -2,6 +2,7 @@ import {
   categoryRepository,
   cityRepository,
   purposeRepository,
+  regionRepository,
 } from "@/server/database/repositories/lookup.repository";
 import {
   productImageRepository,
@@ -89,6 +90,7 @@ async function validateRelations(input: {
   category_id: number;
   purpose_id: number;
   city_id: number;
+  region_id?: number | null;
 }) {
   const [category, purpose, city] = await Promise.all([
     categoryRepository.findById(input.category_id),
@@ -99,6 +101,14 @@ async function validateRelations(input: {
   if (!category) throw new AppError("Category not found", 404);
   if (!purpose) throw new AppError("Purpose not found", 404);
   if (!city) throw new AppError("City not found", 404);
+
+  if (input.region_id != null) {
+    const region = await regionRepository.findById(input.region_id);
+    if (!region) throw new AppError("Region not found", 404);
+    if (region.city_id !== input.city_id) {
+      throw new AppError("Region does not belong to the selected city", 422);
+    }
+  }
 
   return { category, purpose, city };
 }
@@ -176,6 +186,8 @@ export const productService = {
       category_id: input.category_id ?? current.category_id,
       purpose_id: input.purpose_id ?? current.purpose_id,
       city_id: input.city_id ?? current.city_id,
+      region_id:
+        input.region_id !== undefined ? input.region_id : current.region_id,
     });
 
     const withSpecs = applyCategorySpecCleanup(relations.category.name, {

@@ -33,6 +33,7 @@ import {
   useGetCitiesQuery,
   useGetProductQuery,
   useGetPurposesQuery,
+  useGetRegionsQuery,
   useUpdateProductMutation,
   type ProductDetail,
   type ProductFormInput,
@@ -86,6 +87,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
   const { data: categories = [] } = useGetCategoriesQuery();
   const { data: purposes = [] } = useGetPurposesQuery();
   const { data: cities = [] } = useGetCitiesQuery();
+  const { data: regions = [] } = useGetRegionsQuery();
   const [createProduct, createState] = useCreateProductMutation();
   const [updateProduct, updateState] = useUpdateProductMutation();
   const [deleteProductImage, deleteImageState] = useDeleteProductImageMutation();
@@ -103,6 +105,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
   const [categoryId, setCategoryId] = useState(initial?.category_id ?? 0);
   const [purposeId, setPurposeId] = useState(initial?.purpose_id ?? 0);
   const [cityId, setCityId] = useState(initial?.city_id ?? 0);
+  const [regionId, setRegionId] = useState(initial?.region_id ?? 0);
   const [status, setStatus] = useState<Status>(initial?.status ?? 1);
   const [isFeatured, setIsFeatured] = useState<Status>(initial?.is_featured ?? 0);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -130,6 +133,11 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
   const activeCities = cities.filter(
     (item) => Number(item.status) === 1 || item.id === cityId,
   );
+  const activeRegions = regions.filter(
+    (item) =>
+      item.city_id === cityId &&
+      (Number(item.status) === 1 || item.id === regionId),
+  );
   const selectedCategoryName =
     activeCategories.find((item) => item.id === categoryId)?.name ?? "";
   const specFields = useMemo(
@@ -143,6 +151,12 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
   ) {
     setSpecValues((prev) => ({ ...prev, [key]: value }));
   }
+
+  useEffect(() => {
+    if (regionId && !activeRegions.some((item) => item.id === regionId)) {
+      setRegionId(0);
+    }
+  }, [activeRegions, regionId]);
 
   useEffect(() => {
     if (!imageFile) {
@@ -193,6 +207,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
       category_id: categoryId,
       purpose_id: purposeId,
       city_id: cityId,
+      region_id: regionId > 0 ? regionId : null,
       status,
       is_featured: isFeatured,
       image: imageFile,
@@ -300,10 +315,31 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
         <SelectField
           label="City"
           value={cityId}
-          onChange={setCityId}
+          onChange={(nextCityId) => {
+            setCityId(nextCityId);
+            setRegionId(0);
+          }}
           options={activeCities}
           required
         />
+        <label className="block">
+          <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
+            Region
+          </span>
+          <select
+            value={regionId || ""}
+            disabled={!cityId}
+            onChange={(event) => setRegionId(Number(event.target.value) || 0)}
+            className="h-11 w-full rounded-xl border border-[#dbe3ef] bg-[#f8fafc] px-3 text-[14px] text-[var(--brand-navy)] outline-none focus:border-[var(--brand-blue)] focus:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <option value="">All regions / none</option>
+            {activeRegions.map((region) => (
+              <option key={region.id} value={region.id}>
+                {region.name}
+              </option>
+            ))}
+          </select>
+        </label>
         <StatusSelect value={status} onChange={setStatus} />
         <FeaturedSelect value={isFeatured} onChange={setIsFeatured} />
 

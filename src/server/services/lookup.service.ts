@@ -3,6 +3,7 @@ import {
   cityRepository,
   countryRepository,
   purposeRepository,
+  regionRepository,
 } from "@/server/database/repositories/lookup.repository";
 import type {
   Category,
@@ -11,10 +12,12 @@ import type {
   CreateCityInput,
   CreateCountryInput,
   CreatePurposeInput,
+  CreateRegionInput,
   UpdateCategoryInput,
   UpdateCityInput,
   UpdateCountryInput,
   UpdatePurposeInput,
+  UpdateRegionInput,
 } from "@/server/types/lookup.types";
 import { AppError } from "@/server/utils/errors";
 import { toRelativeUploadPath } from "@/server/utils/upload";
@@ -106,7 +109,53 @@ export const cityService = {
         409,
       );
     }
+    if (await cityRepository.hasRegions(id)) {
+      throw new AppError(
+        "City cannot be deleted while it has regions. Delete or reassign those regions first.",
+        409,
+      );
+    }
     await cityRepository.delete(id);
+  },
+};
+
+export const regionService = {
+  list: (cityId?: number) => regionRepository.findAllWithCity(cityId),
+
+  async listByCity(cityId: number) {
+    await cityService.getById(cityId);
+    return regionRepository.findAllWithCity(cityId);
+  },
+
+  async getById(id: number) {
+    const region = await regionRepository.findByIdWithCity(id);
+    if (!region) throw new AppError("Region not found", 404);
+    return region;
+  },
+
+  async create(input: CreateRegionInput) {
+    await cityService.getById(input.city_id);
+    return this.getById(await regionRepository.create(input));
+  },
+
+  async update(id: number, input: UpdateRegionInput) {
+    await this.getById(id);
+    if (input.city_id !== undefined) {
+      await cityService.getById(input.city_id);
+    }
+    await regionRepository.update(id, input);
+    return this.getById(id);
+  },
+
+  async remove(id: number) {
+    await this.getById(id);
+    if (await regionRepository.hasProducts(id)) {
+      throw new AppError(
+        "Region cannot be deleted while it has residential units. Delete or reassign those units first.",
+        409,
+      );
+    }
+    await regionRepository.delete(id);
   },
 };
 

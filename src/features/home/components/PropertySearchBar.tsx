@@ -14,6 +14,7 @@ import {
 import {
   buildPropertiesSearchHref,
   findOptionById,
+  getRegionOptionsForCity,
 } from "@/features/products/data";
 import type {
   FilterOption,
@@ -132,9 +133,10 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
   const t = useTranslations("home");
   const priceRangeRef = useRef<HTMLDivElement>(null);
   const [filters, setFilters] = useState<
-    Pick<PropertyFiltersState, "cityId" | "categoryId" | "purposeId">
+    Pick<PropertyFiltersState, "cityId" | "regionId" | "categoryId" | "purposeId">
   >({
     cityId: null,
+    regionId: null,
     categoryId: null,
     purposeId: null,
   });
@@ -146,6 +148,7 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
   const searchHref = buildPropertiesSearchHref(
     {
       cityId: filters.cityId,
+      regionId: filters.regionId,
       categoryId: filters.categoryId,
       purposeId: filters.purposeId,
       priceMin: price.priceMin ?? filterOptions.priceMin,
@@ -153,6 +156,8 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
     },
     filterOptions,
   );
+
+  const regionOptions = getRegionOptionsForCity(filterOptions, filters.cityId);
 
   const translateLabel = (label: string) => translateHomeFilterLabel(t, label);
   const priceRangeLabel = formatPriceRangeLabel(
@@ -183,16 +188,35 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
       dir={isRtl ? "rtl" : "ltr"}
       className="relative z-50 flex w-full flex-col gap-2 overflow-visible rounded-2xl bg-white p-3 text-start shadow-[0_12px_32px_rgba(0,0,0,0.14)] lg:flex-row lg:items-stretch lg:gap-0 lg:rounded-[20px] lg:p-4"
     >
-      <div className="grid min-w-0 flex-1 grid-cols-1 divide-y divide-[#e5e7eb] overflow-visible lg:grid-cols-4 lg:items-stretch lg:divide-y-0">
+      <div className="grid min-w-0 flex-1 grid-cols-1 divide-y divide-[#e5e7eb] overflow-visible lg:grid-cols-5 lg:items-stretch lg:divide-y-0">
         <div className="relative z-[1] flex w-full min-w-0 items-stretch overflow-visible lg:border-e lg:border-[#e5e7eb]">
           <FilterDropdown
             label={t("searchCity")}
             options={filterOptions.city}
             value={filters.cityId}
-            onChange={(cityId) => setFilters((prev) => ({ ...prev, cityId }))}
+            onChange={(cityId) =>
+              setFilters((prev) => ({ ...prev, cityId, regionId: null }))
+            }
             isOpen={openDropdown === "city"}
             onToggle={() =>
               setOpenDropdown((prev) => (prev === "city" ? null : "city"))
+            }
+            onClose={() => setOpenDropdown(null)}
+            translateLabel={translateLabel}
+          />
+        </div>
+
+        <div className="relative z-[1] flex w-full min-w-0 items-stretch overflow-visible lg:border-e lg:border-[#e5e7eb]">
+          <FilterDropdown
+            label={t("searchRegion")}
+            options={regionOptions}
+            value={filters.cityId === null ? null : filters.regionId}
+            onChange={(regionId) =>
+              setFilters((prev) => ({ ...prev, regionId }))
+            }
+            isOpen={openDropdown === "region"}
+            onToggle={() =>
+              setOpenDropdown((prev) => (prev === "region" ? null : "region"))
             }
             onClose={() => setOpenDropdown(null)}
             translateLabel={translateLabel}

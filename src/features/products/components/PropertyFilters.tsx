@@ -7,6 +7,7 @@ import {
   defaultPropertyFilters,
   findOptionById,
   formatPriceLabelForOptions,
+  getRegionOptionsForCity,
 } from "@/features/products/data";
 import {
   formatTranslatedFilterOption,
@@ -16,11 +17,13 @@ import type {
   FilterOption,
   PropertyFilterOptions,
   PropertyFiltersState,
+  PropertyListing,
 } from "@/features/products/types";
 
 type PropertyFiltersProps = {
   value: PropertyFiltersState;
   options: PropertyFilterOptions;
+  listings?: Array<Pick<PropertyListing, "cityId" | "regionId">>;
   onChange: (next: PropertyFiltersState) => void;
   onApply: () => void;
 };
@@ -106,17 +109,27 @@ function FilterSelect({
 export function PropertyFilters({
   value,
   options,
+  listings,
   onChange,
   onApply,
 }: PropertyFiltersProps) {
   const t = useTranslations("products");
   const translateLabel = (label: string) => translateFilterLabel(t, label);
+  const regionOptions = getRegionOptionsForCity(options, value.cityId, listings);
 
   function update<K extends keyof PropertyFiltersState>(
     key: K,
     nextValue: PropertyFiltersState[K],
   ) {
     onChange({ ...value, [key]: nextValue });
+  }
+
+  function updateCity(cityId: number | null) {
+    onChange({
+      ...value,
+      cityId,
+      regionId: null,
+    });
   }
 
   function clearAll() {
@@ -155,7 +168,14 @@ export function PropertyFilters({
           label={t("city")}
           options={options.city}
           value={value.cityId}
-          onChange={(cityId) => update("cityId", cityId)}
+          onChange={updateCity}
+          translateLabel={translateLabel}
+        />
+        <FilterSelect
+          label={t("region")}
+          options={regionOptions}
+          value={value.cityId === null ? null : value.regionId}
+          onChange={(regionId) => update("regionId", regionId)}
           translateLabel={translateLabel}
         />
         <FilterSelect

@@ -24,6 +24,7 @@ const productSelect = `
   products.category_id,
   products.purpose_id,
   products.city_id,
+  products.region_id,
   products.land_area,
   products.land_type,
   products.zoning,
@@ -50,6 +51,7 @@ const productSelect = `
   categories.name AS category_name,
   purpose.name AS purpose_name,
   cities.name AS city_name,
+  regions.name AS region_name,
   products.status,
   products.is_hot_deal,
   products.is_featured,
@@ -61,6 +63,7 @@ const productFrom = `
   INNER JOIN categories ON categories.id = products.category_id
   INNER JOIN purpose ON purpose.id = products.purpose_id
   INNER JOIN cities ON cities.id = products.city_id
+  LEFT JOIN regions ON regions.id = products.region_id
 `;
 
 async function updateProductRecord(id: number, input: UpdateProductInput) {
@@ -202,7 +205,7 @@ export const productRepository = {
       `INSERT INTO products
         (
           name, image, position, description, price, discount_type, discount_value,
-          category_id, purpose_id, city_id,
+          category_id, purpose_id, city_id, region_id,
           land_area, land_type, zoning, road_access, allowed_floors, electricity, water,
           built_area, floors, bedrooms, bathrooms, living_rooms, parking, garden, pool, furnished,
           floor_number, balconies, elevator, frontage, storage, mezzanine, rooms,
@@ -211,7 +214,7 @@ export const productRepository = {
        VALUES
         (
           :name, :image, :position, :description, :price, :discount_type, :discount_value,
-          :category_id, :purpose_id, :city_id,
+          :category_id, :purpose_id, :city_id, :region_id,
           :land_area, :land_type, :zoning, :road_access, :allowed_floors, :electricity, :water,
           :built_area, :floors, :bedrooms, :bathrooms, :living_rooms, :parking, :garden, :pool, :furnished,
           :floor_number, :balconies, :elevator, :frontage, :storage, :mezzanine, :rooms,
@@ -228,6 +231,7 @@ export const productRepository = {
         category_id: input.category_id,
         purpose_id: input.purpose_id,
         city_id: input.city_id,
+        region_id: input.region_id ?? null,
         land_area: input.land_area ?? null,
         land_type: input.land_type ?? null,
         zoning: input.zoning ?? null,

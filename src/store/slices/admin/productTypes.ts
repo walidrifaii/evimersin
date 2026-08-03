@@ -43,9 +43,11 @@ export type Product = ProductSpecFields & {
   category_id: number;
   purpose_id: number;
   city_id: number;
+  region_id: number | null;
   category_name: string;
   purpose_name: string;
   city_name: string;
+  region_name: string | null;
   status: Status;
   is_hot_deal: Status;
   is_featured: Status;
@@ -75,6 +77,7 @@ export type ProductFormInput = Partial<
   category_id: number;
   purpose_id: number;
   city_id: number;
+  region_id?: number | null;
   status?: Status;
   is_featured?: Status;
   image?: File | null;

@@ -35,6 +35,13 @@ function parseDiscountType(value: FormDataEntryValue | null) {
   return null;
 }
 
+function parseOptionalRegionId(value: FormDataEntryValue | null) {
+  if (value == null || String(value).trim() === "") return null;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) return null;
+  return parsed;
+}
+
 export const GET = compose(withAuth, withHandler)(async (_request, context: ApiContext) => {
   const id = parseId(await context.params);
   return ok(await productService.getById(id));
@@ -77,6 +84,9 @@ export const PUT = compose(withAuth, withHandler)(async (request, context: ApiCo
     category_id: Number(formData.get("category_id") ?? current.category_id),
     purpose_id: Number(formData.get("purpose_id") ?? current.purpose_id),
     city_id: Number(formData.get("city_id") ?? current.city_id),
+    region_id: formData.has("region_id")
+      ? parseOptionalRegionId(formData.get("region_id"))
+      : current.region_id,
     status: Number(formData.get("status") ?? current.status),
     is_featured: Number(formData.get("is_featured") ?? current.is_featured),
     image: nextImage,

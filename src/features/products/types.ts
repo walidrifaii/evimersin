@@ -9,6 +9,10 @@ export type FilterOption = {
   count?: number;
 };
 
+export type RegionFilterOption = FilterOption & {
+  cityId: number;
+};
+
 export type PropertyListing = {
   id: string;
   badge: string;
@@ -16,6 +20,8 @@ export type PropertyListing = {
   location: string;
   cityId: number;
   city: string;
+  regionId: number | null;
+  region: string | null;
   categoryId: number;
   propertyType: string;
   purposeId: number;
@@ -39,6 +45,7 @@ export type PropertyListing = {
 
 export type PropertyFiltersState = {
   cityId: number | null;
+  regionId: number | null;
   categoryId: number | null;
   purposeId: number | null;
   priceMin: number;
@@ -48,6 +55,7 @@ export type PropertyFiltersState = {
 
 export type PropertyFilterOptions = {
   city: FilterOption[];
+  region: RegionFilterOption[];
   propertyType: FilterOption[];
   purpose: FilterOption[];
   sort: Array<{ value: string; label: string }>;

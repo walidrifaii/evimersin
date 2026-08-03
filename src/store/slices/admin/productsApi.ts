@@ -29,6 +29,12 @@ function toProductFormData(body: Partial<ProductFormInput>) {
     formData.set("purpose_id", String(body.purpose_id));
   }
   if (body.city_id !== undefined) formData.set("city_id", String(body.city_id));
+  if (body.region_id !== undefined) {
+    formData.set(
+      "region_id",
+      body.region_id == null ? "" : String(body.region_id),
+    );
+  }
   if (body.status !== undefined) formData.set("status", String(body.status));
   if (body.is_featured !== undefined) {
     formData.set("is_featured", String(body.is_featured));

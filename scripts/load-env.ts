@@ -129,6 +129,26 @@ async function runMigrations(connection: {
     `ALTER TABLE products ADD COLUMN storage TINYINT NULL AFTER frontage`,
     `ALTER TABLE products ADD COLUMN mezzanine TINYINT NULL AFTER storage`,
     `ALTER TABLE products ADD COLUMN rooms INT NULL AFTER mezzanine`,
+    `CREATE TABLE IF NOT EXISTS regions (
+      id INT NOT NULL AUTO_INCREMENT,
+      name VARCHAR(150) NOT NULL,
+      city_id INT NOT NULL,
+      status TINYINT NOT NULL DEFAULT 1 COMMENT '1 = active, 0 = inactive',
+      PRIMARY KEY (id),
+      KEY idx_regions_city_id (city_id),
+      KEY idx_regions_status (status),
+      CONSTRAINT fk_regions_city
+        FOREIGN KEY (city_id) REFERENCES cities(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+    `ALTER TABLE products ADD COLUMN region_id INT NULL AFTER city_id`,
+    `ALTER TABLE products ADD INDEX idx_products_region_id (region_id)`,
+    `ALTER TABLE products
+      ADD CONSTRAINT fk_products_region
+      FOREIGN KEY (region_id) REFERENCES regions(id)
+      ON UPDATE CASCADE
+      ON DELETE SET NULL`,
   ];
 
   for (const sql of migrations) {

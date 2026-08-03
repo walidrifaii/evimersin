@@ -101,6 +101,7 @@ export const createProductSchema = z
     category_id: z.coerce.number().int().positive(),
     purpose_id: z.coerce.number().int().positive(),
     city_id: z.coerce.number().int().positive(),
+    region_id: z.coerce.number().int().positive().nullable().optional().default(null),
     status: statusSchema.optional().default(1),
     is_featured: statusSchema.optional().default(0),
     ...productSpecSchema,
@@ -118,6 +119,7 @@ export const updateProductSchema = requireOneField({
   category_id: z.coerce.number().int().positive().optional(),
   purpose_id: z.coerce.number().int().positive().optional(),
   city_id: z.coerce.number().int().positive().optional(),
+  region_id: z.coerce.number().int().positive().nullable().optional(),
   status: statusSchema.optional(),
   is_featured: statusSchema.optional(),
   ...Object.fromEntries(

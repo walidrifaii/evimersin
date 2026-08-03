@@ -36,6 +36,7 @@ export function PropertiesPageContent({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const cityIdParam = searchParams.get("cityId");
+  const regionIdParam = searchParams.get("regionId");
   const categoryIdParam = searchParams.get("categoryId");
   const purposeIdParam = searchParams.get("purposeId");
   const typeParam = searchParams.get("type");
@@ -49,6 +50,7 @@ export function PropertiesPageContent({
       filtersFromSearchParams(
         {
           cityId: cityIdParam,
+          regionId: regionIdParam,
           categoryId: categoryIdParam,
           purposeId: purposeIdParam,
           type: typeParam,
@@ -61,6 +63,7 @@ export function PropertiesPageContent({
       ),
     [
       cityIdParam,
+      regionIdParam,
       categoryIdParam,
       purposeIdParam,
       typeParam,
@@ -136,6 +139,7 @@ export function PropertiesPageContent({
             <PropertyFilters
               value={draftFilters}
               options={filterOptions}
+              listings={listings}
               onChange={(next) => {
                 setDraftFilters(next);
                 setAppliedFilters(next);

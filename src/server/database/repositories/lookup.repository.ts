@@ -16,12 +16,16 @@ import type {
   UpdateCityInput,
   UpdateCountryInput,
   UpdatePurposeInput,
+  UpdateRegionInput,
+  CreateRegionInput,
+  Region,
+  RegionWithCity,
 } from "@/server/types/lookup.types";
 
 type UpdateValue = string | number | null;
 
 async function updateRecord(
-  table: "country" | "cities" | "categories" | "purpose",
+  table: "country" | "cities" | "regions" | "categories" | "purpose",
   id: number,
   input: Record<string, UpdateValue | undefined>,
 ) {
@@ -44,7 +48,7 @@ async function updateRecord(
 }
 
 async function deleteRecord(
-  table: "country" | "cities" | "categories" | "purpose",
+  table: "country" | "cities" | "regions" | "categories" | "purpose",
   id: number,
 ) {
   const result = await execute(`DELETE FROM ${table} WHERE id = :id`, { id });
@@ -277,6 +281,144 @@ export const cityRepository = {
   async hasProducts(id: number) {
     const rows = await query<Array<{ total: number }>>(
       "SELECT COUNT(*) AS total FROM products WHERE city_id = :id",
+      { id },
+    );
+    return Number(rows[0]?.total ?? 0) > 0;
+  },
+
+  async hasRegions(id: number) {
+    const rows = await query<Array<{ total: number }>>(
+      "SELECT COUNT(*) AS total FROM regions WHERE city_id = :id",
+      { id },
+    );
+    return Number(rows[0]?.total ?? 0) > 0;
+  },
+};
+
+export const regionRepository = {
+  findAll: () =>
+    query<Region[]>(
+      `SELECT regions.id, regions.name, regions.city_id,
+              cities.name AS city_name, regions.status
+       FROM regions
+       INNER JOIN cities ON cities.id = regions.city_id
+       ORDER BY cities.name ASC, regions.name ASC`,
+    ),
+
+  findByCityId: (cityId: number) =>
+    query<Region[]>(
+      `SELECT regions.id, regions.name, regions.city_id,
+              cities.name AS city_name, regions.status
+       FROM regions
+       INNER JOIN cities ON cities.id = regions.city_id
+       WHERE regions.city_id = :cityId
+       ORDER BY regions.name ASC`,
+      { cityId },
+    ),
+
+  async findById(id: number) {
+    const rows = await query<Region[]>(
+      `SELECT regions.id, regions.name, regions.city_id,
+              cities.name AS city_name, regions.status
+       FROM regions
+       INNER JOIN cities ON cities.id = regions.city_id
+       WHERE regions.id = :id
+       LIMIT 1`,
+      { id },
+    );
+    return rows[0] ?? null;
+  },
+
+  async findByIdWithCity(id: number): Promise<RegionWithCity | null> {
+    const rows = await query<
+      Array<
+        Region & {
+          city_status: 0 | 1;
+        }
+      >
+    >(
+      `SELECT regions.id, regions.name, regions.city_id,
+              cities.name AS city_name, regions.status,
+              cities.status AS city_status
+       FROM regions
+       INNER JOIN cities ON cities.id = regions.city_id
+       WHERE regions.id = :id
+       LIMIT 1`,
+      { id },
+    );
+
+    const row = rows[0];
+    if (!row) return null;
+
+    return {
+      id: row.id,
+      name: row.name,
+      city_id: row.city_id,
+      city_name: row.city_name,
+      status: row.status,
+      city: {
+        id: row.city_id,
+        name: row.city_name,
+        status: row.city_status,
+      },
+    };
+  },
+
+  async findAllWithCity(cityId?: number): Promise<RegionWithCity[]> {
+    const rows = await query<
+      Array<
+        Region & {
+          city_status: 0 | 1;
+        }
+      >
+    >(
+      cityId
+        ? `SELECT regions.id, regions.name, regions.city_id,
+                  cities.name AS city_name, regions.status,
+                  cities.status AS city_status
+           FROM regions
+           INNER JOIN cities ON cities.id = regions.city_id
+           WHERE regions.city_id = :cityId
+           ORDER BY regions.name ASC`
+        : `SELECT regions.id, regions.name, regions.city_id,
+                  cities.name AS city_name, regions.status,
+                  cities.status AS city_status
+           FROM regions
+           INNER JOIN cities ON cities.id = regions.city_id
+           ORDER BY cities.name ASC, regions.name ASC`,
+      cityId ? { cityId } : undefined,
+    );
+
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      city_id: row.city_id,
+      city_name: row.city_name,
+      status: row.status,
+      city: {
+        id: row.city_id,
+        name: row.city_name,
+        status: row.city_status,
+      },
+    }));
+  },
+
+  async create(input: CreateRegionInput) {
+    const result = await execute(
+      `INSERT INTO regions (name, city_id, status)
+       VALUES (:name, :city_id, :status)`,
+      input,
+    );
+    return result.insertId;
+  },
+
+  update: (id: number, input: UpdateRegionInput) =>
+    updateRecord("regions", id, input),
+  delete: (id: number) => deleteRecord("regions", id),
+
+  async hasProducts(id: number) {
+    const rows = await query<Array<{ total: number }>>(
+      "SELECT COUNT(*) AS total FROM products WHERE region_id = :id",
       { id },
     );
     return Number(rows[0]?.total ?? 0) > 0;

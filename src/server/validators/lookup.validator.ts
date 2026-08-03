@@ -31,6 +31,18 @@ export const updateCitySchema = requireOneField({
   status: statusSchema.optional(),
 });
 
+export const createRegionSchema = z.object({
+  name: nameSchema,
+  city_id: z.coerce.number().int().positive(),
+  status: statusSchema.optional().default(1),
+});
+
+export const updateRegionSchema = requireOneField({
+  name: nameSchema.optional(),
+  city_id: z.coerce.number().int().positive().optional(),
+  status: statusSchema.optional(),
+});
+
 export const createCategorySchema = z.object({
   name: nameSchema,
   status: statusSchema.optional().default(1),

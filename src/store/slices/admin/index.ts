@@ -1,6 +1,7 @@
 export * from "@/store/slices/admin/lookupTypes";
 export * from "@/store/slices/admin/countriesApi";
 export * from "@/store/slices/admin/citiesApi";
+export * from "@/store/slices/admin/regionsApi";
 export * from "@/store/slices/admin/categoriesApi";
 export * from "@/store/slices/admin/purposesApi";
 export * from "@/store/slices/admin/productTypes";

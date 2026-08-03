@@ -70,6 +70,7 @@ export const api = createApi({
     "Product",
     "Country",
     "City",
+    "Region",
     "Category",
     "Purpose",
     "Analytics",

@@ -14,6 +14,7 @@ import {
   categoryRepository,
   cityRepository,
   purposeRepository,
+  regionRepository,
 } from "@/server/database/repositories/lookup.repository";
 import { productRepository } from "@/server/database/repositories/product.repository";
 import type { Product, ProductDetail } from "@/server/types/product.types";
@@ -41,9 +42,13 @@ function toPropertyListing(product: ProductDetail): PropertyListing {
     id: String(product.id),
     badge: toBadge(product),
     title: product.name,
-    location: product.city_name,
+    location: product.region_name
+      ? `${product.region_name}, ${product.city_name}`
+      : product.city_name,
     cityId: Number(product.city_id),
     city: product.city_name,
+    regionId: product.region_id != null ? Number(product.region_id) : null,
+    region: product.region_name,
     categoryId: Number(product.category_id),
     propertyType: product.category_name,
     purposeId: Number(product.purpose_id),
@@ -143,6 +148,7 @@ async function loadPropertyFilterOptions() {
   const settled = await Promise.allSettled([
     productRepository.findActive(),
     cityRepository.findAll(),
+    regionRepository.findAll(),
     categoryRepository.findAll(),
     purposeRepository.findAll(),
   ]);
@@ -151,10 +157,12 @@ async function loadPropertyFilterOptions() {
     settled[0].status === "fulfilled" ? settled[0].value : [];
   const cities =
     settled[1].status === "fulfilled" ? settled[1].value : [];
-  const categories =
+  const regions =
     settled[2].status === "fulfilled" ? settled[2].value : [];
-  const purposes =
+  const categories =
     settled[3].status === "fulfilled" ? settled[3].value : [];
+  const purposes =
+    settled[4].status === "fulfilled" ? settled[4].value : [];
 
   for (const [index, result] of settled.entries()) {
     if (result.status === "rejected") {
@@ -170,6 +178,8 @@ async function loadPropertyFilterOptions() {
     products.map((product) => ({
       cityId: product.city_id,
       city: product.city_name,
+      regionId: product.region_id,
+      region: product.region_name,
       categoryId: product.category_id,
       propertyType: product.category_name,
       purposeId: product.purpose_id,
@@ -178,6 +188,13 @@ async function loadPropertyFilterOptions() {
     })),
     {
       cities: cityNames,
+      regions: regions
+        .filter((region) => Number(region.status) === 1)
+        .map((region) => ({
+          id: region.id,
+          label: region.name,
+          cityId: region.city_id,
+        })),
       propertyTypes: categories
         .filter((category) => Number(category.status) === 1)
         .map((category) => ({ id: category.id, label: category.name })),
