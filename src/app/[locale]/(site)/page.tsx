@@ -2,6 +2,7 @@ import { HeroBanner } from "@/features/home/components/HeroBanner";
 import { FeaturedProperties } from "@/features/home/components/FeaturedProperties";
 import { HotDeals } from "@/features/home/components/HotDeals";
 import { WhyChooseUs } from "@/features/home/components/WhyChooseUs";
+import { NewsletterSection } from "@/features/home/components/NewsletterSection";
 import {
   getFeaturedPropertyListings,
   getHotDealPropertyListings,
@@ -23,6 +24,7 @@ export default async function HomePage() {
       <FeaturedProperties listings={featuredListings} />
       <HotDeals listings={hotDeals} />
       <WhyChooseUs />
+      <NewsletterSection />
     </div>
   );
 }

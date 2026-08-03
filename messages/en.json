@@ -91,7 +91,28 @@
     "whyAgentsDesc": "Our agents are always here to help you.",
     "whyProcessTitle": "Fast & Easy Process",
     "whyProcessDesc": "Find, visit and buy your property easily.",
-    "hotDeal": "Hot Deal"
+    "hotDeal": "Hot Deal",
+    "newsletter": {
+      "badge": "Stay Updated",
+      "title": "Get the latest properties",
+      "titleAccent": "in your inbox",
+      "description": "Subscribe for new listings, hot deals, and market updates across Mersin and the Mediterranean coast.",
+      "benefit1": "New verified listings as soon as they go live",
+      "benefit2": "Exclusive hot deals and price drops",
+      "benefit3": "No spam — unsubscribe anytime",
+      "name": "Full name",
+      "namePlaceholder": "Your name",
+      "email": "Email address",
+      "emailPlaceholder": "you@example.com",
+      "subscribe": "Subscribe Now",
+      "subscribing": "Subscribing...",
+      "privacyNote": "We respect your privacy. Your email is used only for property updates.",
+      "successTitle": "You're subscribed!",
+      "successDescription": "Thank you for joining. We'll send you the latest properties and deals soon.",
+      "alreadySubscribed": "This email is already subscribed.",
+      "fillRequired": "Please enter your email address.",
+      "sendFailed": "Unable to subscribe right now. Please try again."
+    }
   },
   "about": {
     "eyebrow": "About Us",

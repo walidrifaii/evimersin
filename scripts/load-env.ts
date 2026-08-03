@@ -149,6 +149,16 @@ async function runMigrations(connection: {
       FOREIGN KEY (region_id) REFERENCES regions(id)
       ON UPDATE CASCADE
       ON DELETE SET NULL`,
+    `CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+      id INT NOT NULL AUTO_INCREMENT,
+      email VARCHAR(255) NOT NULL,
+      name VARCHAR(150) NULL,
+      locale VARCHAR(5) NOT NULL DEFAULT 'en',
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      UNIQUE KEY uq_newsletter_email (email),
+      KEY idx_newsletter_created_at (created_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
   ];
 
   for (const sql of migrations) {
