@@ -1,13 +1,21 @@
 "use client";
 
-import { getLocaleFromPathname } from "@/lib/locale";
-import { usePathname } from "next/navigation";
+import { routing, type Locale } from "@/i18n/routing";
+import { useParams } from "next/navigation";
 import { useEffect } from "react";
-import type { Locale } from "@/i18n/routing";
 
 export function useAppLocale(): Locale {
-  const pathname = usePathname();
-  return getLocaleFromPathname(pathname);
+  const params = useParams();
+  const paramLocale = params?.locale;
+
+  if (
+    typeof paramLocale === "string" &&
+    routing.locales.includes(paramLocale as Locale)
+  ) {
+    return paramLocale as Locale;
+  }
+
+  return routing.defaultLocale;
 }
 
 export function LocaleAttributes() {

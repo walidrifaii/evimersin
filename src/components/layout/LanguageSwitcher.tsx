@@ -1,30 +1,61 @@
 "use client";
 
-import { buildLocalizedHref, getLocaleFromPathname } from "@/lib/locale";
-import { routing, type Locale } from "@/i18n/routing";
+import { Link, usePathname } from "@/i18n/navigation";
+import { LOCALE_COOKIE, routing, type Locale } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
-import { usePathname } from "next/navigation";
+import { useParams } from "next/navigation";
 
 const localeLabels: Record<Locale, string> = {
   en: "EN",
   ar: "AR",
 };
 
+function setLocaleCookie(locale: Locale) {
+  document.cookie = `${LOCALE_COOKIE}=${locale}; path=/; max-age=31536000; SameSite=Lax`;
+}
+
+function getActiveLocale(params: ReturnType<typeof useParams>): Locale {
+  const paramLocale = params?.locale;
+
+  if (
+    typeof paramLocale === "string" &&
+    routing.locales.includes(paramLocale as Locale)
+  ) {
+    return paramLocale as Locale;
+  }
+
+  return routing.defaultLocale;
+}
+
+function getHrefTarget(
+  pathname: ReturnType<typeof usePathname>,
+  params: ReturnType<typeof useParams>,
+) {
+  const routeParams = Object.fromEntries(
+    Object.entries(params).filter(([key]) => key !== "locale"),
+  );
+
+  if (Object.keys(routeParams).length === 0) {
+    return pathname;
+  }
+
+  return {
+    pathname,
+    params: routeParams,
+  } as Parameters<typeof Link>[0]["href"];
+}
+
 export function LanguageSwitcher() {
   const pathname = usePathname();
-  const locale = getLocaleFromPathname(pathname);
+  const params = useParams();
+  const locale = getActiveLocale(params);
+  const hrefTarget = getHrefTarget(pathname, params);
   const t = useTranslations("common");
 
-  function switchLocale(nextLocale: Locale) {
-    if (nextLocale === locale) return;
-
-    const href = buildLocalizedHref(
-      pathname,
-      typeof window !== "undefined" ? window.location.search : "",
-      nextLocale,
-    );
-
-    window.location.assign(href);
+  function handleSwitch(event: React.MouseEvent<HTMLAnchorElement>, nextLocale: Locale) {
+    event.preventDefault();
+    setLocaleCookie(nextLocale);
+    window.location.assign(event.currentTarget.href);
   }
 
   return (
@@ -35,11 +66,13 @@ export function LanguageSwitcher() {
       aria-label={t("language")}
     >
       {routing.locales.map((item) => (
-        <button
+        <Link
           key={item}
-          type="button"
-          onClick={() => switchLocale(item)}
-          aria-pressed={item === locale}
+          href={hrefTarget}
+          locale={item}
+          prefetch={false}
+          scroll
+          onClick={(event) => handleSwitch(event, item)}
           aria-current={item === locale ? "true" : undefined}
           className={`rounded-full px-2.5 py-1 text-[12px] font-semibold transition-colors sm:px-3 sm:text-[13px] ${
             item === locale
@@ -48,7 +81,7 @@ export function LanguageSwitcher() {
           }`}
         >
           {localeLabels[item]}
-        </button>
+        </Link>
       ))}
     </div>
   );
