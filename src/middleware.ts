@@ -5,6 +5,6 @@ export default createMiddleware(routing);
 
 export const config = {
   matcher: [
-    "/((?!api|dashboard|login|api-docs|uploads|_next|_vercel|.*\\..*).*)",
+    "/((?!api|dashboard|login|api-docs|uploads|firebase-messaging-sw|_next|_vercel|.*\\..*).*)",
   ],
 };
