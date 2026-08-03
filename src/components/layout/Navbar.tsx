@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BrandLogo } from "@/components/layout/BrandLogo";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
+import { useAppLocale } from "@/components/layout/LocaleAttributes";
 import { ChevronDown } from "@/components/icons/ChevronDown";
 import { PhoneIcon } from "@/components/icons/PhoneIcon";
 import { useSiteSettings } from "@/components/providers/SiteSettingsProvider";
@@ -44,6 +45,8 @@ function isSubNavActive(
 }
 
 export function Navbar() {
+  const locale = useAppLocale();
+  const isRtl = locale === "ar";
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -92,7 +95,10 @@ export function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b border-black/5 bg-white">
+      <header
+        dir={isRtl ? "rtl" : "ltr"}
+        className="sticky top-0 z-50 w-full border-b border-black/5 bg-white"
+      >
         <div className="mx-auto flex h-[5rem] w-full items-center justify-between gap-3 px-4 sm:px-6 md:px-4 lg:gap-6 lg:px-[100px]">
           <BrandLogo />
 
@@ -121,7 +127,7 @@ export function Navbar() {
                     <ChevronDown className="h-3.5 w-3.5 translate-y-[1px] text-current transition-transform duration-200 group-hover:rotate-180" />
                   </Link>
 
-                  <div className="pointer-events-none invisible absolute start-1/2 top-full z-50 w-60 -translate-x-1/2 pt-3 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100 rtl:translate-x-1/2">
+                  <div className="pointer-events-none invisible absolute start-1/2 top-full z-50 w-60 -translate-x-1/2 pt-3 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100 ltr:-translate-x-1/2 rtl:translate-x-1/2">
                     <div className="overflow-hidden rounded-xl border border-[#e8edf5] bg-white py-2 shadow-[0_16px_48px_rgba(15,23,42,0.12)]">
                       {propertyNavItems.map((subItem) => {
                         const { Icon } = subItem;
@@ -214,8 +220,11 @@ export function Navbar() {
             aria-hidden="true"
           />
 
-          <div className="absolute start-0 top-0 flex h-dvh w-[82vw] max-w-none flex-col bg-[var(--brand-navy)] shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:w-[76vw] md:w-[58vw]">
-            <div className="flex shrink-0 justify-end px-6 pt-6">
+          <div
+            dir={isRtl ? "rtl" : "ltr"}
+            className="absolute start-0 top-0 flex h-dvh w-[82vw] max-w-none flex-col bg-[var(--brand-navy)] shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:w-[76vw] md:w-[58vw]"
+          >
+            <div className={`flex shrink-0 px-6 pt-6 ${isRtl ? "justify-start" : "justify-end"}`}>
               <button
                 type="button"
                 aria-label={tCommon("closeMenu")}
@@ -246,7 +255,7 @@ export function Navbar() {
                       <button
                         type="button"
                         onClick={() => setPropertiesOpen((open) => !open)}
-                        className={`flex w-full items-center justify-between text-left text-[1.05rem] font-semibold transition-colors ${
+                        className={`flex w-full items-center justify-between text-start text-[1.05rem] font-semibold transition-colors ${
                           active ? "text-[var(--brand-red)]" : "text-white"
                         }`}
                         aria-expanded={propertiesOpen}

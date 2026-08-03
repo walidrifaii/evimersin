@@ -6,6 +6,7 @@ import { useSiteSettings } from "@/components/providers/SiteSettingsProvider";
 import { config, getWhatsAppUrlFromSettings } from "@/constants/config";
 import { Link } from "@/i18n/navigation";
 import { routes } from "@/constants/routes";
+import { useAppLocale } from "@/components/layout/LocaleAttributes";
 import { useTranslations } from "next-intl";
 
 const navKeys = [
@@ -18,6 +19,8 @@ const navKeys = [
 
 export function Footer() {
   const settings = useSiteSettings();
+  const locale = useAppLocale();
+  const isRtl = locale === "ar";
   const whatsappUrl = getWhatsAppUrlFromSettings(settings);
   const t = useTranslations("footer");
   const tNav = useTranslations("nav");
@@ -30,7 +33,10 @@ export function Footer() {
   ] as const;
 
   return (
-    <footer className="mt-auto w-full bg-[var(--brand-navy)] text-white">
+    <footer
+      dir={isRtl ? "rtl" : "ltr"}
+      className="mt-auto w-full bg-[var(--brand-navy)] text-white"
+    >
       <div className="mx-auto w-full px-4 py-12 sm:px-6 sm:py-14 md:px-4 lg:px-[100px] lg:py-16">
         <div className="grid grid-cols-2 gap-x-6 gap-y-10 border-b border-white/12 pb-10 sm:gap-x-8 sm:gap-y-12 lg:grid-cols-[1.3fr_0.8fr_0.9fr_1fr] lg:gap-10">
           <div className="col-span-2 max-w-sm lg:col-span-1">

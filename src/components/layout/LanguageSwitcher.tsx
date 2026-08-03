@@ -1,7 +1,7 @@
 "use client";
 
-import { useLocale } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
+import { useAppLocale } from "@/components/layout/LocaleAttributes";
 import { routing, type Locale } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 
@@ -11,7 +11,7 @@ const localeLabels: Record<Locale, string> = {
 };
 
 export function LanguageSwitcher() {
-  const locale = useLocale() as Locale;
+  const locale = useAppLocale();
   const router = useRouter();
   const pathname = usePathname();
   const t = useTranslations("common");
@@ -23,6 +23,7 @@ export function LanguageSwitcher() {
 
   return (
     <div
+      dir="ltr"
       className="inline-flex items-center rounded-full border border-black/10 bg-white p-0.5"
       role="group"
       aria-label={t("language")}
@@ -33,6 +34,7 @@ export function LanguageSwitcher() {
           type="button"
           onClick={() => switchLocale(item)}
           aria-pressed={item === locale}
+          aria-current={item === locale ? "true" : undefined}
           className={`rounded-full px-2.5 py-1 text-[12px] font-semibold transition-colors sm:px-3 sm:text-[13px] ${
             item === locale
               ? "bg-[var(--brand-navy)] text-white"

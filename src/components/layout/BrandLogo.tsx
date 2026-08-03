@@ -1,7 +1,7 @@
 import Image from "next/image";
-import Link from "next/link";
 import logoImage from "@/assets/images/logo.png";
 import { config } from "@/constants/config";
+import { Link } from "@/i18n/navigation";
 import { routes } from "@/constants/routes";
 
 export function BrandLogo() {
