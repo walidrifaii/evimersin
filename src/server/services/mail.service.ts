@@ -1,4 +1,6 @@
 import nodemailer from "nodemailer";
+import { adminRepository } from "@/server/database/repositories/admin.repository";
+import { settingsRepository } from "@/server/database/repositories/settings.repository";
 import { AppError } from "@/server/utils/errors";
 
 type MailConfig = {
@@ -61,7 +63,18 @@ export type NewsletterSubscriptionEmailInput = {
   subscribedAt: string;
 };
 
-function getAdminNotifyEmail(config: MailConfig) {
+async function resolveAdminNotifyEmail(config: MailConfig): Promise<string> {
+  try {
+    const adminEmail = await adminRepository.findPrimaryNotifyEmail();
+    if (adminEmail) return adminEmail;
+
+    const settings = await settingsRepository.find();
+    const settingsEmail = settings?.email?.trim();
+    if (settingsEmail) return settingsEmail;
+  } catch (error) {
+    console.warn("[mail] Failed to load notify email from database:", error);
+  }
+
   return (
     process.env.MAIL_ORDER_NOTIFY_TO ??
     process.env.MAIL_FROM_ADDRESS ??
@@ -162,7 +175,7 @@ export const mailService = {
 
   async sendContactNotification(input: ContactEmailInput) {
     const config = getMailConfig();
-    const notifyTo = getAdminNotifyEmail(config);
+    const notifyTo = await resolveAdminNotifyEmail(config);
 
     const transporter = getTransporter();
 
@@ -209,7 +222,7 @@ export const mailService = {
     input: NewsletterSubscriptionEmailInput,
   ) {
     const config = getMailConfig();
-    const notifyTo = getAdminNotifyEmail(config);
+    const notifyTo = await resolveAdminNotifyEmail(config);
     const transporter = getTransporter();
     const displayName = input.name?.trim() || "Not provided";
     const localeLabel = input.locale === "ar" ? "Arabic" : "English";

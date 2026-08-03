@@ -92,6 +92,23 @@ export const adminRepository = {
     return rows[0] ?? null;
   },
 
+  async findPrimaryNotifyEmail(): Promise<string | null> {
+    await ensureEmailColumn();
+
+    const rows = await query<Array<{ email: string }>>(
+      `SELECT email
+       FROM admin
+       WHERE status = 1
+         AND email IS NOT NULL
+         AND TRIM(email) <> ''
+       ORDER BY id ASC
+       LIMIT 1`,
+    );
+
+    const email = rows[0]?.email?.trim();
+    return email || null;
+  },
+
   async create(input: CreateAdminInput & { password: string }): Promise<number> {
     await ensureEmailColumn();
 
