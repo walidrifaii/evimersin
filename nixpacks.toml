@@ -1,2 +1,15 @@
 [phases.setup]
 nixPkgs = ["nodejs_20", "npm-10_x"]
+
+[phases.install]
+cmds = ["npm ci --no-audit --no-fund"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm run start"
+
+[variables]
+NIXPACKS_PATH = "/app/node_modules/.bin"
+NPM_CONFIG_PRODUCTION = "false"
