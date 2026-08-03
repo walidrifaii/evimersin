@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
+import { Noto_Sans_Arabic, Poppins } from "next/font/google";
+import { getLocale } from "next-intl/server";
 import { SitePreloader } from "@/components/layout/SitePreloader";
 import { config } from "@/constants/config";
 import "./globals.css";
@@ -7,6 +8,12 @@ import "./globals.css";
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const notoSansArabic = Noto_Sans_Arabic({
+  variable: "--font-arabic",
+  subsets: ["arabic"],
   weight: ["400", "500", "600", "700"],
 });
 
@@ -23,14 +30,25 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const dir = locale === "ar" ? "rtl" : "ltr";
+  const fontClass =
+    locale === "ar"
+      ? `${notoSansArabic.variable} font-[family-name:var(--font-arabic)]`
+      : `${poppins.variable} font-sans`;
+
   return (
-    <html lang="en" className={`${poppins.variable} h-full antialiased`}>
-      <body className="min-h-full bg-white font-sans text-[var(--foreground)]">
+    <html
+      lang={locale}
+      dir={dir}
+      className={`${poppins.variable} ${notoSansArabic.variable} h-full antialiased`}
+    >
+      <body className={`min-h-full bg-white text-[var(--foreground)] ${fontClass}`}>
         <SitePreloader />
         {children}
       </body>

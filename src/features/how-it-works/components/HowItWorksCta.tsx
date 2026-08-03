@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { getTranslations } from "next-intl/server";
 import { FaWhatsapp } from "react-icons/fa";
 import { HiArrowRight, HiOutlineHome } from "react-icons/hi";
 import { getWhatsAppUrlFromSettings } from "@/constants/config";
@@ -8,6 +9,9 @@ import { getSiteSettings } from "@/lib/site-settings";
 export async function HowItWorksCta() {
   const settings = await getSiteSettings();
   const whatsappUrl = getWhatsAppUrlFromSettings(settings);
+  const t = await getTranslations("howItWorks");
+  const tCommon = await getTranslations("common");
+
   return (
     <section className="w-full bg-white">
       <div className="mx-auto w-full px-4 py-16 sm:px-6 md:px-4 lg:px-[100px] lg:py-20">
@@ -25,17 +29,16 @@ export async function HowItWorksCta() {
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-[#dbeafe] bg-white/80 px-3 py-1.5 text-[12px] font-semibold uppercase tracking-[0.1em] text-[var(--brand-blue)]">
                 <HiOutlineHome className="h-3.5 w-3.5" aria-hidden="true" />
-                Start today
+                {t("ctaBadge")}
               </div>
 
               <h2 className="mt-5 text-[1.75rem] font-bold leading-[1.15] tracking-[-0.02em] text-[var(--brand-navy)] sm:text-[2.1rem] lg:text-[2.35rem]">
-                Ready to find your
-                <span className="block text-[var(--brand-blue)]">dream property?</span>
+                {t("ctaTitle")}
+                <span className="block text-[var(--brand-blue)]">{t("ctaTitleAccent")}</span>
               </h2>
 
               <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-[var(--muted)] sm:text-[16px]">
-                Browse verified listings or message our team for personalized help across Mersin
-                and the Mediterranean coast.
+                {t("ctaDescription")}
               </p>
             </div>
 
@@ -44,7 +47,7 @@ export async function HowItWorksCta() {
                 href={routes.properties}
                 className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[var(--brand-blue)] px-6 text-[15px] font-semibold text-white shadow-[0_8px_24px_rgba(37,99,235,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#1d4ed8] hover:shadow-[0_12px_28px_rgba(37,99,235,0.35)]"
               >
-                Browse Properties
+                {tCommon("browseProperties")}
                 <HiArrowRight
                   className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5"
                   aria-hidden="true"
@@ -58,7 +61,7 @@ export async function HowItWorksCta() {
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-[#e8edf5] bg-white px-6 text-[15px] font-semibold text-[var(--brand-navy)] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] hover:shadow-md"
               >
                 <FaWhatsapp className="h-4 w-4 text-[var(--brand-red)]" aria-hidden="true" />
-                WhatsApp Us
+                {tCommon("whatsappUs")}
               </a>
             </div>
           </div>

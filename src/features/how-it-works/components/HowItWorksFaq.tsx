@@ -2,10 +2,18 @@
 
 import { useState } from "react";
 import { HiChevronDown } from "react-icons/hi";
-import { howItWorksData, howItWorksFaqs } from "@/features/how-it-works/data";
+import { useTranslations } from "next-intl";
+import { howItWorksFaqs } from "@/features/how-it-works/data";
+
+const faqKeys = [
+  { question: "faq1Question", answer: "faq1Answer" },
+  { question: "faq2Question", answer: "faq2Answer" },
+  { question: "faq3Question", answer: "faq3Answer" },
+  { question: "faq4Question", answer: "faq4Answer" },
+] as const;
 
 export function HowItWorksFaq() {
-  const { title, description } = howItWorksData.faqIntro;
+  const t = useTranslations("howItWorks");
   const [openId, setOpenId] = useState<string | null>(howItWorksFaqs[0]?.id ?? null);
 
   return (
@@ -13,16 +21,17 @@ export function HowItWorksFaq() {
       <div className="mx-auto w-full px-4 py-16 sm:px-6 md:px-4 lg:px-[100px] lg:py-20">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-[1.75rem] font-bold leading-[1.2] tracking-[-0.02em] text-[var(--brand-navy)] sm:text-[2rem] lg:text-[2.25rem]">
-            {title}
+            {t("faqTitle")}
           </h2>
           <p className="mt-3 text-[15px] leading-relaxed text-[var(--muted)] sm:text-[16px]">
-            {description}
+            {t("faqDescription")}
           </p>
         </div>
 
         <div className="mx-auto mt-10 max-w-3xl space-y-3">
-          {howItWorksFaqs.map((item) => {
+          {howItWorksFaqs.map((item, index) => {
             const isOpen = openId === item.id;
+            const keys = faqKeys[index];
 
             return (
               <div
@@ -36,7 +45,7 @@ export function HowItWorksFaq() {
                   aria-expanded={isOpen}
                 >
                   <span className="text-[15px] font-semibold text-[var(--brand-navy)] sm:text-[16px]">
-                    {item.question}
+                    {t(keys.question)}
                   </span>
                   <HiChevronDown
                     className={`h-5 w-5 shrink-0 text-[var(--muted)] transition-transform duration-200 ${
@@ -49,7 +58,7 @@ export function HowItWorksFaq() {
                 {isOpen ? (
                   <div className="border-t border-[#eef2f7] px-5 pb-5 pt-4 sm:px-6">
                     <p className="text-[14px] leading-relaxed text-[var(--muted)] sm:text-[15px]">
-                      {item.answer}
+                      {t(keys.answer)}
                     </p>
                   </div>
                 ) : null}

@@ -1,6 +1,16 @@
+import { getTranslations } from "next-intl/server";
 import { aboutData } from "@/features/about/data";
 
-export function AboutStats() {
+const statLabelKeys = {
+  listings: "statListings",
+  clients: "statClients",
+  experience: "statExperience",
+  areas: "statAreas",
+} as const;
+
+export async function AboutStats() {
+  const t = await getTranslations("about");
+
   return (
     <section className="w-full bg-[#f5f7fa]">
       <div className="mx-auto w-full px-4 py-14 sm:px-6 md:px-4 lg:px-[100px] lg:py-16">
@@ -14,7 +24,7 @@ export function AboutStats() {
                 {stat.value}
               </p>
               <p className="mt-3 text-[14px] font-semibold text-[var(--brand-navy)] sm:text-[15px]">
-                {stat.label}
+                {t(statLabelKeys[stat.id])}
               </p>
             </div>
           ))}

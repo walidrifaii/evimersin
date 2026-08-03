@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import { aboutData } from "@/features/about/data";
 
 function SectionArrow() {
@@ -20,8 +21,9 @@ function SectionArrow() {
   );
 }
 
-export function AboutStory() {
-  const { eyebrow, title, paragraphs, image, imageAlt } = aboutData.story;
+export async function AboutStory() {
+  const t = await getTranslations("about");
+  const { image } = aboutData.story;
 
   return (
     <section className="w-full bg-white">
@@ -30,15 +32,14 @@ export function AboutStory() {
           <div className="order-2 lg:order-1">
             <p className="flex items-center gap-2 text-[14px] font-semibold uppercase tracking-[0.12em] text-[var(--brand-red)]">
               <SectionArrow />
-              {eyebrow}
+              {t("storyEyebrow")}
             </p>
             <h2 className="mt-4 text-[1.75rem] font-bold leading-[1.15] tracking-[-0.02em] text-[var(--brand-navy)] sm:text-[2rem] lg:text-[2.35rem]">
-              {title}
+              {t("storyTitle")}
             </h2>
             <div className="mt-6 space-y-4 text-[15px] leading-7 text-[var(--muted)] sm:text-[16px]">
-              {paragraphs.map((paragraph) => (
-                <p key={paragraph}>{paragraph}</p>
-              ))}
+              <p>{t("storyParagraph1")}</p>
+              <p>{t("storyParagraph2")}</p>
             </div>
           </div>
 
@@ -46,7 +47,7 @@ export function AboutStory() {
             <div className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-[0_16px_48px_rgba(15,23,42,0.12)]">
               <Image
                 src={image}
-                alt={imageAlt}
+                alt={t("storyImageAlt")}
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover"

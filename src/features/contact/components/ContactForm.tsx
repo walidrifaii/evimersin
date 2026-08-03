@@ -3,12 +3,21 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { FaWhatsapp } from "react-icons/fa";
 import { HiCheckCircle } from "react-icons/hi";
+import { useTranslations } from "next-intl";
 import { useWhatsAppUrl } from "@/components/providers/SiteSettingsProvider";
 import {
-  contactData,
   initialContactForm,
   type ContactFormState,
 } from "@/features/contact/data";
+
+const subjectOptions = [
+  { value: "General Inquiry", key: "general" },
+  { value: "Schedule a Viewing", key: "viewing" },
+  { value: "Buy a Property", key: "buy" },
+  { value: "Sell a Property", key: "sell" },
+  { value: "Investment Advice", key: "investment" },
+  { value: "Other", key: "other" },
+] as const;
 
 function FieldLabel({ children, htmlFor }: { children: ReactNode; htmlFor: string }) {
   return (
@@ -25,6 +34,8 @@ const inputClassName =
   "w-full rounded-xl border border-[#e8edf5] bg-white px-4 py-3 text-[15px] text-[var(--brand-navy)] outline-none transition-colors placeholder:text-[#9ca3af] focus:border-[var(--brand-blue)] focus:ring-2 focus:ring-[#eff6ff]";
 
 export function ContactForm() {
+  const t = useTranslations("contact");
+  const tCommon = useTranslations("common");
   const whatsappUrl = useWhatsAppUrl();
   const [form, setForm] = useState<ContactFormState>(initialContactForm);
   const [submitted, setSubmitted] = useState(false);
@@ -41,7 +52,7 @@ export function ContactForm() {
     setError("");
 
     if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
-      setError("Please fill in your name, email, and message.");
+      setError(t("fillRequired"));
       return;
     }
 
@@ -68,12 +79,12 @@ export function ContactForm() {
       };
 
       if (!response.ok || !result.success) {
-        throw new Error(result.message || "Failed to send your message.");
+        throw new Error(result.message || t("sendFailed"));
       }
 
       setSubmitted(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send your message.");
+      setError(err instanceof Error ? err.message : t("sendFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -86,10 +97,10 @@ export function ContactForm() {
           <HiCheckCircle className="h-7 w-7" aria-hidden="true" />
         </div>
         <h3 className="mt-5 text-[1.35rem] font-bold text-[var(--brand-navy)]">
-          Message sent successfully
+          {t("successTitle")}
         </h3>
         <p className="mt-3 text-[15px] leading-relaxed text-[var(--muted)]">
-          Thank you for contacting us. Our team will reply to your email as soon as possible.
+          {t("successDescription")}
         </p>
         <a
           href={whatsappUrl}
@@ -98,7 +109,7 @@ export function ContactForm() {
           className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[var(--brand-red)] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#c9181e]"
         >
           <FaWhatsapp className="h-4 w-4" aria-hidden="true" />
-          Chat on WhatsApp
+          {tCommon("chatOnWhatsapp")}
         </a>
       </div>
     );
@@ -110,21 +121,21 @@ export function ContactForm() {
       className="rounded-2xl border border-[#e8edf5] bg-white p-6 shadow-[0_4px_24px_rgba(15,23,42,0.06)] sm:p-8"
     >
       <h2 className="text-[1.5rem] font-bold tracking-[-0.02em] text-[var(--brand-navy)] sm:text-[1.65rem]">
-        {contactData.form.title}
+        {t("formTitle")}
       </h2>
       <p className="mt-2 text-[15px] leading-relaxed text-[var(--muted)]">
-        {contactData.form.description}
+        {t("formDescription")}
       </p>
 
       <div className="mt-8 grid gap-5 sm:grid-cols-2">
         <div className="sm:col-span-1">
-          <FieldLabel htmlFor="contact-name">Full Name</FieldLabel>
+          <FieldLabel htmlFor="contact-name">{t("fullName")}</FieldLabel>
           <input
             id="contact-name"
             type="text"
             value={form.name}
             onChange={(e) => updateField("name", e.target.value)}
-            placeholder="Your full name"
+            placeholder={t("fullNamePlaceholder")}
             className={inputClassName}
             autoComplete="name"
             required
@@ -132,7 +143,7 @@ export function ContactForm() {
         </div>
 
         <div className="sm:col-span-1">
-          <FieldLabel htmlFor="contact-email">Email</FieldLabel>
+          <FieldLabel htmlFor="contact-email">{t("email")}</FieldLabel>
           <input
             id="contact-email"
             type="email"
@@ -146,7 +157,7 @@ export function ContactForm() {
         </div>
 
         <div className="sm:col-span-1">
-          <FieldLabel htmlFor="contact-phone">Phone</FieldLabel>
+          <FieldLabel htmlFor="contact-phone">{t("phone")}</FieldLabel>
           <input
             id="contact-phone"
             type="tel"
@@ -159,28 +170,28 @@ export function ContactForm() {
         </div>
 
         <div className="sm:col-span-1">
-          <FieldLabel htmlFor="contact-subject">Subject</FieldLabel>
+          <FieldLabel htmlFor="contact-subject">{t("subject")}</FieldLabel>
           <select
             id="contact-subject"
             value={form.subject}
             onChange={(e) => updateField("subject", e.target.value)}
             className={`${inputClassName} appearance-none bg-[url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27 fill=%27none%27%3E%3Cpath d=%27M4 6L8 10L12 6%27 stroke=%27%236b7280%27 stroke-width=%271.6%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E')] bg-[length:16px] bg-[right_1rem_center] bg-no-repeat pr-10`}
           >
-            {contactData.form.subjects.map((subject) => (
-              <option key={subject} value={subject}>
-                {subject}
+            {subjectOptions.map((subject) => (
+              <option key={subject.key} value={subject.value}>
+                {t(`subjects.${subject.key}`)}
               </option>
             ))}
           </select>
         </div>
 
         <div className="sm:col-span-2">
-          <FieldLabel htmlFor="contact-message">Message</FieldLabel>
+          <FieldLabel htmlFor="contact-message">{t("message")}</FieldLabel>
           <textarea
             id="contact-message"
             value={form.message}
             onChange={(e) => updateField("message", e.target.value)}
-            placeholder="Tell us how we can help you..."
+            placeholder={t("messagePlaceholder")}
             rows={5}
             className={`${inputClassName} resize-y min-h-[140px]`}
             required
@@ -197,7 +208,7 @@ export function ContactForm() {
         disabled={submitting}
         className="mt-6 inline-flex h-12 w-full cursor-pointer items-center justify-center rounded-lg bg-[var(--brand-blue)] px-6 text-[15px] font-semibold text-white transition-colors hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
       >
-        {submitting ? "Sending..." : "Send Message"}
+        {submitting ? t("sending") : t("sendMessage")}
       </button>
     </form>
   );

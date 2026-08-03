@@ -1,17 +1,26 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BrandLogo } from "@/components/layout/BrandLogo";
+import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 import { ChevronDown } from "@/components/icons/ChevronDown";
 import { PhoneIcon } from "@/components/icons/PhoneIcon";
 import { useSiteSettings } from "@/components/providers/SiteSettingsProvider";
+import { Link, usePathname } from "@/i18n/navigation";
 import { routes } from "@/constants/routes";
-import { navigation } from "@/data/navigation";
-import { propertyTypeCards } from "@/features/home/data";
+import {
+  propertyTypeCards,
+} from "@/features/home/data";
+import { useTranslations } from "next-intl";
 
-const propertyNavItems = propertyTypeCards.filter((item) => item.id !== "more");
+const navItems = [
+  { key: "home", href: routes.home },
+  { key: "properties", href: routes.properties, hasDropdown: true },
+  { key: "aboutUs", href: routes.about },
+  { key: "howItWorks", href: routes.howItWorks },
+  { key: "contact", href: routes.contact },
+] as const;
 
 function isNavActive(pathname: string, href: string) {
   if (href === routes.home) return pathname === routes.home;
@@ -42,6 +51,16 @@ export function Navbar() {
   const settings = useSiteSettings();
   const callHref = `tel:${settings.phone}`;
   const propertiesActive = isNavActive(pathname, routes.properties);
+  const t = useTranslations("nav");
+  const tCommon = useTranslations("common");
+  const tTypes = useTranslations("propertyTypes");
+
+  const propertyNavItems = propertyTypeCards
+    .filter((item) => item.id !== "more")
+    .map((item) => ({
+      ...item,
+      title: tTypes(item.id as "villas" | "apartments" | "studios" | "lands" | "commercial"),
+    }));
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -74,14 +93,14 @@ export function Navbar() {
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b border-black/5 bg-white">
-        <div className="mx-auto flex h-[5rem] w-full items-center justify-between gap-4 px-4 sm:px-6 md:px-4 lg:gap-6 lg:px-[100px]">
+        <div className="mx-auto flex h-[5rem] w-full items-center justify-between gap-3 px-4 sm:px-6 md:px-4 lg:gap-6 lg:px-[100px]">
           <BrandLogo />
 
           <nav
             aria-label="Primary"
             className="hidden items-center gap-8 lg:flex lg:gap-10"
           >
-            {navigation.map((item) => {
+            {navItems.map((item) => {
               const active =
                 "hasDropdown" in item && item.hasDropdown
                   ? propertiesActive
@@ -98,11 +117,11 @@ export function Navbar() {
                         : "text-[var(--nav-text)]"
                     }`}
                   >
-                    {item.label}
+                    {t(item.key)}
                     <ChevronDown className="h-3.5 w-3.5 translate-y-[1px] text-current transition-transform duration-200 group-hover:rotate-180" />
                   </Link>
 
-                  <div className="pointer-events-none invisible absolute left-1/2 top-full z-50 w-60 -translate-x-1/2 pt-3 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100">
+                  <div className="pointer-events-none invisible absolute start-1/2 top-full z-50 w-60 -translate-x-1/2 pt-3 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100 rtl:translate-x-1/2">
                     <div className="overflow-hidden rounded-xl border border-[#e8edf5] bg-white py-2 shadow-[0_16px_48px_rgba(15,23,42,0.12)]">
                       {propertyNavItems.map((subItem) => {
                         const { Icon } = subItem;
@@ -148,41 +167,45 @@ export function Navbar() {
                       : "text-[var(--nav-text)]"
                   }`}
                 >
-                  {item.label}
+                  {t(item.key)}
                 </Link>
               );
             })}
           </nav>
 
-          <a
-            href={callHref}
-            className="hidden shrink-0 items-center gap-2 rounded-full bg-[var(--brand-red)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#c9181e] lg:inline-flex"
-          >
-            <PhoneIcon className="h-4 w-4" />
-            Call Us
-          </a>
+          <div className="hidden shrink-0 items-center gap-3 lg:flex">
+            <LanguageSwitcher />
+            <a
+              href={callHref}
+              className="inline-flex items-center gap-2 rounded-full bg-[var(--brand-red)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#c9181e]"
+            >
+              <PhoneIcon className="h-4 w-4" />
+              {tCommon("callUs")}
+            </a>
+          </div>
 
-          {/* Burger menu for tablet + mobile */}
-          <button
-            type="button"
-            aria-label="Open menu"
-            onClick={() => setMenuOpen(true)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 bg-white text-[var(--brand-navy)] transition-colors hover:bg-black/[0.02] lg:hidden"
-          >
-            <span className="sr-only">Menu</span>
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
-              <path
-                d="M4 7H20M4 12H20M4 17H20"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
+          <div className="flex items-center gap-2 lg:hidden">
+            <LanguageSwitcher />
+            <button
+              type="button"
+              aria-label={tCommon("openMenu")}
+              onClick={() => setMenuOpen(true)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 bg-white text-[var(--brand-navy)] transition-colors hover:bg-black/[0.02]"
+            >
+              <span className="sr-only">{tCommon("menu")}</span>
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
+                <path
+                  d="M4 7H20M4 12H20M4 17H20"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* Drawer */}
       {menuOpen ? (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
@@ -191,11 +214,11 @@ export function Navbar() {
             aria-hidden="true"
           />
 
-          <div className="absolute left-0 top-0 flex h-dvh w-[82vw] max-w-none flex-col bg-[var(--brand-navy)] shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:w-[76vw] md:w-[58vw]">
+          <div className="absolute start-0 top-0 flex h-dvh w-[82vw] max-w-none flex-col bg-[var(--brand-navy)] shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:w-[76vw] md:w-[58vw]">
             <div className="flex shrink-0 justify-end px-6 pt-6">
               <button
                 type="button"
-                aria-label="Close menu"
+                aria-label={tCommon("closeMenu")}
                 onClick={() => setMenuOpen(false)}
                 className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-white/90 transition-colors hover:bg-white/10"
               >
@@ -212,7 +235,7 @@ export function Navbar() {
 
             <div className="flex min-h-0 flex-1 flex-col px-6 pb-6">
               <ul className="flex-1 space-y-6 overflow-y-auto pt-2">
-                {navigation.map((item) => {
+                {navItems.map((item) => {
                   const active =
                     "hasDropdown" in item && item.hasDropdown
                       ? propertiesActive
@@ -229,7 +252,7 @@ export function Navbar() {
                         aria-expanded={propertiesOpen}
                         aria-current={active ? "page" : undefined}
                       >
-                        <span>{item.label}</span>
+                        <span>{t(item.key)}</span>
                         <ChevronDown
                           className={`h-4 w-4 transition-transform duration-200 ${
                             propertiesOpen ? "rotate-180" : ""
@@ -238,7 +261,7 @@ export function Navbar() {
                       </button>
 
                       {propertiesOpen ? (
-                        <ul className="mt-4 space-y-3 border-l border-white/15 pl-4">
+                        <ul className="mt-4 space-y-3 border-s border-white/15 ps-4">
                           {propertyNavItems.map((subItem) => {
                             const subActive = isSubNavActive(
                               pathname,
@@ -276,7 +299,7 @@ export function Navbar() {
                           active ? "text-[var(--brand-red)]" : "text-white"
                         }`}
                       >
-                        <span>{item.label}</span>
+                        <span>{t(item.key)}</span>
                       </Link>
                     </li>
                   );
@@ -288,7 +311,7 @@ export function Navbar() {
                 className="mt-6 flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[var(--brand-red)] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#c9181e]"
               >
                 <PhoneIcon className="h-4 w-4" />
-                Call Us
+                {tCommon("callUs")}
               </a>
             </div>
           </div>

@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { HiChevronDown } from "react-icons/hi";
+import { useTranslations } from "next-intl";
+import { usePathname, useRouter } from "@/i18n/navigation";
+import { translateFilterLabel } from "@/lib/i18n-filters";
 import {
   buildPropertiesSearchHref,
   defaultPropertyFilters,
@@ -28,6 +31,7 @@ export function PropertiesPageContent({
   listings,
   filterOptions,
 }: PropertiesPageContentProps) {
+  const t = useTranslations("products");
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -85,9 +89,10 @@ export function PropertiesPageContent({
     [appliedFilters, listings],
   );
 
-  const sortLabel =
+  const sortLabelRaw =
     propertyFilterOptions.sort.find((item) => item.value === appliedFilters.sort)
       ?.label ?? "Sort";
+  const sortLabel = translateFilterLabel(t, sortLabelRaw);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -143,7 +148,7 @@ export function PropertiesPageContent({
           <div>
             <div className="mb-5 flex items-center justify-between gap-3">
               <p className="text-[14px] font-semibold text-[var(--brand-navy)] sm:text-[15px]">
-                {filtered.length} Properties Found
+                {t("propertiesFound", { count: filtered.length })}
               </p>
 
               <div ref={sortRef} className="relative">
@@ -152,7 +157,7 @@ export function PropertiesPageContent({
                   onClick={() => setSortOpen((prev) => !prev)}
                   className="inline-flex h-10 items-center gap-2 rounded-xl border border-[#e5eaf2] bg-white px-3.5 text-[13px] font-semibold text-[var(--brand-navy)] shadow-sm transition-colors hover:border-[#c7d2e5] sm:h-11 sm:px-4 sm:text-[14px]"
                 >
-                  Sort
+                  {t("sort")}
                   <HiChevronDown
                     className={`h-4 w-4 text-[#6b7280] transition-transform ${
                       sortOpen ? "rotate-180" : ""
@@ -174,7 +179,7 @@ export function PropertiesPageContent({
                             : "text-[var(--brand-navy)]"
                         }`}
                       >
-                        {option.label}
+                        {translateFilterLabel(t, option.label)}
                       </button>
                     ))}
                   </div>
@@ -191,10 +196,10 @@ export function PropertiesPageContent({
             ) : (
               <div className="rounded-2xl border border-dashed border-[#d5dce8] bg-white px-6 py-16 text-center">
                 <p className="text-[16px] font-semibold text-[var(--brand-navy)]">
-                  No properties found
+                  {t("noResultsTitle")}
                 </p>
                 <p className="mt-2 text-[14px] text-[var(--muted)]">
-                  Try adjusting your filters or clearing them to see more listings.
+                  {t("noResultsDescription")}
                 </p>
                 <button
                   type="button"
@@ -210,13 +215,13 @@ export function PropertiesPageContent({
                   }}
                   className="mt-5 inline-flex h-11 items-center justify-center rounded-xl bg-[var(--brand-blue)] px-5 text-[14px] font-semibold text-white transition-colors hover:bg-[#1d4ed8]"
                 >
-                  Clear Filters
+                  {t("clearFilters")}
                 </button>
               </div>
             )}
 
             <p className="mt-4 text-[12px] text-[var(--muted)] sm:hidden">
-              Sorted by: {sortLabel}
+              {t("sortedBy", { label: sortLabel })}
             </p>
           </div>
         </div>

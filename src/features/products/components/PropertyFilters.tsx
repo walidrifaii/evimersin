@@ -2,11 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import { HiChevronDown } from "react-icons/hi";
+import { useTranslations } from "next-intl";
 import {
   defaultPropertyFilters,
+  findOptionById,
   formatPriceLabelForOptions,
-  getFilterOptionLabel,
 } from "@/features/products/data";
+import {
+  formatTranslatedFilterOption,
+  translateFilterLabel,
+} from "@/lib/i18n-filters";
 import type {
   FilterOption,
   PropertyFilterOptions,
@@ -25,19 +30,21 @@ function FilterSelect({
   options,
   value,
   onChange,
+  translateLabel,
 }: {
   label: string;
   options: FilterOption[];
   value: number | null;
   onChange: (value: number | null) => void;
+  translateLabel: (label: string) => string;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const selectedLabel = getFilterOptionLabel(
-    options,
-    value,
-    options[0]?.label ?? "",
-  );
+  const selectedOption =
+    findOptionById(value, options) ?? options[0] ?? null;
+  const selectedLabel = selectedOption
+    ? formatTranslatedFilterOption(selectedOption, translateLabel)
+    : translateLabel("");
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -55,7 +62,7 @@ function FilterSelect({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex h-12 w-full items-center justify-between rounded-xl border border-[#e5eaf2] bg-white px-4 text-left text-[14px] font-medium text-[var(--brand-navy)] transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
+        className="flex h-12 w-full items-center justify-between gap-2 rounded-xl border border-[#e5eaf2] bg-white px-4 text-start text-[14px] font-medium text-[var(--brand-navy)] transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
       >
         <span className="truncate">{selectedLabel}</span>
         <HiChevronDown
@@ -79,18 +86,15 @@ function FilterSelect({
                 onChange(option.id);
                 setOpen(false);
               }}
-              className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-[14px] font-medium transition-colors hover:text-[var(--brand-red)] ${
+              className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-start text-[14px] font-medium transition-colors hover:text-[var(--brand-red)] ${
                 option.id === value
                   ? "text-[var(--brand-red)]"
                   : "text-[var(--brand-navy)]"
               }`}
             >
-              <span className="truncate">{option.label}</span>
-              {typeof option.count === "number" ? (
-                <span className="shrink-0 text-[12px] font-semibold text-[var(--muted)]">
-                  {option.count}
-                </span>
-              ) : null}
+              <span className="truncate">
+                {formatTranslatedFilterOption(option, translateLabel)}
+              </span>
             </button>
           ))}
         </div>
@@ -105,6 +109,9 @@ export function PropertyFilters({
   onChange,
   onApply,
 }: PropertyFiltersProps) {
+  const t = useTranslations("products");
+  const translateLabel = (label: string) => translateFilterLabel(t, label);
+
   function update<K extends keyof PropertyFiltersState>(
     key: K,
     nextValue: PropertyFiltersState[K],
@@ -133,40 +140,43 @@ export function PropertyFilters({
   return (
     <aside className="rounded-2xl border border-[#e8edf5] bg-white p-5 shadow-[0_8px_28px_rgba(15,23,42,0.07)] sm:p-6">
       <div className="mb-5 flex items-center justify-between gap-3">
-        <h2 className="text-[1.1rem] font-bold text-[var(--brand-navy)]">Filters</h2>
+        <h2 className="text-[1.1rem] font-bold text-[var(--brand-navy)]">{t("filters")}</h2>
         <button
           type="button"
           onClick={clearAll}
           className="text-[13px] font-semibold text-[var(--brand-red)] transition-colors hover:text-[#c9181e]"
         >
-          Clear All
+          {t("clearFilters")}
         </button>
       </div>
 
       <div className="space-y-4">
         <FilterSelect
-          label="City"
+          label={t("city")}
           options={options.city}
           value={value.cityId}
           onChange={(cityId) => update("cityId", cityId)}
+          translateLabel={translateLabel}
         />
         <FilterSelect
-          label="Property Type"
+          label={t("propertyType")}
           options={options.propertyType}
           value={value.categoryId}
           onChange={(categoryId) => update("categoryId", categoryId)}
+          translateLabel={translateLabel}
         />
         <FilterSelect
-          label="Purpose"
+          label={t("purpose")}
           options={options.purpose}
           value={value.purposeId}
           onChange={(purposeId) => update("purposeId", purposeId)}
+          translateLabel={translateLabel}
         />
 
         <div>
           <div className="mb-3 flex items-center justify-between gap-3">
             <label className="text-[13px] font-semibold text-[var(--brand-navy)]">
-              Price Range
+              {t("priceRange")}
             </label>
             <span className="text-[12px] font-medium text-[var(--muted)]">
               {formatPriceLabelForOptions(value.priceMin, options)} –{" "}
@@ -195,7 +205,7 @@ export function PropertyFilters({
                 update("priceMin", Math.min(next, maxFloor));
               }}
               className="pointer-events-none absolute inset-0 z-10 w-full appearance-none bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-[var(--brand-blue)] [&::-moz-range-thumb]:shadow [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-[var(--brand-blue)] [&::-webkit-slider-thumb]:shadow"
-              aria-label="Minimum price"
+              aria-label={t("minPrice")}
             />
             <input
               type="range"
@@ -212,7 +222,7 @@ export function PropertyFilters({
                 update("priceMax", Math.max(next, minCeil));
               }}
               className="pointer-events-none absolute inset-0 z-20 w-full appearance-none bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-[var(--brand-blue)] [&::-moz-range-thumb]:shadow [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-[var(--brand-blue)] [&::-webkit-slider-thumb]:shadow"
-              aria-label="Maximum price"
+              aria-label={t("maxPrice")}
             />
           </div>
 
@@ -228,7 +238,7 @@ export function PropertyFilters({
         onClick={onApply}
         className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-xl bg-[var(--brand-blue)] text-[15px] font-semibold text-white transition-colors hover:bg-[#1d4ed8]"
       >
-        Apply Filters
+        {t("applyFilters")}
       </button>
     </aside>
   );

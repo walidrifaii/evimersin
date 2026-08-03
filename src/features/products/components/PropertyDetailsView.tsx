@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { getTranslations } from "next-intl/server";
 import { FaWhatsapp } from "react-icons/fa";
 import { HiChevronLeft } from "react-icons/hi";
 import { BathIcon } from "@/components/icons/BathIcon";
@@ -19,6 +20,8 @@ type PropertyDetailsViewProps = {
 };
 
 export async function PropertyDetailsView({ property }: PropertyDetailsViewProps) {
+  const t = await getTranslations("products");
+  const tCommon = await getTranslations("common");
   const settings = await getSiteSettings();
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(
     /\/$/,
@@ -27,7 +30,7 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
   const propertyUrl = `${appUrl}${property.href}`;
   const whatsappUrl = getWhatsAppUrlFromSettings(
     settings,
-    `Hello EviMersin, I am interested in this property:\n\n${property.title}\n${propertyUrl}`,
+    t("whatsappMessage", { title: property.title, url: propertyUrl }),
   );
   const specRows = getSpecFieldsForCategory(property.propertyType)
     .map((field) => {
@@ -45,7 +48,7 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
           className="mb-4 inline-flex items-center gap-1 text-[14px] font-semibold text-[var(--brand-navy)] transition-colors hover:text-[var(--brand-blue)] sm:mb-6"
         >
           <HiChevronLeft className="h-4 w-4" aria-hidden="true" />
-          Back to Properties
+          {tCommon("backToProperties")}
         </Link>
 
         <div className="grid gap-6 sm:gap-8 lg:grid-cols-[1.35fr_0.9fr] lg:items-start lg:gap-12">
@@ -64,7 +67,7 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
               <p className="mt-2 text-[14px] text-[var(--muted)] sm:text-[15px]">
                 {property.propertyType ? (
                   <span>
-                    Property Type:{" "}
+                    {t("propertyTypeLabel")}{" "}
                     <span className="font-semibold text-[var(--brand-red)]">
                       {property.propertyType}
                     </span>
@@ -73,7 +76,7 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
                 {property.propertyType && property.purpose ? " · " : null}
                 {property.purpose ? (
                   <span>
-                    Purpose:{" "}
+                    {t("purposeLabel")}{" "}
                     <span className="font-semibold text-[var(--brand-navy)]">
                       {property.purpose}
                     </span>
@@ -96,19 +99,19 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
                 {property.beds > 0 ? (
                   <span className="inline-flex items-center gap-1.5">
                     <BedIcon className="h-4 w-4" />
-                    {property.beds} Beds
+                    {t("beds", { count: property.beds })}
                   </span>
                 ) : null}
                 {property.baths > 0 ? (
                   <span className="inline-flex items-center gap-1.5">
                     <BathIcon className="h-4 w-4" />
-                    {property.baths} Baths
+                    {t("baths", { count: property.baths })}
                   </span>
                 ) : null}
                 {property.sqm > 0 ? (
                   <span className="inline-flex items-center gap-1.5">
                     <SquareMeterIcon className="h-4 w-4" />
-                    {property.sqm} sqm
+                    {t("sqm", { count: property.sqm })}
                   </span>
                 ) : null}
               </div>
@@ -116,7 +119,7 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
               {specRows.length > 0 ? (
                 <div className="mt-5 sm:mt-6">
                   <h2 className="text-[1.1rem] font-bold text-[var(--brand-navy)] sm:text-[1.25rem]">
-                    Property Details
+                    {t("propertyDetails")}
                   </h2>
                   <dl className="mt-3 grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-2">
                     {specRows.map((row) => (
@@ -138,7 +141,7 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
 
               <div className="mt-5 sm:mt-6">
                 <h2 className="text-[1.1rem] font-bold text-[var(--brand-navy)] sm:text-[1.25rem]">
-                  Description
+                  {t("description")}
                 </h2>
                 <p className="mt-2.5 text-[14px] leading-7 text-[var(--muted)] sm:mt-3 sm:text-[15px]">
                   {property.description}
@@ -152,7 +155,7 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
                 className="mt-8 hidden h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-5 text-[15px] font-semibold text-white transition-colors hover:bg-[#1ebe57] lg:inline-flex"
               >
                 <FaWhatsapp className="h-5 w-5" aria-hidden="true" />
-                Contact on WhatsApp
+                {tCommon("contactOnWhatsapp")}
               </a>
             </div>
           </div>
@@ -163,7 +166,7 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
         href={whatsappUrl}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Contact on WhatsApp"
+        aria-label={tCommon("contactOnWhatsapp")}
         className="fixed bottom-5 right-5 z-40 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_10px_28px_rgba(37,211,102,0.45)] transition-transform hover:scale-105 active:scale-95 lg:hidden"
       >
         <FaWhatsapp className="h-7 w-7" aria-hidden="true" />

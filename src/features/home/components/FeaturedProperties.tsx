@@ -1,8 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { PropertyCard } from "@/features/home/components/PropertyCard";
 import { routes } from "@/constants/routes";
 import type { PropertyListing } from "@/features/products/types";
@@ -31,6 +32,8 @@ type FeaturedPropertiesProps = {
 };
 
 export function FeaturedProperties({ listings }: FeaturedPropertiesProps) {
+  const t = useTranslations("home");
+  const tCommon = useTranslations("common");
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);
@@ -115,11 +118,11 @@ export function FeaturedProperties({ listings }: FeaturedPropertiesProps) {
         <div className="mb-12 flex flex-col gap-6 lg:mb-14 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-2xl">
             <h2 className="text-[2rem] font-bold leading-[1.15] tracking-[-0.02em] text-[var(--brand-navy)] sm:text-[2.25rem] lg:text-[2.5rem]">
-              Featured Properties
+              {t("featuredTitle")}
             </h2>
             <p className="mt-3 flex items-center gap-2 text-[15px] font-normal text-[var(--muted)] sm:text-[16px]">
               <SectionArrow />
-              Explore our handpicked properties
+              {t("featuredSubtitle")}
             </p>
           </div>
 
@@ -128,7 +131,7 @@ export function FeaturedProperties({ listings }: FeaturedPropertiesProps) {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  aria-label="Previous featured properties"
+                  aria-label={t("prevFeatured")}
                   onClick={() => scrollByPage(-1)}
                   disabled={!canPrev}
                   className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#e8edf5] bg-white text-[var(--brand-navy)] transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[#e8edf5] disabled:hover:text-[var(--brand-navy)]"
@@ -137,7 +140,7 @@ export function FeaturedProperties({ listings }: FeaturedPropertiesProps) {
                 </button>
                 <button
                   type="button"
-                  aria-label="Next featured properties"
+                  aria-label={t("nextFeatured")}
                   onClick={() => scrollByPage(1)}
                   disabled={!canNext}
                   className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#e8edf5] bg-white text-[var(--brand-navy)] transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[#e8edf5] disabled:hover:text-[var(--brand-navy)]"
@@ -151,7 +154,7 @@ export function FeaturedProperties({ listings }: FeaturedPropertiesProps) {
               href={routes.properties}
               className="inline-flex h-12 shrink-0 items-center justify-center rounded-lg border border-[var(--brand-blue)] px-6 text-[15px] font-semibold text-[var(--brand-blue)] transition-colors hover:bg-[#eff6ff]"
             >
-              View All Properties
+              {tCommon("viewAllProperties")}
             </Link>
           </div>
         </div>
@@ -177,7 +180,7 @@ export function FeaturedProperties({ listings }: FeaturedPropertiesProps) {
               <button
                 key={page}
                 type="button"
-                aria-label={`Go to featured page ${page + 1}`}
+                aria-label={t("featuredPage", { page: page + 1 })}
                 aria-current={page === activePage ? "true" : undefined}
                 onClick={() => goToPage(page)}
                 className={`h-2.5 rounded-full transition-all ${

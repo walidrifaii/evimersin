@@ -11,15 +11,12 @@ import {
   HiOutlineMail,
   HiOutlinePhone,
 } from "react-icons/hi";
+import { useTranslations } from "next-intl";
 import {
   useSiteSettings,
   useWhatsAppUrl,
 } from "@/components/providers/SiteSettingsProvider";
-import {
-  contactData,
-  getContactMethods,
-  getContactSocial,
-} from "@/features/contact/data";
+import { getContactMethods, getContactSocial } from "@/features/contact/data";
 
 const methodIcons = {
   phone: HiOutlinePhone,
@@ -28,6 +25,14 @@ const methodIcons = {
   instagram: FaInstagram,
   facebook: FaFacebook,
 } as const satisfies Record<string, IconType>;
+
+const methodLabelKeys = {
+  phone: { title: "methodPhone", description: "methodPhoneDesc" },
+  email: { title: "methodEmail", description: "methodEmailDesc" },
+  address: { title: "methodOffice", description: null },
+  instagram: { title: "socialInstagram", description: "socialInstagramDesc" },
+  facebook: { title: "socialFacebook", description: "socialFacebookDesc" },
+} as const;
 
 function ContactCard({
   id,
@@ -70,6 +75,8 @@ function ContactCard({
 }
 
 export function ContactInfo() {
+  const t = useTranslations("contact");
+  const tCommon = useTranslations("common");
   const settings = useSiteSettings();
   const whatsappUrl = useWhatsAppUrl();
   const methods = getContactMethods(settings);
@@ -79,39 +86,49 @@ export function ContactInfo() {
     <div className="flex flex-col gap-6">
       <div>
         <h2 className="text-[1.5rem] font-bold tracking-[-0.02em] text-[var(--brand-navy)] sm:text-[1.65rem]">
-          {contactData.info.title}
+          {t("infoTitle")}
         </h2>
         <p className="mt-2 text-[15px] leading-relaxed text-[var(--muted)]">
-          {contactData.info.description}
+          {t("infoDescription")}
         </p>
       </div>
 
       <div className="space-y-4">
-        {methods.map((method) => (
-          <ContactCard
-            key={method.id}
-            id={method.id}
-            title={method.title}
-            value={method.value}
-            href={method.href}
-            description={method.description}
-            external={method.id === "address"}
-          />
-        ))}
+        {methods.map((method) => {
+          const keys = methodLabelKeys[method.id];
+          const description =
+            keys.description === null ? method.description : t(keys.description);
+
+          return (
+            <ContactCard
+              key={method.id}
+              id={method.id}
+              title={t(keys.title)}
+              value={method.value}
+              href={method.href}
+              description={description}
+              external={method.id === "address"}
+            />
+          );
+        })}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {social.map((item) => (
-          <ContactCard
-            key={item.id}
-            id={item.id}
-            title={item.title}
-            value={item.value}
-            href={item.href}
-            description={item.description}
-            external
-          />
-        ))}
+        {social.map((item) => {
+          const keys = methodLabelKeys[item.id];
+
+          return (
+            <ContactCard
+              key={item.id}
+              id={item.id}
+              title={t(keys.title)}
+              value={item.value}
+              href={item.href}
+              description={t(keys.description!)}
+              external
+            />
+          );
+        })}
       </div>
 
       <a
@@ -121,7 +138,7 @@ export function ContactInfo() {
         className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--brand-red)] px-5 py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-[#c9181e]"
       >
         <FaWhatsapp className="h-4 w-4" aria-hidden="true" />
-        Chat on WhatsApp
+        {tCommon("chatOnWhatsapp")}
       </a>
     </div>
   );

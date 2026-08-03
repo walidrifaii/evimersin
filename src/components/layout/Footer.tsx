@@ -1,22 +1,33 @@
 "use client";
 
-import Link from "next/link";
 import { BrandLogo } from "@/components/layout/BrandLogo";
 import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import { useSiteSettings } from "@/components/providers/SiteSettingsProvider";
 import { config, getWhatsAppUrlFromSettings } from "@/constants/config";
+import { Link } from "@/i18n/navigation";
 import { routes } from "@/constants/routes";
-import { navigation } from "@/data/navigation";
+import { useTranslations } from "next-intl";
 
-const quickLinks = [
-  { label: "Featured Listings", href: routes.properties },
-  { label: "Hot Deals", href: routes.properties },
-  { label: "Contact Us", href: routes.contact },
-];
+const navKeys = [
+  { key: "home", href: routes.home },
+  { key: "properties", href: routes.properties },
+  { key: "aboutUs", href: routes.about },
+  { key: "howItWorks", href: routes.howItWorks },
+  { key: "contact", href: routes.contact },
+] as const;
 
 export function Footer() {
   const settings = useSiteSettings();
   const whatsappUrl = getWhatsAppUrlFromSettings(settings);
+  const t = useTranslations("footer");
+  const tNav = useTranslations("nav");
+  const tCommon = useTranslations("common");
+
+  const quickLinks = [
+    { key: "featuredListings", href: routes.properties },
+    { key: "hotDeals", href: routes.properties },
+    { key: "contactUs", href: routes.contact },
+  ] as const;
 
   return (
     <footer className="mt-auto w-full bg-[var(--brand-navy)] text-white">
@@ -25,24 +36,22 @@ export function Footer() {
           <div className="col-span-2 max-w-sm lg:col-span-1">
             <BrandLogo />
             <p className="mt-5 text-[14px] leading-7 text-white/72 sm:text-[15px]">
-              Premium real estate guidance in Mersin, with verified listings,
-              trusted advice, and a smooth buying experience from first contact
-              to handover.
+              {t("description")}
             </p>
           </div>
 
           <div>
             <h3 className="text-[0.95rem] font-semibold text-white sm:text-[1rem]">
-              Navigation
+              {t("navigation")}
             </h3>
             <ul className="mt-4 space-y-2.5 sm:mt-5 sm:space-y-3">
-              {navigation.map((item) => (
+              {navKeys.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}
                     className="text-[14px] text-white/72 transition-colors hover:text-white sm:text-[15px]"
                   >
-                    {item.label}
+                    {tNav(item.key)}
                   </Link>
                 </li>
               ))}
@@ -51,16 +60,16 @@ export function Footer() {
 
           <div>
             <h3 className="text-[0.95rem] font-semibold text-white sm:text-[1rem]">
-              Quick Links
+              {t("quickLinks")}
             </h3>
             <ul className="mt-4 space-y-2.5 sm:mt-5 sm:space-y-3">
               {quickLinks.map((item) => (
-                <li key={item.label}>
+                <li key={item.key}>
                   <Link
                     href={item.href}
                     className="text-[14px] text-white/72 transition-colors hover:text-white sm:text-[15px]"
                   >
-                    {item.label}
+                    {t(item.key)}
                   </Link>
                 </li>
               ))}
@@ -69,7 +78,7 @@ export function Footer() {
 
           <div className="col-span-2 lg:col-span-1">
             <h3 className="text-[0.95rem] font-semibold text-white sm:text-[1rem]">
-              Contact
+              {t("contact")}
             </h3>
             <div className="mt-4 space-y-2.5 text-[14px] text-white/72 sm:mt-5 sm:space-y-3 sm:text-[15px]">
               <p>
@@ -98,17 +107,17 @@ export function Footer() {
               className="mt-5 inline-flex items-center gap-2 rounded-full bg-[var(--brand-red)] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#c9181e] sm:mt-6"
             >
               <WhatsAppIcon className="h-4 w-4" />
-              Chat on WhatsApp
+              {tCommon("chatOnWhatsapp")}
             </a>
           </div>
         </div>
 
         <div className="flex flex-col gap-2 pt-6 text-[13px] text-white/60 sm:gap-3 sm:text-[14px] lg:flex-row lg:items-center lg:justify-between">
           <p>
-            © {new Date().getFullYear()} {config.appName}. All rights reserved.
+            © {new Date().getFullYear()} {config.appName}. {t("allRightsReserved")}
           </p>
           <p>
-            Powered by{" "}
+            {t("poweredBy")}{" "}
             <a
               href="https://www.amctag.com/"
               target="_blank"

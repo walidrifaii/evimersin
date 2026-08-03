@@ -1,8 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { HotDealCard } from "@/features/home/components/HotDealCard";
 import { routes } from "@/constants/routes";
 import type { PropertyListing } from "@/features/products/types";
@@ -12,6 +13,8 @@ type HotDealsProps = {
 };
 
 export function HotDeals({ listings }: HotDealsProps) {
+  const t = useTranslations("home");
+  const tCommon = useTranslations("common");
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);
@@ -99,10 +102,10 @@ export function HotDeals({ listings }: HotDealsProps) {
         <div className="mb-8 flex flex-col gap-5 lg:mb-10 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-2xl">
             <h2 className="text-[1.75rem] font-bold leading-[1.15] tracking-[-0.02em] text-white sm:text-[2rem] lg:text-[2.25rem]">
-              Hot Deals 🔥
+              {t("hotDealsTitle")}
             </h2>
             <p className="mt-2 text-[14px] font-normal text-white/75 sm:text-[15px]">
-              Limited time offers on selected properties
+              {t("hotDealsSubtitle")}
             </p>
           </div>
 
@@ -111,7 +114,7 @@ export function HotDeals({ listings }: HotDealsProps) {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  aria-label="Previous hot deals"
+                  aria-label={t("prevHotDeals")}
                   onClick={() => scrollByPage(-1)}
                   disabled={!canPrev}
                   className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-white/20 disabled:hover:text-white"
@@ -120,7 +123,7 @@ export function HotDeals({ listings }: HotDealsProps) {
                 </button>
                 <button
                   type="button"
-                  aria-label="Next hot deals"
+                  aria-label={t("nextHotDeals")}
                   onClick={() => scrollByPage(1)}
                   disabled={!canNext}
                   className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-white/20 disabled:hover:text-white"
@@ -134,7 +137,7 @@ export function HotDeals({ listings }: HotDealsProps) {
               href={routes.properties}
               className="inline-flex h-11 shrink-0 items-center justify-center self-start rounded-lg border border-white/80 px-5 text-[14px] font-semibold text-white transition-colors hover:bg-white/10"
             >
-              View All Deals
+              {tCommon("viewAllDeals")}
             </Link>
           </div>
         </div>
@@ -161,7 +164,7 @@ export function HotDeals({ listings }: HotDealsProps) {
               <button
                 key={page}
                 type="button"
-                aria-label={`Go to hot deals page ${page + 1}`}
+                aria-label={t("hotDealsPage", { page: page + 1 })}
                 aria-current={page === activePage ? "true" : undefined}
                 onClick={() => goToPage(page)}
                 className={`h-2.5 rounded-full transition-all ${

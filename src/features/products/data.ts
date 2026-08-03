@@ -200,7 +200,7 @@ function parseOptionalPrice(value: string | null | undefined) {
   return parsed;
 }
 
-function findOptionById(id: number | null, options: FilterOption[]) {
+export function findOptionById(id: number | null, options: FilterOption[]) {
   if (id === null) return options.find((option) => option.id === null) ?? null;
   return options.find((option) => option.id === id) ?? null;
 }

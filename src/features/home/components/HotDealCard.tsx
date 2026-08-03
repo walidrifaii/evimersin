@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { SafeImage } from "@/components/ui/SafeImage";
 import type { PropertyListing } from "@/features/products/types";
 
@@ -7,6 +8,8 @@ type HotDealCardProps = {
 };
 
 export function HotDealCard({ item }: HotDealCardProps) {
+  const t = useTranslations("home");
+
   return (
     <Link
       href={item.href}
@@ -22,7 +25,7 @@ export function HotDealCard({ item }: HotDealCardProps) {
         />
         <div className="absolute left-2 top-2 flex flex-wrap gap-1.5 sm:left-3 sm:top-3 sm:gap-2">
           <span className="rounded-md bg-[var(--brand-red)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.06em] text-white sm:px-2.5 sm:py-1 sm:text-[11px]">
-            {item.discountLabel ?? "Hot Deal"}
+            {item.discountLabel ?? t("hotDeal")}
           </span>
           {item.propertyType ? (
             <span className="rounded-md bg-[var(--brand-blue)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.06em] text-white sm:px-2.5 sm:py-1 sm:text-[11px]">
