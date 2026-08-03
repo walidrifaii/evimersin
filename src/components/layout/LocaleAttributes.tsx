@@ -1,23 +1,11 @@
 "use client";
 
 import { useLocale } from "next-intl";
-import { useParams } from "next/navigation";
 import { useEffect } from "react";
-import { routing, type Locale } from "@/i18n/routing";
+import type { Locale } from "@/i18n/routing";
 
 export function useAppLocale(): Locale {
-  const intlLocale = useLocale();
-  const params = useParams();
-  const paramLocale = params?.locale;
-
-  if (
-    typeof paramLocale === "string" &&
-    routing.locales.includes(paramLocale as Locale)
-  ) {
-    return paramLocale as Locale;
-  }
-
-  return intlLocale as Locale;
+  return useLocale() as Locale;
 }
 
 export function LocaleAttributes() {

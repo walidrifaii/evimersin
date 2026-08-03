@@ -1,24 +1,49 @@
 "use client";
 
-import { usePathname, useRouter } from "@/i18n/navigation";
-import { useAppLocale } from "@/components/layout/LocaleAttributes";
 import { routing, type Locale } from "@/i18n/routing";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 const localeLabels: Record<Locale, string> = {
   en: "EN",
   ar: "AR",
 };
 
+function buildLocalizedHref(pathname: string, search: string, nextLocale: Locale) {
+  let path = pathname;
+
+  for (const item of routing.locales) {
+    if (path === `/${item}`) {
+      path = "/";
+      break;
+    }
+    if (path.startsWith(`/${item}/`)) {
+      path = path.slice(item.length + 1) || "/";
+      break;
+    }
+  }
+
+  if (nextLocale === routing.defaultLocale) {
+    return `${path}${search}`;
+  }
+
+  const localizedPath = path === "/" ? `/${nextLocale}` : `/${nextLocale}${path}`;
+  return `${localizedPath}${search}`;
+}
+
 export function LanguageSwitcher() {
-  const locale = useAppLocale();
-  const router = useRouter();
-  const pathname = usePathname();
+  const locale = useLocale() as Locale;
   const t = useTranslations("common");
 
   function switchLocale(nextLocale: Locale) {
     if (nextLocale === locale) return;
-    router.replace(pathname, { locale: nextLocale });
+
+    const href = buildLocalizedHref(
+      window.location.pathname,
+      window.location.search,
+      nextLocale,
+    );
+
+    window.location.assign(href);
   }
 
   return (
