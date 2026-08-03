@@ -165,6 +165,20 @@ export function PropertyFilters({
 
       <div className="space-y-4">
         <FilterSelect
+          label={t("purpose")}
+          options={options.purpose}
+          value={value.purposeId}
+          onChange={(purposeId) => update("purposeId", purposeId)}
+          translateLabel={translateLabel}
+        />
+        <FilterSelect
+          label={t("propertyType")}
+          options={options.propertyType}
+          value={value.categoryId}
+          onChange={(categoryId) => update("categoryId", categoryId)}
+          translateLabel={translateLabel}
+        />
+        <FilterSelect
           label={t("city")}
           options={options.city}
           value={value.cityId}
@@ -176,20 +190,6 @@ export function PropertyFilters({
           options={regionOptions}
           value={value.cityId === null ? null : value.regionId}
           onChange={(regionId) => update("regionId", regionId)}
-          translateLabel={translateLabel}
-        />
-        <FilterSelect
-          label={t("propertyType")}
-          options={options.propertyType}
-          value={value.categoryId}
-          onChange={(categoryId) => update("categoryId", categoryId)}
-          translateLabel={translateLabel}
-        />
-        <FilterSelect
-          label={t("purpose")}
-          options={options.purpose}
-          value={value.purposeId}
-          onChange={(purposeId) => update("purposeId", purposeId)}
           translateLabel={translateLabel}
         />
 

@@ -191,6 +191,42 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
       <div className="grid min-w-0 flex-1 grid-cols-1 divide-y divide-[#e5e7eb] overflow-visible lg:grid-cols-5 lg:items-stretch lg:divide-y-0">
         <div className="relative z-[1] flex w-full min-w-0 items-stretch overflow-visible lg:border-e lg:border-[#e5e7eb]">
           <FilterDropdown
+            label={t("searchPurpose")}
+            options={filterOptions.purpose}
+            value={filters.purposeId}
+            onChange={(purposeId) =>
+              setFilters((prev) => ({ ...prev, purposeId }))
+            }
+            isOpen={openDropdown === "purpose"}
+            onToggle={() =>
+              setOpenDropdown((prev) => (prev === "purpose" ? null : "purpose"))
+            }
+            onClose={() => setOpenDropdown(null)}
+            translateLabel={translateLabel}
+          />
+        </div>
+
+        <div className="flex w-full min-w-0 items-stretch lg:border-e lg:border-[#e5e7eb]">
+          <FilterDropdown
+            label={t("searchPropertyType")}
+            options={filterOptions.propertyType}
+            value={filters.categoryId}
+            onChange={(categoryId) =>
+              setFilters((prev) => ({ ...prev, categoryId }))
+            }
+            isOpen={openDropdown === "propertyType"}
+            onToggle={() =>
+              setOpenDropdown((prev) =>
+                prev === "propertyType" ? null : "propertyType",
+              )
+            }
+            onClose={() => setOpenDropdown(null)}
+            translateLabel={translateLabel}
+          />
+        </div>
+
+        <div className="relative z-[1] flex w-full min-w-0 items-stretch overflow-visible lg:border-e lg:border-[#e5e7eb]">
+          <FilterDropdown
             label={t("searchCity")}
             options={filterOptions.city}
             value={filters.cityId}
@@ -217,42 +253,6 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
             isOpen={openDropdown === "region"}
             onToggle={() =>
               setOpenDropdown((prev) => (prev === "region" ? null : "region"))
-            }
-            onClose={() => setOpenDropdown(null)}
-            translateLabel={translateLabel}
-          />
-        </div>
-
-        <div className="flex w-full min-w-0 items-stretch lg:border-e lg:border-[#e5e7eb]">
-          <FilterDropdown
-            label={t("searchPropertyType")}
-            options={filterOptions.propertyType}
-            value={filters.categoryId}
-            onChange={(categoryId) =>
-              setFilters((prev) => ({ ...prev, categoryId }))
-            }
-            isOpen={openDropdown === "propertyType"}
-            onToggle={() =>
-              setOpenDropdown((prev) =>
-                prev === "propertyType" ? null : "propertyType",
-              )
-            }
-            onClose={() => setOpenDropdown(null)}
-            translateLabel={translateLabel}
-          />
-        </div>
-
-        <div className="flex w-full min-w-0 items-stretch lg:border-e lg:border-[#e5e7eb]">
-          <FilterDropdown
-            label={t("searchPurpose")}
-            options={filterOptions.purpose}
-            value={filters.purposeId}
-            onChange={(purposeId) =>
-              setFilters((prev) => ({ ...prev, purposeId }))
-            }
-            isOpen={openDropdown === "purpose"}
-            onToggle={() =>
-              setOpenDropdown((prev) => (prev === "purpose" ? null : "purpose"))
             }
             onClose={() => setOpenDropdown(null)}
             translateLabel={translateLabel}
