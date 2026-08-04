@@ -11,6 +11,7 @@ import { CitiesPanel } from "@/features/dashboard/components/lookups/CitiesPanel
 import { RegionsPanel } from "@/features/dashboard/components/lookups/RegionsPanel";
 import { ProductsPanel } from "@/features/dashboard/components/lookups/ProductsPanel";
 import { PurposesPanel } from "@/features/dashboard/components/lookups/PurposesPanel";
+import { HeroSlidesPanel } from "@/features/dashboard/components/HeroSlidesPanel";
 import { SettingsPanel } from "@/features/dashboard/components/SettingsPanel";
 import { UsersPanel } from "@/features/dashboard/components/UsersPanel";
 import { isDashboardTab } from "@/features/dashboard/data";
@@ -83,6 +84,8 @@ export function DashboardContent() {
       return <ProductsPanel />;
     case "users":
       return <UsersPanel />;
+    case "hero-slides":
+      return <HeroSlidesPanel />;
     case "security":
       return <AccountSecurityPanel />;
     case "settings":

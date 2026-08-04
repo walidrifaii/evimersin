@@ -16,6 +16,7 @@ export const DASHBOARD_TABS = [
   "regions",
   "purposes",
   "users",
+  "hero-slides",
   "security",
   "settings",
 ] as const;
@@ -35,6 +36,7 @@ export const dashboardNav: DashboardNavItem[] = [
   { id: "regions", label: "Regions", href: routes.dashboardTab("regions") },
   { id: "purposes", label: "Purposes", href: routes.dashboardTab("purposes") },
   { id: "users", label: "Users", href: routes.dashboardTab("users") },
+  { id: "hero-slides", label: "Hero Slides", href: routes.dashboardTab("hero-slides") },
   { id: "security", label: "Change Password", href: routes.dashboardTab("security") },
   { id: "settings", label: "Settings", href: routes.dashboardTab("settings") },
 ];

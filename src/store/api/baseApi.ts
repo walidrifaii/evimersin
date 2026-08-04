@@ -76,6 +76,7 @@ export const api = createApi({
     "Analytics",
     "Settings",
     "Announcement",
+    "HeroSlide",
   ],
   endpoints: () => ({}),
 });

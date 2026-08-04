@@ -57,6 +57,9 @@ export function canAccessTab(
   tabId: string,
 ) {
   if (tabId === "security") return true;
+  if (tabId === "hero-slides") {
+    return hasPermission(permissions, "settings:read");
+  }
   if (!permissions?.length) return false;
   if (permissions.includes(SUPER_ADMIN_PERMISSION)) return true;
 
@@ -73,6 +76,7 @@ export function getFirstAllowedTab(permissions: string[] | undefined | null) {
     "regions",
     "purposes",
     "users",
+    "hero-slides",
     "settings",
     "security",
   ];

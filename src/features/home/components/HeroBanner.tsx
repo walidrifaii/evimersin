@@ -1,5 +1,5 @@
-import Image from "next/image";
 import heroImage from "@/assets/images/hero.webp";
+import { HeroBannerSlider } from "@/features/home/components/HeroBannerSlider";
 import { PropertySearchBar } from "@/features/home/components/PropertySearchBar";
 import { PropertyTypeCard } from "@/features/home/components/PropertyTypeCard";
 import {
@@ -8,6 +8,7 @@ import {
 } from "@/features/home/data";
 import { resolveCategoryIdBySlug } from "@/features/products/data";
 import type { PropertyFilterOptions } from "@/features/products/types";
+import { getHeroSlides } from "@/lib/hero-slides";
 import { getLocale, getTranslations } from "next-intl/server";
 
 type HeroBannerProps = {
@@ -19,6 +20,7 @@ export async function HeroBanner({ filterOptions }: HeroBannerProps) {
   const isRtl = locale === "ar";
   const t = await getTranslations("home");
   const tTypes = await getTranslations("propertyTypes");
+  const heroSlides = await getHeroSlides();
 
   const cards = withCategoryIdHrefs(propertyTypeCards, (slug) =>
     resolveCategoryIdBySlug(slug, filterOptions),
@@ -57,17 +59,11 @@ export async function HeroBanner({ filterOptions }: HeroBannerProps) {
   return (
     <section className="relative w-full bg-white">
       <div className="relative min-h-[78vh] w-full lg:min-h-[820px]">
-        <div className="absolute inset-0 overflow-hidden">
-          <Image
-            src={heroImage}
-            alt={t("heroImageAlt")}
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-center"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/35 to-black/55" />
-        </div>
+        <HeroBannerSlider
+          slides={heroSlides}
+          fallbackImage={heroImage}
+          fallbackAlt={t("heroImageAlt")}
+        />
 
         <div
           dir={isRtl ? "rtl" : "ltr"}

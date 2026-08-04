@@ -14,3 +14,8 @@ export function revalidateSettingsCache() {
   revalidateTag("site-settings", { expire: 0 });
   revalidatePath("/", "layout");
 }
+
+export function revalidateHeroSlidesCache() {
+  revalidateTag("hero-slides", { expire: 0 });
+  revalidatePath("/", "layout");
+}

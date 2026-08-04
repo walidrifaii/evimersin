@@ -11,3 +11,4 @@ export * from "@/store/slices/admin/settingsApi";
 export * from "@/store/slices/admin/announcementsApi";
 export * from "@/store/slices/admin/searchApi";
 export * from "@/store/slices/admin/adminsApi";
+export * from "@/store/slices/admin/heroSlidesApi";
