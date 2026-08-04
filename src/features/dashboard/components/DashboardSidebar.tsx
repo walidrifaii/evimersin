@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
+import logoImage from "@/assets/images/logo.png";
 import { config } from "@/constants/config";
 import { dashboardNav } from "@/features/dashboard/data";
 import { routes } from "@/constants/routes";
@@ -211,21 +213,13 @@ export function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
         }}
       >
         <div className="flex h-16 items-center justify-between px-5 pt-2">
-          <Link href={routes.dashboardTab(homeTab)} className="flex min-w-0 items-center gap-2.5" onClick={onClose}>
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white/20">
-              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
-                <path
-                  d="M4 7H10V17H4V7ZM14 7H20V11H14V7ZM14 13H20V17H14V13Z"
-                  stroke="currentColor"
-                  strokeWidth="1.7"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </span>
-            <span className="truncate text-[1.1rem] font-bold tracking-tight">
-              <span className="text-white/95">Evi</span>
-              <span className="text-white">Mersin</span>
-            </span>
+          <Link href={routes.dashboardTab(homeTab)} className="flex min-w-0 items-center" onClick={onClose}>
+            <Image
+              src={logoImage}
+              alt={`${config.appName} ${config.tagline}`}
+              className="h-10 w-auto rounded-lg bg-white px-2 py-1"
+              priority
+            />
           </Link>
           <button
             type="button"
