@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
-import logoImage from "@/assets/images/logo.png";
+import logoFooterImage from "@/assets/images/logo-footer.png";
 import { config } from "@/constants/config";
 import { dashboardNav } from "@/features/dashboard/data";
 import { routes } from "@/constants/routes";
@@ -215,9 +215,9 @@ export function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
         <div className="flex h-16 items-center justify-between px-5 pt-2">
           <Link href={routes.dashboardTab(homeTab)} className="flex min-w-0 items-center" onClick={onClose}>
             <Image
-              src={logoImage}
+              src={logoFooterImage}
               alt={`${config.appName} ${config.tagline}`}
-              className="h-10 w-auto rounded-lg bg-white px-2 py-1"
+              className="h-10 w-auto"
               priority
             />
           </Link>

@@ -40,7 +40,7 @@ export function Footer() {
       <div className="mx-auto w-full px-4 py-12 sm:px-6 sm:py-14 md:px-4 lg:px-[100px] lg:py-16">
         <div className="grid grid-cols-2 gap-x-6 gap-y-10 border-b border-white/12 pb-10 sm:gap-x-8 sm:gap-y-12 lg:grid-cols-[1.3fr_0.8fr_0.9fr_1fr] lg:gap-10">
           <div className="col-span-2 max-w-sm lg:col-span-1">
-            <BrandLogo />
+            <BrandLogo variant="onDark" />
             <p className="mt-5 text-[14px] leading-7 text-white/72 sm:text-[15px]">
               {t("description")}
             </p>
