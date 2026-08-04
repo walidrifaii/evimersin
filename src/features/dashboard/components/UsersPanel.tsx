@@ -2,20 +2,20 @@
 
 import type { FormEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
-import { PermissionMatrix } from "@/features/dashboard/components/PermissionMatrix";
+import { EmailVerificationDrawer } from "@/features/dashboard/components/EmailVerificationDrawer";
+import { PermissionsDrawer } from "@/features/dashboard/components/PermissionsDrawer";
 import {
   FormLoading,
   TextInput,
 } from "@/features/dashboard/components/lookups/LookupManager";
 import { usePermissions } from "@/hooks/usePermissions";
-import { summarizePermissions } from "@/lib/auth/permissions";
+import { permissionCount, summarizePermissions } from "@/lib/auth/permissions";
 import { SUPER_ADMIN_PERMISSION } from "@/constants/permissions";
 import { getApiErrorMessage } from "@/store/api/errors";
 import {
   useCreateDashboardUserMutation,
   useDeleteDashboardUserMutation,
   useGetDashboardUsersQuery,
-  useRequestUserEmailVerificationMutation,
   useUpdateDashboardUserMutation,
   type DashboardUser,
 } from "@/store/slices/admin/adminsApi";
@@ -57,13 +57,11 @@ function UserModal({
   onSaved: (message: string) => void;
 }) {
   const [form, setForm] = useState<UserFormState>(emptyForm);
-  const [step, setStep] = useState<"details" | "verify">("details");
   const [emailVerified, setEmailVerified] = useState(false);
-  const [emailMasked, setEmailMasked] = useState<string | null>(null);
   const [localError, setLocalError] = useState<unknown>(null);
+  const [verifyDrawerOpen, setVerifyDrawerOpen] = useState(false);
+  const [permissionsDrawerOpen, setPermissionsDrawerOpen] = useState(false);
 
-  const [requestVerification, verificationState] =
-    useRequestUserEmailVerificationMutation();
   const [createUser, createState] = useCreateDashboardUserMutation();
   const [updateUser, updateState] = useUpdateDashboardUserMutation();
 
@@ -91,14 +89,13 @@ function UserModal({
         status: initialUser.status === 1 ? 1 : 0,
       });
       setEmailVerified(true);
-      setStep("details");
     } else {
       setForm(emptyForm);
       setEmailVerified(false);
-      setStep("details");
     }
 
-    setEmailMasked(null);
+    setVerifyDrawerOpen(false);
+    setPermissionsDrawerOpen(false);
     setLocalError(null);
   }, [open, mode, initialUser]);
 
@@ -106,41 +103,29 @@ function UserModal({
     if (mode === "create") {
       setEmailVerified(false);
       setForm((prev) => ({ ...prev, emailOtp: "" }));
-      setStep("details");
     }
   }, [form.email, form.firstName, form.lastName, mode]);
 
-  function setEmailOtp(value: string) {
-    setForm((prev) => ({ ...prev, emailOtp: value }));
-  }
-
-  async function handleSendVerification() {
-    setLocalError(null);
-
-    if (!form.firstName.trim() || !form.lastName.trim() || !form.email.trim()) {
-      setLocalError(new Error("Enter first name, last name, and email first."));
-      return;
-    }
-
-    try {
-      const result = await requestVerification({
-        email: form.email.trim(),
-        firstName: form.firstName.trim(),
-        lastName: form.lastName.trim(),
-      }).unwrap();
-      setEmailMasked(result.emailMasked);
-      setStep("verify");
-    } catch (error) {
-      setLocalError(error);
-    }
-  }
+  const permissionSummary = useMemo(
+    () => summarizePermissions(form.permissions),
+    [form.permissions],
+  );
+  const permissionTotal = useMemo(
+    () => permissionCount(form.permissions),
+    [form.permissions],
+  );
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLocalError(null);
 
     if (mode === "create" && !emailVerified) {
-      setLocalError(new Error("Verify the email address before creating this user."));
+      setLocalError(new Error("Open email verification and confirm the code first."));
+      return;
+    }
+
+    if (form.permissions.length === 0) {
+      setLocalError(new Error("Add at least one permission for this user."));
       return;
     }
 
@@ -256,10 +241,8 @@ function UserModal({
                   setForm((prev) => ({ ...prev, email: value, emailOtp: "" }));
                   if (mode === "create") {
                     setEmailVerified(false);
-                    setStep("details");
                   } else {
                     setEmailVerified(nextEmail === originalEmail);
-                    if (nextEmail !== originalEmail) setStep("details");
                   }
                 }}
               />
@@ -291,62 +274,67 @@ function UserModal({
               </label>
             </div>
 
-            <div className="mt-6 rounded-[20px] border border-[#e8eef6] bg-[#f8fafc] p-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-[14px] font-semibold text-[var(--brand-navy)]">
-                    Email verification
-                  </p>
-                  <p className="mt-0.5 text-[12px] text-[var(--muted)]">
-                    {mode === "create"
-                      ? "Required before the account is created."
-                      : emailChanged
-                        ? "Required when changing to a new email."
-                        : "Already verified for the current email."}
-                  </p>
+            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="rounded-[20px] border border-[#e8eef6] bg-[#f8fafc] p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[14px] font-semibold text-[var(--brand-navy)]">
+                      Email verification
+                    </p>
+                    <p className="mt-1 text-[12px] text-[var(--muted)]">
+                      {mode === "create"
+                        ? "Required before creating the account."
+                        : emailChanged
+                          ? "Required when email changes."
+                          : "Current email is verified."}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                      emailVerified
+                        ? "bg-[#ecfdf3] text-[#15803d]"
+                        : "bg-[#fef2f2] text-[#b91c1c]"
+                    }`}
+                  >
+                    {emailVerified ? "Verified" : "Pending"}
+                  </span>
                 </div>
                 {(mode === "create" || emailChanged) && !isSuperAdmin ? (
                   <button
                     type="button"
-                    disabled={verificationState.isLoading}
-                    onClick={() => void handleSendVerification()}
-                    className="inline-flex h-10 items-center justify-center rounded-full bg-[var(--brand-blue)] px-4 text-[12px] font-semibold text-white hover:bg-[#1d4ed8] disabled:opacity-70"
+                    onClick={() => setVerifyDrawerOpen(true)}
+                    className="mt-4 inline-flex h-10 w-full items-center justify-center rounded-full bg-[var(--brand-blue)] px-4 text-[12px] font-semibold text-white hover:bg-[#1d4ed8]"
                   >
-                    {verificationState.isLoading ? "Sending..." : "Send verification code"}
+                    {emailVerified ? "View verification" : "Verify email"}
                   </button>
-                ) : (
-                  <span className="inline-flex rounded-full bg-[#ecfdf3] px-3 py-1 text-[12px] font-semibold text-[#15803d]">
-                    Verified
-                  </span>
-                )}
+                ) : null}
               </div>
 
-              {(mode === "create" || emailChanged) && step === "verify" ? (
-                <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto]">
-                  <TextInput
-                    label={`6-digit code${emailMasked ? ` sent to ${emailMasked}` : ""}`}
-                    value={form.emailOtp}
-                    required
-                    onChange={(value) => {
-                      setEmailOtp(value.replace(/\D/g, "").slice(0, 6));
-                      if (value.trim().length === 6) setEmailVerified(true);
-                    }}
-                  />
-                  <div className="flex items-end">
-                    <span className="rounded-full bg-[#eff6ff] px-3 py-2 text-[12px] font-semibold text-[var(--brand-blue)]">
-                      {emailVerified ? "Code ready" : "Enter code"}
-                    </span>
+              <div className="rounded-[20px] border border-[#e8eef6] bg-[#f8fafc] p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[14px] font-semibold text-[var(--brand-navy)]">
+                      Roles & permissions
+                    </p>
+                    <p className="mt-1 text-[12px] text-[var(--muted)]">
+                      {permissionTotal} selected · {permissionSummary}
+                    </p>
                   </div>
                 </div>
-              ) : null}
-            </div>
-
-            <div className="mt-6">
-              <PermissionMatrix
-                value={form.permissions}
-                onChange={(permissions) => setForm((prev) => ({ ...prev, permissions }))}
-                readOnly={isSuperAdmin}
-              />
+                {!isSuperAdmin ? (
+                  <button
+                    type="button"
+                    onClick={() => setPermissionsDrawerOpen(true)}
+                    className="mt-4 inline-flex h-10 w-full items-center justify-center rounded-full border border-[#dbe4f0] bg-white px-4 text-[12px] font-semibold text-[var(--brand-navy)] hover:border-[var(--brand-blue)] hover:bg-[#eff6ff]"
+                  >
+                    Manage access
+                  </button>
+                ) : (
+                  <p className="mt-4 text-[12px] font-medium text-[var(--brand-blue)]">
+                    Super admin — full access
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
@@ -360,7 +348,11 @@ function UserModal({
             </button>
             <button
               type="submit"
-              disabled={saving}
+              disabled={
+                saving ||
+                (mode === "create" && !emailVerified) ||
+                form.permissions.length === 0
+              }
               className="inline-flex h-11 items-center justify-center rounded-full bg-[var(--brand-red)] px-5 text-[13px] font-semibold text-white hover:bg-[#c9181e] disabled:opacity-70"
             >
               {saving
@@ -372,6 +364,27 @@ function UserModal({
           </div>
         </form>
       </div>
+
+      <EmailVerificationDrawer
+        open={verifyDrawerOpen}
+        onClose={() => setVerifyDrawerOpen(false)}
+        email={form.email}
+        firstName={form.firstName}
+        lastName={form.lastName}
+        verified={emailVerified}
+        otp={form.emailOtp}
+        onOtpChange={(otp) => setForm((prev) => ({ ...prev, emailOtp: otp }))}
+        onVerified={() => setEmailVerified(true)}
+        onResetVerification={() => setEmailVerified(false)}
+      />
+
+      <PermissionsDrawer
+        open={permissionsDrawerOpen}
+        onClose={() => setPermissionsDrawerOpen(false)}
+        value={form.permissions}
+        onChange={(permissions) => setForm((prev) => ({ ...prev, permissions }))}
+        readOnly={isSuperAdmin}
+      />
     </div>
   );
 }
