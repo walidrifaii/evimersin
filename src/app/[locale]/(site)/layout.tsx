@@ -27,10 +27,8 @@ export default async function SiteLayout({
         </Suspense>
         <main className="flex flex-1 flex-col">{children}</main>
         <Footer />
-        <Suspense fallback={null}>
-          <VisitTracker />
-          <GuestFirebaseNotifications />
-        </Suspense>
+        <VisitTracker />
+        <GuestFirebaseNotifications />
       </div>
     </SiteSettingsProvider>
   );

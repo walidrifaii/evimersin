@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocale } from "next-intl";
 import { usePathname } from "@/i18n/navigation";
 import {
@@ -14,6 +14,7 @@ const FCM_REGISTERED_KEY = "evimersin_guest_fcm_registered";
 const PROMPT_DISMISSED_KEY = "evimersin_guest_fcm_prompt_dismissed";
 
 type FcmConfigResponse = {
+  success?: boolean;
   data?: {
     enabled: boolean;
     config: FirebaseClientConfig | null;
@@ -25,6 +26,8 @@ type LiveAnnouncement = {
   title: string;
   message: string;
 };
+
+type PromptStatus = "idle" | "loading" | "denied" | "error" | "success";
 
 function getOrCreateSessionId() {
   const existing = sessionStorage.getItem(SESSION_KEY);
@@ -39,15 +42,27 @@ function getOrCreateSessionId() {
   return next;
 }
 
+function isPromptDismissed() {
+  return localStorage.getItem(PROMPT_DISMISSED_KEY) === "1";
+}
+
+function isAlreadyRegistered() {
+  return localStorage.getItem(FCM_REGISTERED_KEY) === "1";
+}
+
 export function GuestFirebaseNotifications() {
   const pathname = usePathname();
   const locale = useLocale();
-  const [firebaseConfig, setFirebaseConfig] = useState<{
+  const registeringRef = useRef(false);
+  const firebaseConfigRef = useRef<{
     config: FirebaseClientConfig;
     vapidKey: string;
   } | null>(null);
+
   const [promptVisible, setPromptVisible] = useState(false);
-  const [isRegistering, setIsRegistering] = useState(false);
+  const [promptStatus, setPromptStatus] = useState<PromptStatus>("idle");
+  const [promptMessage, setPromptMessage] = useState<string | null>(null);
+  const [firebaseReady, setFirebaseReady] = useState(false);
   const [liveAnnouncement, setLiveAnnouncement] =
     useState<LiveAnnouncement | null>(null);
 
@@ -69,16 +84,26 @@ export function GuestFirebaseNotifications() {
   }, [locale, pathname]);
 
   const registerGuestToken = useCallback(async () => {
-    if (!firebaseConfig || isRegistering) return false;
+    const config = firebaseConfigRef.current;
+    if (!config || registeringRef.current) return false;
 
-    setIsRegistering(true);
+    registeringRef.current = true;
+    setPromptStatus("loading");
+    setPromptMessage(null);
+
     try {
       const token = await requestFcmToken({
-        config: firebaseConfig.config,
-        vapidKey: firebaseConfig.vapidKey,
+        config: config.config,
+        vapidKey: config.vapidKey,
       });
 
-      if (!token) return false;
+      if (!token) {
+        setPromptStatus("denied");
+        setPromptMessage(
+          "Notifications were blocked. Enable them in your browser settings to receive updates.",
+        );
+        return false;
+      }
 
       const sessionId = getOrCreateSessionId();
       const response = await fetch("/api/guest/fcm-tokens", {
@@ -87,17 +112,32 @@ export function GuestFirebaseNotifications() {
         body: JSON.stringify({ sessionId, token, locale }),
       });
 
-      if (!response.ok) return false;
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as
+          | { message?: string }
+          | null;
+        throw new Error(
+          payload?.message ?? "Could not save notification settings.",
+        );
+      }
 
-      sessionStorage.setItem(FCM_REGISTERED_KEY, "1");
-      setPromptVisible(false);
+      localStorage.setItem(FCM_REGISTERED_KEY, "1");
+      setPromptStatus("success");
+      setPromptMessage("Notifications enabled.");
+      window.setTimeout(() => setPromptVisible(false), 1200);
       return true;
-    } catch {
+    } catch (error) {
+      setPromptStatus("error");
+      setPromptMessage(
+        error instanceof Error
+          ? error.message
+          : "Could not enable notifications. Please try again.",
+      );
       return false;
     } finally {
-      setIsRegistering(false);
+      registeringRef.current = false;
     }
-  }, [firebaseConfig, isRegistering, locale]);
+  }, [locale]);
 
   useEffect(() => {
     sendPresence();
@@ -108,50 +148,48 @@ export function GuestFirebaseNotifications() {
   useEffect(() => {
     let cancelled = false;
 
-    fetch("/api/guest/fcm-tokens")
-      .then((response) => response.json())
-      .then((payload: FcmConfigResponse) => {
-        if (cancelled) return;
+    async function loadConfig() {
+      try {
+        const response = await fetch("/api/guest/fcm-tokens", {
+          cache: "no-store",
+        });
+        const payload = (await response.json()) as FcmConfigResponse;
 
-        const enabled = payload.data?.enabled;
-        const config = payload.data?.config;
-        const vapidKey = payload.data?.vapidKey;
+        if (cancelled || !response.ok || !payload.data) return;
 
+        const { enabled, config, vapidKey } = payload.data;
         if (!enabled || !config || !vapidKey) return;
 
-        setFirebaseConfig({ config, vapidKey });
+        firebaseConfigRef.current = { config, vapidKey };
+        setFirebaseReady(true);
 
-        const alreadyRegistered =
-          sessionStorage.getItem(FCM_REGISTERED_KEY) === "1";
-        const promptDismissed =
-          sessionStorage.getItem(PROMPT_DISMISSED_KEY) === "1";
+        if (isAlreadyRegistered()) {
+          void registerGuestToken();
+          return;
+        }
 
-        if (!alreadyRegistered && !promptDismissed) {
+        if (!isPromptDismissed()) {
           setPromptVisible(true);
         }
-      })
-      .catch(() => {
+      } catch {
         // Ignore config errors on the public site.
-      });
+      }
+    }
+
+    void loadConfig();
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [registerGuestToken]);
 
   useEffect(() => {
-    if (!firebaseConfig) return;
-    if (sessionStorage.getItem(FCM_REGISTERED_KEY) !== "1") return;
-
-    void registerGuestToken();
-  }, [firebaseConfig, registerGuestToken]);
-
-  useEffect(() => {
-    if (!firebaseConfig) return;
+    const config = firebaseConfigRef.current?.config;
+    if (!firebaseReady || !config) return;
 
     let unsubscribe = () => {};
 
-    listenForForegroundMessages(firebaseConfig.config, ({ title, body }) => {
+    listenForForegroundMessages(config, ({ title, body }) => {
       if (!title && !body) return;
 
       setLiveAnnouncement({
@@ -159,7 +197,10 @@ export function GuestFirebaseNotifications() {
         message: body ?? "",
       });
 
-      if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+      if (
+        typeof Notification !== "undefined" &&
+        Notification.permission === "granted"
+      ) {
         new Notification(title ?? "EviMersin", { body: body ?? "" });
       }
     }).then((cleanup) => {
@@ -167,25 +208,25 @@ export function GuestFirebaseNotifications() {
     });
 
     return () => unsubscribe();
-  }, [firebaseConfig]);
-
-  async function enableNotifications() {
-    await registerGuestToken();
-  }
+  }, [firebaseReady]);
 
   function dismissPrompt() {
-    sessionStorage.setItem(PROMPT_DISMISSED_KEY, "1");
+    localStorage.setItem(PROMPT_DISMISSED_KEY, "1");
     setPromptVisible(false);
+    setPromptStatus("idle");
+    setPromptMessage(null);
   }
 
   function dismissAnnouncement() {
     setLiveAnnouncement(null);
   }
 
+  const isLoading = promptStatus === "loading";
+
   return (
     <>
       {promptVisible ? (
-        <div className="fixed inset-x-0 bottom-0 z-[60] px-4 pb-4 sm:px-6">
+        <div className="pointer-events-auto fixed inset-x-0 bottom-0 z-[9999] px-4 pb-4 sm:px-6">
           <div className="mx-auto flex max-w-3xl flex-col gap-3 rounded-2xl border border-[#dbeafe] bg-white p-4 shadow-[0_20px_50px_rgba(15,23,42,0.18)] sm:flex-row sm:items-center">
             <div className="min-w-0 flex-1">
               <p className="text-[14px] font-semibold text-[var(--brand-navy)]">
@@ -195,20 +236,34 @@ export function GuestFirebaseNotifications() {
                 Allow browser notifications to receive announcements while you
                 browse.
               </p>
+              {promptMessage ? (
+                <p
+                  className={`mt-2 text-[12px] font-medium ${
+                    promptStatus === "success"
+                      ? "text-[#15803d]"
+                      : promptStatus === "denied" || promptStatus === "error"
+                        ? "text-[#b91c1c]"
+                        : "text-[var(--muted)]"
+                  }`}
+                >
+                  {promptMessage}
+                </p>
+              ) : null}
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <button
                 type="button"
-                onClick={enableNotifications}
-                disabled={isRegistering}
+                onClick={() => void registerGuestToken()}
+                disabled={isLoading}
                 className="inline-flex h-10 cursor-pointer items-center justify-center rounded-full bg-[var(--brand-red)] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#c9181e] disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {isRegistering ? "Enabling..." : "Enable"}
+                {isLoading ? "Enabling..." : "Enable"}
               </button>
               <button
                 type="button"
                 onClick={dismissPrompt}
-                className="inline-flex h-10 cursor-pointer items-center justify-center rounded-full border border-[#dbe4f0] px-4 text-[13px] font-semibold text-[var(--brand-navy)] transition-colors hover:bg-[#f8fafc]"
+                disabled={isLoading}
+                className="inline-flex h-10 cursor-pointer items-center justify-center rounded-full border border-[#dbe4f0] px-4 text-[13px] font-semibold text-[var(--brand-navy)] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-70"
               >
                 Not now
               </button>
@@ -221,7 +276,7 @@ export function GuestFirebaseNotifications() {
         <div
           role="status"
           aria-live="polite"
-          className="fixed inset-x-0 bottom-0 z-[60] px-4 pb-4 sm:px-6"
+          className="pointer-events-auto fixed inset-x-0 bottom-0 z-[9998] px-4 pb-4 sm:px-6"
         >
           <div className="mx-auto flex max-w-3xl items-start gap-3 rounded-2xl border border-[#dbeafe] bg-white p-4 shadow-[0_20px_50px_rgba(15,23,42,0.18)]">
             <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#eff6ff] text-[var(--brand-blue)]">

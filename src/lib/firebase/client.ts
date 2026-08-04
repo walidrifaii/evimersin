@@ -9,17 +9,12 @@ export type FirebaseClientConfig = {
   appId: string;
 };
 
-let appPromise: Promise<FirebaseApp | null> | null = null;
-
 export async function getFirebaseApp(config: FirebaseClientConfig) {
   if (typeof window === "undefined") return null;
-  if (!appPromise) {
-    appPromise = import("firebase/app").then(({ getApps, initializeApp }) => {
-      const existing = getApps()[0];
-      return existing ?? initializeApp(config);
-    });
-  }
-  return appPromise;
+
+  const { getApps, initializeApp } = await import("firebase/app");
+  const existing = getApps()[0];
+  return existing ?? initializeApp(config);
 }
 
 export async function registerFirebaseServiceWorker() {
@@ -27,9 +22,13 @@ export async function registerFirebaseServiceWorker() {
     return null;
   }
 
-  return navigator.serviceWorker.register("/firebase-messaging-sw.js", {
-    scope: "/",
-  });
+  const registration = await navigator.serviceWorker.register(
+    "/firebase-messaging-sw.js",
+    { scope: "/" },
+  );
+
+  await navigator.serviceWorker.ready;
+  return registration;
 }
 
 export async function requestFcmToken(input: {
@@ -55,7 +54,12 @@ export async function requestFcmToken(input: {
   }
 
   const messaging = getMessaging(app);
-  const permission = await Notification.requestPermission();
+
+  let permission = Notification.permission;
+  if (permission === "default") {
+    permission = await Notification.requestPermission();
+  }
+
   if (permission !== "granted") {
     return null;
   }
