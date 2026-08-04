@@ -12,6 +12,7 @@ import {
   useUpdateSiteSettingsMutation,
   type UpdateSiteSettingsInput,
 } from "@/store/slices/admin";
+import { usePermissions } from "@/hooks/usePermissions";
 
 type FormState = UpdateSiteSettingsInput;
 
@@ -27,6 +28,8 @@ const emptyForm: FormState = {
 };
 
 export function SettingsPanel() {
+  const { can } = usePermissions();
+  const canUpdate = can("settings:update");
   const { data, isLoading, error } = useGetSiteSettingsQuery();
   const [updateSettings, updateState] = useUpdateSiteSettingsMutation();
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -55,6 +58,7 @@ export function SettingsPanel() {
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!canUpdate) return;
     setActionError(null);
     setSaved(false);
 
@@ -185,13 +189,19 @@ export function SettingsPanel() {
         ) : null}
 
         <div className="mt-5">
-          <button
-            type="submit"
-            disabled={updateState.isLoading}
-            className="inline-flex h-11 cursor-pointer items-center justify-center rounded-full bg-[var(--brand-red)] px-5 text-[13px] font-semibold text-white transition-colors hover:bg-[#c9181e] disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {updateState.isLoading ? "Saving..." : "Save settings"}
-          </button>
+          {canUpdate ? (
+            <button
+              type="submit"
+              disabled={updateState.isLoading}
+              className="inline-flex h-11 cursor-pointer items-center justify-center rounded-full bg-[var(--brand-red)] px-5 text-[13px] font-semibold text-white transition-colors hover:bg-[#c9181e] disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {updateState.isLoading ? "Saving..." : "Save settings"}
+            </button>
+          ) : (
+            <p className="text-[13px] text-[var(--muted)]">
+              You have view-only access to settings.
+            </p>
+          )}
         </div>
       </form>
     </div>

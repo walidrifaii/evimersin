@@ -12,12 +12,17 @@ import {
   matchesDashboardSearch,
   useDashboardSearchQuery,
 } from "@/features/dashboard/hooks/useDashboardSearch";
+import { usePermissions } from "@/hooks/usePermissions";
 import {
   useDeleteCityMutation,
   useGetCitiesQuery,
 } from "@/store/slices/admin";
 
 export function CitiesPanel() {
+  const { can } = usePermissions();
+  const canCreate = can("cities:create");
+  const canUpdate = can("cities:update");
+  const canDelete = can("cities:delete");
   const { data = [], isLoading, error } = useGetCitiesQuery();
   const [deleteCity, deleteState] = useDeleteCityMutation();
   const [actionError, setActionError] = useState<unknown>(null);
@@ -37,6 +42,7 @@ export function CitiesPanel() {
       description="Manage cities in Lebanon for property locations."
       addHref={routes.lookupNew("cities")}
       addLabel="Add city"
+      showAdd={canCreate}
       loading={isLoading}
       error={actionError ?? error}
     >
@@ -61,6 +67,8 @@ export function CitiesPanel() {
               <td className="px-5 py-3">
                 <RowActions
                   editHref={routes.lookupEdit("cities", item.id)}
+                  showEdit={canUpdate}
+                  showDelete={canDelete}
                   deleting={deleteState.isLoading}
                   confirmTitle="Delete city?"
                   confirmMessage={`Are you sure you want to delete “${item.name}”? This action cannot be undone.`}

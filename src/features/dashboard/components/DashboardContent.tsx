@@ -14,33 +14,43 @@ import { PurposesPanel } from "@/features/dashboard/components/lookups/PurposesP
 import { SettingsPanel } from "@/features/dashboard/components/SettingsPanel";
 import { UsersPanel } from "@/features/dashboard/components/UsersPanel";
 import { isDashboardTab } from "@/features/dashboard/data";
+import { usePermissions } from "@/hooks/usePermissions";
 import { canAccessTab, getFirstAllowedTab } from "@/lib/auth/permissions";
-import { useAppSelector } from "@/store/hooks";
 
 export function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const permissions = useAppSelector((state) => state.auth.admin?.permissions);
+  const { permissions, canAccessTab: canAccess } = usePermissions();
 
   useEffect(() => {
+    if (permissions === undefined) return;
+
+    const fallbackTab = getFirstAllowedTab(permissions);
+
     if (!tabParam || tabParam === "countries" || tabParam === "account-security") {
-      const next =
+      const legacyTarget =
         tabParam === "countries"
           ? "cities"
           : tabParam === "account-security"
             ? "security"
-            : "overview";
+            : null;
+
+      const next =
+        legacyTarget && canAccessTab(permissions, legacyTarget)
+          ? legacyTarget
+          : fallbackTab;
+
       router.replace(routes.dashboardTab(next));
       return;
     }
 
     if (isDashboardTab(tabParam) && !canAccessTab(permissions, tabParam)) {
-      router.replace(routes.dashboardTab(getFirstAllowedTab(permissions)));
+      router.replace(routes.dashboardTab(fallbackTab));
     }
-  }, [router, tabParam, permissions]);
+  }, [permissions, router, tabParam]);
 
-  if (!isDashboardTab(tabParam)) {
+  if (permissions === undefined) {
     return (
       <div className="rounded-[24px] border border-[#e8eef6] bg-white px-5 py-16 text-center text-[14px] text-[var(--muted)] shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
         Loading...
@@ -48,10 +58,10 @@ export function DashboardContent() {
     );
   }
 
-  if (!canAccessTab(permissions, tabParam)) {
+  if (!isDashboardTab(tabParam) || !canAccess(tabParam)) {
     return (
       <div className="rounded-[24px] border border-[#e8eef6] bg-white px-5 py-16 text-center text-[14px] text-[var(--muted)] shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
-        Loading...
+        Redirecting...
       </div>
     );
   }

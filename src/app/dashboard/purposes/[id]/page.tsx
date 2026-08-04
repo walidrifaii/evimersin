@@ -1,4 +1,5 @@
 import { PurposeForm } from "@/features/dashboard/components/lookups/forms/PurposeForm";
+import { RequireDashboardAccess } from "@/features/dashboard/components/RequireDashboardAccess";
 
 export default async function EditPurposePage({
   params,
@@ -6,5 +7,9 @@ export default async function EditPurposePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <PurposeForm id={Number(id)} />;
+  return (
+    <RequireDashboardAccess tab="purposes" permission="purposes:update">
+      <PurposeForm id={Number(id)} />
+    </RequireDashboardAccess>
+  );
 }

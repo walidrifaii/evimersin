@@ -5,6 +5,8 @@ import { useSearchParams } from "next/navigation";
 import { DashboardSearchDrawer } from "@/features/dashboard/components/DashboardSearchDrawer";
 import { dashboardNav } from "@/features/dashboard/data";
 import { useDashboardSearch } from "@/features/dashboard/hooks/useDashboardSearch";
+import { usePermissions } from "@/hooks/usePermissions";
+import { canAccessTab } from "@/lib/auth/permissions";
 import { useSearchDashboardQuery } from "@/store/slices/admin";
 
 type DashboardTopbarProps = {
@@ -14,14 +16,15 @@ type DashboardTopbarProps = {
 export function DashboardTopbar({ onMenuOpen }: DashboardTopbarProps) {
   const searchParams = useSearchParams();
   const activeTab = searchParams.get("tab") ?? "overview";
+  const { permissions } = usePermissions();
   const activeLabel =
-    dashboardNav.find((item) => item.id === activeTab)?.label ?? "Overview";
+    dashboardNav.find((item) => item.id === activeTab)?.label ?? "Dashboard";
   const { query, setQuery } = useDashboardSearch();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const deferredQuery = useDeferredValue(query.trim());
-  const canSearch = ["products", "categories", "cities", "purposes"].includes(
-    activeTab,
-  );
+  const canSearch =
+    ["products", "categories", "cities", "purposes"].includes(activeTab) &&
+    canAccessTab(permissions, activeTab);
   const skipSearch = !canSearch || deferredQuery.length < 1;
 
   const { data, isLoading, isFetching } = useSearchDashboardQuery(deferredQuery, {

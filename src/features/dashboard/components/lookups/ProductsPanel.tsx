@@ -13,6 +13,7 @@ import {
   matchesDashboardSearch,
   useDashboardSearchQuery,
 } from "@/features/dashboard/hooks/useDashboardSearch";
+import { usePermissions } from "@/hooks/usePermissions";
 import {
   formatProductPrice,
   hasActiveDiscount,
@@ -23,6 +24,10 @@ import {
 } from "@/store/slices/admin";
 
 export function ProductsPanel() {
+  const { can } = usePermissions();
+  const canCreate = can("products:create");
+  const canUpdate = can("products:update");
+  const canDelete = can("products:delete");
   const { data = [], isLoading, error } = useGetProductsQuery();
   const [deleteProduct, deleteState] = useDeleteProductMutation();
   const [actionError, setActionError] = useState<unknown>(null);
@@ -51,6 +56,7 @@ export function ProductsPanel() {
       description="Manage residential units with category, purpose, city, and gallery images."
       addHref={routes.lookupNew("products")}
       addLabel="Add residential unit"
+      showAdd={canCreate}
       loading={isLoading}
       error={actionError ?? error}
     >
@@ -141,6 +147,8 @@ export function ProductsPanel() {
               <td className="px-5 py-3">
                 <RowActions
                   editHref={routes.lookupEdit("products", item.id)}
+                  showEdit={canUpdate}
+                  showDelete={canDelete}
                   deleting={deleteState.isLoading}
                   confirmTitle="Delete residential unit?"
                   confirmMessage={`Are you sure you want to delete “${item.name}”? This action cannot be undone.`}

@@ -13,12 +13,17 @@ import {
   matchesDashboardSearch,
   useDashboardSearchQuery,
 } from "@/features/dashboard/hooks/useDashboardSearch";
+import { usePermissions } from "@/hooks/usePermissions";
 import {
   useDeleteCategoryMutation,
   useGetCategoriesQuery,
 } from "@/store/slices/admin";
 
 export function CategoriesPanel() {
+  const { can } = usePermissions();
+  const canCreate = can("categories:create");
+  const canUpdate = can("categories:update");
+  const canDelete = can("categories:delete");
   const { data = [], isLoading, error } = useGetCategoriesQuery();
   const [deleteCategory, deleteState] = useDeleteCategoryMutation();
   const [actionError, setActionError] = useState<unknown>(null);
@@ -38,6 +43,7 @@ export function CategoriesPanel() {
       description="Manage property categories used across listings and filters."
       addHref={routes.lookupNew("categories")}
       addLabel="Add category"
+      showAdd={canCreate}
       loading={isLoading}
       error={actionError ?? error}
     >
@@ -74,6 +80,8 @@ export function CategoriesPanel() {
               <td className="px-5 py-3">
                 <RowActions
                   editHref={routes.lookupEdit("categories", item.id)}
+                  showEdit={canUpdate}
+                  showDelete={canDelete}
                   deleting={deleteState.isLoading}
                   confirmTitle="Delete category?"
                   confirmMessage={`Are you sure you want to delete “${item.name}”? This action cannot be undone.`}

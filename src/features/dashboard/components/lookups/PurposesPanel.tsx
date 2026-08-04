@@ -12,12 +12,17 @@ import {
   matchesDashboardSearch,
   useDashboardSearchQuery,
 } from "@/features/dashboard/hooks/useDashboardSearch";
+import { usePermissions } from "@/hooks/usePermissions";
 import {
   useDeletePurposeMutation,
   useGetPurposesQuery,
 } from "@/store/slices/admin";
 
 export function PurposesPanel() {
+  const { can } = usePermissions();
+  const canCreate = can("purposes:create");
+  const canUpdate = can("purposes:update");
+  const canDelete = can("purposes:delete");
   const { data = [], isLoading, error } = useGetPurposesQuery();
   const [deletePurpose, deleteState] = useDeletePurposeMutation();
   const [actionError, setActionError] = useState<unknown>(null);
@@ -37,6 +42,7 @@ export function PurposesPanel() {
       description="Manage listing purposes such as sale, rent, or investment."
       addHref={routes.lookupNew("purposes")}
       addLabel="Add purpose"
+      showAdd={canCreate}
       loading={isLoading}
       error={actionError ?? error}
     >
@@ -62,6 +68,8 @@ export function PurposesPanel() {
               <td className="px-5 py-3">
                 <RowActions
                   editHref={routes.lookupEdit("purposes", item.id)}
+                  showEdit={canUpdate}
+                  showDelete={canDelete}
                   deleting={deleteState.isLoading}
                   confirmTitle="Delete purpose?"
                   confirmMessage={`Are you sure you want to delete “${item.name}”? This action cannot be undone.`}

@@ -12,6 +12,7 @@ import {
   useSendAnnouncementMutation,
 } from "@/store/slices/admin/announcementsApi";
 import { useGuestPresenceStream } from "@/hooks/useGuestPresenceStream";
+import { usePermissions } from "@/hooks/usePermissions";
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat(undefined, {
@@ -21,6 +22,8 @@ function formatDate(value: string) {
 }
 
 export function AnnouncementsPanel() {
+  const { can } = usePermissions();
+  const canCreate = can("announcements:create");
   const { data, isLoading, error, refetch } = useGetAnnouncementsOverviewQuery();
   useGuestPresenceStream(true);
   const [sendAnnouncement, sendState] = useSendAnnouncementMutation();
@@ -112,69 +115,71 @@ export function AnnouncementsPanel() {
         </div>
       </div>
 
-      <form
-        onSubmit={onSubmit}
-        className="max-w-3xl rounded-[24px] border border-[#e8eef6] bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)] sm:p-6"
-      >
-        <h2 className="text-[15px] font-semibold text-[var(--brand-navy)]">
-          Send announcement
-        </h2>
-        <p className="mt-1 text-[13px] text-[var(--muted)]">
-          Sends instantly via Firebase to online guests who enabled notifications.
-        </p>
+      {canCreate ? (
+        <form
+          onSubmit={onSubmit}
+          className="max-w-3xl rounded-[24px] border border-[#e8eef6] bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)] sm:p-6"
+        >
+          <h2 className="text-[15px] font-semibold text-[var(--brand-navy)]">
+            Send announcement
+          </h2>
+          <p className="mt-1 text-[13px] text-[var(--muted)]">
+            Sends instantly via Firebase to online guests who enabled notifications.
+          </p>
 
-        <div className="mt-4 space-y-4">
-          <TextInput
-            label="Title"
-            value={title}
-            required
-            placeholder="Special offer today"
-            onChange={setTitle}
-          />
-          <label className="block">
-            <span className="mb-1.5 block text-[13px] font-medium text-[var(--brand-navy)]">
-              Message
-            </span>
-            <textarea
-              value={message}
+          <div className="mt-4 space-y-4">
+            <TextInput
+              label="Title"
+              value={title}
               required
-              rows={4}
-              placeholder="Write the message guests will see on the website..."
-              onChange={(event) => setMessage(event.target.value)}
-              className="w-full rounded-xl border border-[#dbe4f0] bg-white px-3.5 py-2.5 text-[14px] text-[var(--brand-navy)] outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[var(--brand-blue)]"
+              placeholder="Special offer today"
+              onChange={setTitle}
             />
-          </label>
-        </div>
-
-        {error || actionError ? (
-          <div className="mt-4 rounded-xl border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-[13px] font-medium text-[#b91c1c]">
-            {getApiErrorMessage(actionError ?? error)}
+            <label className="block">
+              <span className="mb-1.5 block text-[13px] font-medium text-[var(--brand-navy)]">
+                Message
+              </span>
+              <textarea
+                value={message}
+                required
+                rows={4}
+                placeholder="Write the message guests will see on the website..."
+                onChange={(event) => setMessage(event.target.value)}
+                className="w-full rounded-xl border border-[#dbe4f0] bg-white px-3.5 py-2.5 text-[14px] text-[var(--brand-navy)] outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[var(--brand-blue)]"
+              />
+            </label>
           </div>
-        ) : null}
 
-        {sentMessage ? (
-          <div className="mt-4 rounded-xl border border-[#bbf7d0] bg-[#f0fdf4] px-3 py-2 text-[13px] font-medium text-[#15803d]">
-            {sentMessage}
+          {error || actionError ? (
+            <div className="mt-4 rounded-xl border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-[13px] font-medium text-[#b91c1c]">
+              {getApiErrorMessage(actionError ?? error)}
+            </div>
+          ) : null}
+
+          {sentMessage ? (
+            <div className="mt-4 rounded-xl border border-[#bbf7d0] bg-[#f0fdf4] px-3 py-2 text-[13px] font-medium text-[#15803d]">
+              {sentMessage}
+            </div>
+          ) : null}
+
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <button
+              type="submit"
+              disabled={sendState.isLoading}
+              className="inline-flex h-11 cursor-pointer items-center justify-center rounded-full bg-[var(--brand-red)] px-5 text-[13px] font-semibold text-white transition-colors hover:bg-[#c9181e] disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {sendState.isLoading ? "Sending..." : "Send Firebase push"}
+            </button>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="inline-flex h-11 cursor-pointer items-center justify-center rounded-full border border-[#dbe4f0] px-5 text-[13px] font-semibold text-[var(--brand-navy)] transition-colors hover:bg-[#f8fafc]"
+            >
+              Refresh count
+            </button>
           </div>
-        ) : null}
-
-        <div className="mt-5 flex flex-wrap items-center gap-3">
-          <button
-            type="submit"
-            disabled={sendState.isLoading}
-            className="inline-flex h-11 cursor-pointer items-center justify-center rounded-full bg-[var(--brand-red)] px-5 text-[13px] font-semibold text-white transition-colors hover:bg-[#c9181e] disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {sendState.isLoading ? "Sending..." : "Send Firebase push"}
-          </button>
-          <button
-            type="button"
-            onClick={() => refetch()}
-            className="inline-flex h-11 cursor-pointer items-center justify-center rounded-full border border-[#dbe4f0] px-5 text-[13px] font-semibold text-[var(--brand-navy)] transition-colors hover:bg-[#f8fafc]"
-          >
-            Refresh count
-          </button>
-        </div>
-      </form>
+        </form>
+      ) : null}
 
       <section className="max-w-3xl rounded-[24px] border border-[#e8eef6] bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)] sm:p-6">
         <h2 className="text-[15px] font-semibold text-[var(--brand-navy)]">

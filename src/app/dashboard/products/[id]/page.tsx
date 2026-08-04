@@ -1,4 +1,5 @@
 import { ProductForm } from "@/features/dashboard/components/lookups/forms/ProductForm";
+import { RequireDashboardAccess } from "@/features/dashboard/components/RequireDashboardAccess";
 
 export default async function EditProductPage({
   params,
@@ -6,5 +7,9 @@ export default async function EditProductPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <ProductForm id={Number(id)} />;
+  return (
+    <RequireDashboardAccess tab="products" permission="products:update">
+      <ProductForm id={Number(id)} />
+    </RequireDashboardAccess>
+  );
 }

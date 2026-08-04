@@ -1,4 +1,5 @@
 import { CountryForm } from "@/features/dashboard/components/lookups/forms/CountryForm";
+import { RequireDashboardAccess } from "@/features/dashboard/components/RequireDashboardAccess";
 
 export default async function EditCountryPage({
   params,
@@ -6,5 +7,9 @@ export default async function EditCountryPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <CountryForm id={Number(id)} />;
+  return (
+    <RequireDashboardAccess tab="cities" permission="cities:update">
+      <CountryForm id={Number(id)} />
+    </RequireDashboardAccess>
+  );
 }

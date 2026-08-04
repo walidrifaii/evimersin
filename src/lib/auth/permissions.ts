@@ -60,7 +60,7 @@ export function canAccessTab(
   if (!permissions?.length) return false;
   if (permissions.includes(SUPER_ADMIN_PERMISSION)) return true;
 
-  return permissions.some((permission) => moduleFromPermission(permission) === tabId);
+  return hasPermission(permissions, `${tabId}:read`);
 }
 
 export function getFirstAllowedTab(permissions: string[] | undefined | null) {

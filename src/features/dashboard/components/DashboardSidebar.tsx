@@ -7,6 +7,7 @@ import { config } from "@/constants/config";
 import { dashboardNav } from "@/features/dashboard/data";
 import { routes } from "@/constants/routes";
 import { usePermissions } from "@/hooks/usePermissions";
+import { getFirstAllowedTab } from "@/lib/auth/permissions";
 import { useLogoutMutation } from "@/store/slices/auth/authApi";
 import { clearCredentials } from "@/store/slices/auth/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -165,12 +166,17 @@ export function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
   const activeTab = searchParams.get("tab") ?? "overview";
   const dispatch = useAppDispatch();
   const { admin, refreshToken } = useAppSelector((state) => state.auth);
-  const { canAccessTab } = usePermissions();
+  const { permissions, canAccessTab } = usePermissions();
   const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
 
   const visibleNav = useMemo(
     () => dashboardNav.filter((item) => canAccessTab(item.id)),
-    [canAccessTab],
+    [canAccessTab, permissions],
+  );
+
+  const homeTab = useMemo(
+    () => getFirstAllowedTab(permissions),
+    [permissions],
   );
 
   async function handleLogout() {
@@ -205,7 +211,7 @@ export function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
         }}
       >
         <div className="flex h-16 items-center justify-between px-5 pt-2">
-          <Link href={routes.dashboardTab("overview")} className="flex min-w-0 items-center gap-2.5" onClick={onClose}>
+          <Link href={routes.dashboardTab(homeTab)} className="flex min-w-0 items-center gap-2.5" onClick={onClose}>
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white/20">
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
                 <path

@@ -9,14 +9,16 @@ export function LookupListLayout({
   description,
   addHref,
   addLabel = "Add new",
+  showAdd = true,
   loading,
   error,
   children,
 }: {
   title: string;
   description: string;
-  addHref: string;
+  addHref?: string;
   addLabel?: string;
+  showAdd?: boolean;
   loading: boolean;
   error?: unknown;
   children: ReactNode;
@@ -33,12 +35,14 @@ export function LookupListLayout({
           </h1>
           <p className="mt-2 max-w-2xl text-[14px] text-[var(--muted)]">{description}</p>
         </div>
-        <Link
-          href={addHref}
-          className="inline-flex h-11 cursor-pointer items-center justify-center rounded-full bg-[var(--brand-red)] px-5 text-[13px] font-semibold text-white transition-colors hover:bg-[#c9181e]"
-        >
-          {addLabel}
-        </Link>
+        {showAdd && addHref ? (
+          <Link
+            href={addHref}
+            className="inline-flex h-11 cursor-pointer items-center justify-center rounded-full bg-[var(--brand-red)] px-5 text-[13px] font-semibold text-white transition-colors hover:bg-[#c9181e]"
+          >
+            {addLabel}
+          </Link>
+        ) : null}
       </div>
 
       {error ? (
@@ -349,17 +353,25 @@ export function RowActions({
   editHref,
   onDelete,
   deleting,
+  showEdit = true,
+  showDelete = true,
   confirmTitle = "Delete item?",
   confirmMessage = "Are you sure you want to delete this item? This action cannot be undone.",
 }: {
   editHref: string;
   onDelete: () => void | Promise<void>;
   deleting?: boolean;
+  showEdit?: boolean;
+  showDelete?: boolean;
   confirmTitle?: string;
   confirmMessage?: string;
 }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
+
+  if (!showEdit && !showDelete) {
+    return <span className="text-[12px] text-[var(--muted)]">View only</span>;
+  }
 
   async function handleConfirm() {
     setConfirmError(null);
@@ -374,23 +386,27 @@ export function RowActions({
   return (
     <>
       <div className="flex items-center gap-2">
-        <Link
-          href={editHref}
-          className="cursor-pointer rounded-full px-3 py-1.5 text-[12px] font-semibold text-[var(--brand-blue)] hover:bg-[#eff6ff]"
-        >
-          Edit
-        </Link>
-        <button
-          type="button"
-          onClick={() => {
-            setConfirmError(null);
-            setConfirmOpen(true);
-          }}
-          disabled={deleting}
-          className="cursor-pointer rounded-full px-3 py-1.5 text-[12px] font-semibold text-[var(--brand-red)] hover:bg-[#fef2f2] disabled:opacity-60"
-        >
-          Delete
-        </button>
+        {showEdit ? (
+          <Link
+            href={editHref}
+            className="cursor-pointer rounded-full px-3 py-1.5 text-[12px] font-semibold text-[var(--brand-blue)] hover:bg-[#eff6ff]"
+          >
+            Edit
+          </Link>
+        ) : null}
+        {showDelete ? (
+          <button
+            type="button"
+            onClick={() => {
+              setConfirmError(null);
+              setConfirmOpen(true);
+            }}
+            disabled={deleting}
+            className="cursor-pointer rounded-full px-3 py-1.5 text-[12px] font-semibold text-[var(--brand-red)] hover:bg-[#fef2f2] disabled:opacity-60"
+          >
+            Delete
+          </button>
+        ) : null}
       </div>
 
       <ConfirmDeleteDrawer

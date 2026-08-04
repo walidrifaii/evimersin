@@ -12,12 +12,17 @@ import {
   matchesDashboardSearch,
   useDashboardSearchQuery,
 } from "@/features/dashboard/hooks/useDashboardSearch";
+import { usePermissions } from "@/hooks/usePermissions";
 import {
   useDeleteRegionMutation,
   useGetRegionsQuery,
 } from "@/store/slices/admin";
 
 export function RegionsPanel() {
+  const { can } = usePermissions();
+  const canCreate = can("regions:create");
+  const canUpdate = can("regions:update");
+  const canDelete = can("regions:delete");
   const { data = [], isLoading, error } = useGetRegionsQuery();
   const [deleteRegion, deleteState] = useDeleteRegionMutation();
   const [actionError, setActionError] = useState<unknown>(null);
@@ -42,6 +47,7 @@ export function RegionsPanel() {
       description="Manage regions within each city for property locations and filters."
       addHref={routes.lookupNew("regions")}
       addLabel="Add region"
+      showAdd={canCreate}
       loading={isLoading}
       error={actionError ?? error}
     >
@@ -71,6 +77,8 @@ export function RegionsPanel() {
               <td className="px-5 py-3">
                 <RowActions
                   editHref={routes.lookupEdit("regions", item.id)}
+                  showEdit={canUpdate}
+                  showDelete={canDelete}
                   deleting={deleteState.isLoading}
                   confirmTitle="Delete region?"
                   confirmMessage={`Are you sure you want to delete “${item.name}”? This action cannot be undone.`}

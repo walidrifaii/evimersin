@@ -1,10 +1,15 @@
 import { RegionForm } from "@/features/dashboard/components/lookups/forms/RegionForm";
+import { RequireDashboardAccess } from "@/features/dashboard/components/RequireDashboardAccess";
 
-type EditRegionPageProps = {
+export default async function EditRegionPage({
+  params,
+}: {
   params: Promise<{ id: string }>;
-};
-
-export default async function EditRegionPage({ params }: EditRegionPageProps) {
+}) {
   const { id } = await params;
-  return <RegionForm id={Number(id)} />;
+  return (
+    <RequireDashboardAccess tab="regions" permission="regions:update">
+      <RegionForm id={Number(id)} />
+    </RequireDashboardAccess>
+  );
 }

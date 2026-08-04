@@ -3,9 +3,25 @@
 import { useState } from "react";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopbar } from "@/features/dashboard/components/DashboardTopbar";
+import { usePermissions } from "@/hooks/usePermissions";
+import { useAppSelector } from "@/store/hooks";
+import { useGetMeQuery } from "@/store/slices/auth/authApi";
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const accessToken = useAppSelector((state) => state.auth.accessToken);
+  const { permissions } = usePermissions();
+  const { isFetching: profileLoading } = useGetMeQuery(undefined, {
+    skip: !accessToken,
+  });
+
+  if (profileLoading && permissions === undefined) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#f4f6f9] text-[var(--muted)]">
+        Loading dashboard...
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen overflow-hidden">

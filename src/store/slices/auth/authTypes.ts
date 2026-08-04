@@ -9,7 +9,7 @@ export type AuthAdmin = {
   roleId: number;
   roleName: string;
   roleLabel: string;
-  permissions: string[];
+  permissions?: string[];
 };
 
 export type AuthSession = {
