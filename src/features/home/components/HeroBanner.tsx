@@ -1,5 +1,5 @@
 import heroImage from "@/assets/images/hero.webp";
-import { HeroBannerSlider } from "@/features/home/components/HeroBannerSlider";
+import { HeroBannerInteractive } from "@/features/home/components/HeroBannerInteractive";
 import { PropertySearchBar } from "@/features/home/components/PropertySearchBar";
 import { PropertyTypeCard } from "@/features/home/components/PropertyTypeCard";
 import {
@@ -59,15 +59,14 @@ export async function HeroBanner({ filterOptions }: HeroBannerProps) {
   return (
     <section className="relative w-full bg-white">
       <div className="relative min-h-[78vh] w-full lg:min-h-[820px]">
-        <HeroBannerSlider
+        <HeroBannerInteractive
           slides={heroSlides}
           fallbackImage={heroImage}
           fallbackAlt={t("heroImageAlt")}
-        />
-
+        >
         <div
           dir={isRtl ? "rtl" : "ltr"}
-          className="relative z-30 mx-auto flex h-full min-h-[78vh] w-full flex-col items-start justify-start px-4 pb-32 pt-14 text-start sm:px-6 md:px-4 md:pb-36 md:pt-16 lg:px-[100px] lg:pb-48 lg:pt-28"
+          className="pointer-events-none relative z-30 mx-auto flex h-full min-h-[78vh] w-full flex-col items-start justify-start px-4 pb-32 pt-14 text-start sm:px-6 md:px-4 md:pb-36 md:pt-16 lg:px-[100px] lg:pb-48 lg:pt-28"
         >
           <div
             className={`w-full max-w-[640px] animate-[heroFade_700ms_ease-out] ${
@@ -84,10 +83,11 @@ export async function HeroBanner({ filterOptions }: HeroBannerProps) {
             </p>
           </div>
 
-          <div className="relative z-40 mt-8 w-full animate-[heroFade_900ms_ease-out] sm:mt-10">
+          <div className="pointer-events-auto relative z-40 mt-8 w-full animate-[heroFade_900ms_ease-out] sm:mt-10">
             <PropertySearchBar filterOptions={filterOptions} />
           </div>
         </div>
+        </HeroBannerInteractive>
       </div>
 
       <div className="relative z-10 mx-auto -mt-20 w-full px-4 sm:px-6 md:-mt-18 md:px-4 lg:-mt-28 lg:px-[100px]">
