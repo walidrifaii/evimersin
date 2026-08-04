@@ -34,6 +34,23 @@ function NavIcon({ id }: { id: string }) {
           />
         </svg>
       );
+    case "announcements":
+      return (
+        <svg {...common}>
+          <path
+            d="M4 10V14L8 16V18C8 19.1 8.9 20 10 20H14C15.1 20 16 19.1 16 18V16L20 14V10L12 6L4 10Z"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M12 6V12"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+          />
+        </svg>
+      );
     case "listings":
       return (
         <svg {...common}>

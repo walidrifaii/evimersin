@@ -6,7 +6,6 @@ import {
   FormLoading,
   TextInput,
 } from "@/features/dashboard/components/lookups/LookupManager";
-import { FcmNotificationSetup } from "@/features/dashboard/components/FcmNotificationSetup";
 import { getApiErrorMessage } from "@/store/api/errors";
 import {
   useGetSiteSettingsQuery,
@@ -195,8 +194,6 @@ export function SettingsPanel() {
           </button>
         </div>
       </form>
-
-      <FcmNotificationSetup />
     </div>
   );
 }

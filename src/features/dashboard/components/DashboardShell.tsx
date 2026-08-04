@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { AdminFcmBanner } from "@/features/dashboard/components/AdminFcmBanner";
-import { AdminNotificationPrompt } from "@/features/dashboard/components/AdminNotificationPrompt";
 import { DashboardSidebar } from "@/features/dashboard/components/DashboardSidebar";
 import { DashboardTopbar } from "@/features/dashboard/components/DashboardTopbar";
 
@@ -11,7 +9,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      <AdminNotificationPrompt />
       <div
         className="pointer-events-none absolute inset-0"
         aria-hidden="true"
@@ -32,7 +29,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         <div className="flex min-h-screen min-w-0 flex-1 flex-col bg-white lg:min-h-[calc(100vh-2.5rem)] lg:rounded-[28px] lg:shadow-[0_20px_60px_rgba(15,23,42,0.22)]">
           <DashboardTopbar onMenuOpen={() => setSidebarOpen(true)} />
           <div className="flex-1 overflow-y-auto px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
-            <AdminFcmBanner />
             {children}
           </div>
         </div>

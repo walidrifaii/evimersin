@@ -5,7 +5,6 @@ import {
   withHandler,
 } from "@/server/middleware";
 import { visitService } from "@/server/services/visit.service";
-import { getFirebasePublicConfig } from "@/server/services/firebase.service";
 import { ok } from "@/server/utils/response";
 import { trackVisitSchema } from "@/server/validators/notification.validator";
 
@@ -24,10 +23,4 @@ export const POST = compose(withHandler)(async (request) => {
   });
 
   return ok(result, 201);
-});
-
-export const GET = compose(withHandler)(async () => {
-  return ok({
-    enabled: Boolean(getFirebasePublicConfig()),
-  });
 });

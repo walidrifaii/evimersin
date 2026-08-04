@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { routes } from "@/constants/routes";
 import { AccountSecurityPanel } from "@/features/dashboard/components/AccountSecurityPanel";
+import { AnnouncementsPanel } from "@/features/dashboard/components/AnnouncementsPanel";
 import { DashboardOverview } from "@/features/dashboard/components/DashboardOverview";
 import { CategoriesPanel } from "@/features/dashboard/components/lookups/CategoriesPanel";
 import { CitiesPanel } from "@/features/dashboard/components/lookups/CitiesPanel";
@@ -41,6 +42,8 @@ export function DashboardContent() {
   switch (tabParam) {
     case "overview":
       return <DashboardOverview />;
+    case "announcements":
+      return <AnnouncementsPanel />;
     case "cities":
       return <CitiesPanel />;
     case "regions":

@@ -9,6 +9,7 @@ export type DashboardNavItem = {
 
 export const DASHBOARD_TABS = [
   "overview",
+  "announcements",
   "products",
   "categories",
   "cities",
@@ -26,6 +27,7 @@ export function isDashboardTab(value: string | null | undefined): value is Dashb
 
 export const dashboardNav: DashboardNavItem[] = [
   { id: "overview", label: "Overview", href: routes.dashboardTab("overview") },
+  { id: "announcements", label: "Announcements", href: routes.dashboardTab("announcements") },
   { id: "products", label: "Residential Units", href: routes.dashboardTab("products") },
   { id: "categories", label: "Categories", href: routes.dashboardTab("categories") },
   { id: "cities", label: "Cities", href: routes.dashboardTab("cities") },

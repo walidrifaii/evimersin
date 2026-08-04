@@ -238,6 +238,30 @@ CREATE TABLE IF NOT EXISTS site_visits (
   KEY idx_site_visits_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS guest_sessions (
+  session_id VARCHAR(64) NOT NULL,
+  path VARCHAR(500) NOT NULL,
+  locale VARCHAR(5) NOT NULL DEFAULT 'en',
+  last_seen_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (session_id),
+  KEY idx_guest_sessions_last_seen (last_seen_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS site_announcements (
+  id INT NOT NULL AUTO_INCREMENT,
+  title VARCHAR(200) NOT NULL,
+  message TEXT NOT NULL,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_by INT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_site_announcements_active (is_active, created_at),
+  CONSTRAINT fk_announcement_admin
+    FOREIGN KEY (created_by) REFERENCES admin(id)
+    ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 INSERT IGNORE INTO site_settings (
   id,
   email,
