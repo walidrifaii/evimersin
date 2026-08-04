@@ -101,22 +101,6 @@ export function HeroBannerInteractive({
           >
             <HiChevronRight className="h-6 w-6" aria-hidden="true" />
           </button>
-
-          <div className="pointer-events-auto absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-2">
-            {items.map((_, index) => (
-              <button
-                key={index}
-                type="button"
-                aria-label={`Go to slide ${index + 1}`}
-                onClick={() => goTo(index)}
-                className={`h-2.5 rounded-full transition-all ${
-                  index === activeIndex
-                    ? "w-8 bg-white"
-                    : "w-2.5 bg-white/50 hover:bg-white/80"
-                }`}
-              />
-            ))}
-          </div>
         </div>
       ) : null}
 
