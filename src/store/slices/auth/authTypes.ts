@@ -2,6 +2,8 @@ export type AuthAdmin = {
   id: number;
   username: string;
   name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   status: number;
   roleId: number;

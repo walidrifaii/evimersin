@@ -1,5 +1,6 @@
 import { execute, query } from "@/server/database/connection";
 import { roleRepository } from "@/server/database/repositories/role.repository";
+import { normalizePermissions } from "@/constants/permissions";
 import type { AdminRecord, CreateAdminInput, UpdateAdminInput } from "@/server/types/admin.types";
 
 const SELECT_FIELDS = `
@@ -7,9 +8,12 @@ const SELECT_FIELDS = `
   a.username,
   a.password,
   a.name,
+  a.first_name,
+  a.last_name,
   a.email,
   a.status,
   a.role_id,
+  a.custom_permissions,
   a.created_at,
   a.updated_at,
   r.name AS role_name,
@@ -17,15 +21,38 @@ const SELECT_FIELDS = `
   r.permissions AS role_permissions
 `;
 
-type AdminRow = AdminRecord & {
+export type AdminRow = AdminRecord & {
   role_name: string;
   role_label: string;
   role_permissions: string;
 };
 
+const CUSTOM_ROLE_ID = 5;
+
 let ensurePromise: Promise<void> | null = null;
 
-async function ensureEmailColumn() {
+function parsePermissionsJson(raw: string | string[] | null | undefined) {
+  return roleRepository.parsePermissions(raw);
+}
+
+export function getEffectivePermissions(admin: AdminRow) {
+  if (admin.role_id === 1) {
+    return ["*"];
+  }
+
+  const custom = parsePermissionsJson(admin.custom_permissions);
+  if (custom.length > 0) {
+    return custom;
+  }
+
+  return parsePermissionsJson(admin.role_permissions);
+}
+
+function buildFullName(firstName: string, lastName: string) {
+  return `${firstName}`.trim() + (lastName.trim() ? ` ${lastName.trim()}` : "");
+}
+
+async function ensureAdminColumns() {
   if (!ensurePromise) {
     ensurePromise = (async () => {
       await roleRepository.ensureReady();
@@ -36,9 +63,34 @@ async function ensureEmailColumn() {
         );
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        if (!message.includes("Duplicate column name")) {
-          throw error;
-        }
+        if (!message.includes("Duplicate column name")) throw error;
+      }
+
+      try {
+        await execute(
+          `ALTER TABLE admin ADD COLUMN first_name VARCHAR(100) NULL AFTER name`,
+        );
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (!message.includes("Duplicate column name")) throw error;
+      }
+
+      try {
+        await execute(
+          `ALTER TABLE admin ADD COLUMN last_name VARCHAR(100) NULL AFTER first_name`,
+        );
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (!message.includes("Duplicate column name")) throw error;
+      }
+
+      try {
+        await execute(
+          `ALTER TABLE admin ADD COLUMN custom_permissions JSON NULL AFTER role_id`,
+        );
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (!message.includes("Duplicate column name")) throw error;
       }
 
       const defaultEmail =
@@ -50,6 +102,27 @@ async function ensureEmailColumn() {
         `UPDATE admin SET email = :email WHERE email IS NULL OR email = ''`,
         { email: defaultEmail },
       );
+
+      await execute(`
+        UPDATE admin
+        SET first_name = CASE
+          WHEN first_name IS NULL OR TRIM(first_name) = '' THEN
+            CASE
+              WHEN LOCATE(' ', TRIM(name)) > 0 THEN SUBSTRING_INDEX(TRIM(name), ' ', 1)
+              ELSE TRIM(name)
+            END
+          ELSE first_name
+        END,
+        last_name = CASE
+          WHEN last_name IS NULL OR TRIM(last_name) = '' THEN
+            CASE
+              WHEN LOCATE(' ', TRIM(name)) > 0 THEN SUBSTRING(TRIM(name), LOCATE(' ', TRIM(name)) + 1)
+              ELSE ''
+            END
+          ELSE last_name
+        END
+        WHERE name IS NOT NULL
+      `);
     })().catch((error) => {
       ensurePromise = null;
       throw error;
@@ -61,7 +134,7 @@ async function ensureEmailColumn() {
 
 export const adminRepository = {
   async findAll(): Promise<AdminRow[]> {
-    await ensureEmailColumn();
+    await ensureAdminColumns();
 
     return query<AdminRow[]>(
       `SELECT ${SELECT_FIELDS}
@@ -72,7 +145,7 @@ export const adminRepository = {
   },
 
   async findById(id: number): Promise<AdminRow | null> {
-    await ensureEmailColumn();
+    await ensureAdminColumns();
 
     const rows = await query<AdminRow[]>(
       `SELECT ${SELECT_FIELDS}
@@ -87,7 +160,7 @@ export const adminRepository = {
   },
 
   async findByUsername(username: string): Promise<AdminRow | null> {
-    await ensureEmailColumn();
+    await ensureAdminColumns();
 
     const rows = await query<AdminRow[]>(
       `SELECT ${SELECT_FIELDS}
@@ -101,14 +174,29 @@ export const adminRepository = {
     return rows[0] ?? null;
   },
 
-  async findByEmailOrUsername(identifier: string): Promise<AdminRow | null> {
-    await ensureEmailColumn();
+  async findByEmail(email: string): Promise<AdminRow | null> {
+    await ensureAdminColumns();
 
     const rows = await query<AdminRow[]>(
       `SELECT ${SELECT_FIELDS}
        FROM admin a
        INNER JOIN admin_roles r ON r.id = a.role_id
-       WHERE a.username = :identifier OR a.email = :identifier
+       WHERE LOWER(a.email) = :email
+       LIMIT 1`,
+      { email: email.trim().toLowerCase() },
+    );
+
+    return rows[0] ?? null;
+  },
+
+  async findByEmailOrUsername(identifier: string): Promise<AdminRow | null> {
+    await ensureAdminColumns();
+
+    const rows = await query<AdminRow[]>(
+      `SELECT ${SELECT_FIELDS}
+       FROM admin a
+       INNER JOIN admin_roles r ON r.id = a.role_id
+       WHERE a.username = :identifier OR LOWER(a.email) = LOWER(:identifier)
        LIMIT 1`,
       { identifier },
     );
@@ -117,7 +205,7 @@ export const adminRepository = {
   },
 
   async findPrimaryNotifyEmail(): Promise<string | null> {
-    await ensureEmailColumn();
+    await ensureAdminColumns();
 
     const rows = await query<Array<{ email: string }>>(
       `SELECT email
@@ -134,7 +222,7 @@ export const adminRepository = {
   },
 
   async countByRole(roleId: number) {
-    await ensureEmailColumn();
+    await ensureAdminColumns();
     const rows = await query<Array<{ total: number }>>(
       `SELECT COUNT(*) AS total FROM admin WHERE role_id = :roleId`,
       { roleId },
@@ -143,18 +231,25 @@ export const adminRepository = {
   },
 
   async create(input: CreateAdminInput & { password: string }): Promise<number> {
-    await ensureEmailColumn();
+    await ensureAdminColumns();
+
+    const firstName = input.firstName.trim();
+    const lastName = input.lastName.trim();
+    const permissions = normalizePermissions(input.permissions);
 
     const result = await execute(
-      `INSERT INTO admin (username, password, name, email, status, role_id)
-       VALUES (:username, :password, :name, :email, :status, :role_id)`,
+      `INSERT INTO admin (username, password, name, first_name, last_name, email, status, role_id, custom_permissions)
+       VALUES (:username, :password, :name, :first_name, :last_name, :email, :status, :role_id, :custom_permissions)`,
       {
         username: input.username,
         password: input.password,
-        name: input.name,
-        email: input.email,
+        name: buildFullName(firstName, lastName),
+        first_name: firstName,
+        last_name: lastName,
+        email: input.email.trim().toLowerCase(),
         status: input.status ?? 1,
-        role_id: input.roleId ?? 4,
+        role_id: CUSTOM_ROLE_ID,
+        custom_permissions: JSON.stringify(permissions),
       },
     );
 
@@ -162,7 +257,7 @@ export const adminRepository = {
   },
 
   async update(id: number, input: UpdateAdminInput & { password?: string }): Promise<boolean> {
-    await ensureEmailColumn();
+    await ensureAdminColumns();
 
     const fields: string[] = [];
     const params: Record<string, string | number> = { id };
@@ -171,21 +266,39 @@ export const adminRepository = {
       fields.push("username = :username");
       params.username = input.username;
     }
-    if (input.name !== undefined) {
-      fields.push("name = :name");
-      params.name = input.name;
+
+    const nextFirstName = input.firstName?.trim();
+    const nextLastName = input.lastName?.trim();
+
+    if (nextFirstName !== undefined) {
+      fields.push("first_name = :first_name");
+      params.first_name = nextFirstName;
     }
+    if (nextLastName !== undefined) {
+      fields.push("last_name = :last_name");
+      params.last_name = nextLastName;
+    }
+    if (nextFirstName !== undefined || nextLastName !== undefined) {
+      const current = await this.findById(id);
+      const firstName = nextFirstName ?? current?.first_name ?? "";
+      const lastName = nextLastName ?? current?.last_name ?? "";
+      fields.push("name = :name");
+      params.name = buildFullName(firstName, lastName);
+    }
+
     if (input.email !== undefined) {
       fields.push("email = :email");
-      params.email = input.email;
+      params.email = input.email.trim().toLowerCase();
     }
     if (input.status !== undefined) {
       fields.push("status = :status");
       params.status = input.status;
     }
-    if (input.roleId !== undefined) {
+    if (input.permissions !== undefined) {
+      fields.push("custom_permissions = :custom_permissions");
+      params.custom_permissions = JSON.stringify(normalizePermissions(input.permissions));
       fields.push("role_id = :role_id");
-      params.role_id = input.roleId;
+      params.role_id = CUSTOM_ROLE_ID;
     }
     if (input.password !== undefined) {
       fields.push("password = :password");
@@ -203,7 +316,7 @@ export const adminRepository = {
   },
 
   async delete(id: number): Promise<boolean> {
-    await ensureEmailColumn();
+    await ensureAdminColumns();
 
     const result = await execute(`DELETE FROM admin WHERE id = :id`, { id });
 
@@ -211,4 +324,4 @@ export const adminRepository = {
   },
 };
 
-export type { AdminRow };
+export { CUSTOM_ROLE_ID };

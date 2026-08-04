@@ -9,22 +9,19 @@ import {
 } from "@/server/middleware";
 import { PERMISSIONS } from "@/constants/permissions";
 import { adminService } from "@/server/services/admin.service";
-import { createAdminSchema } from "@/server/validators/admin.validator";
+import { requestUserEmailVerificationSchema } from "@/server/validators/admin.validator";
 
 export const runtime = "nodejs";
-
-export const GET = compose(
-  withAuth,
-  withPermission(PERMISSIONS.USERS_READ),
-  withHandler,
-)(async (_request, context) => ok(await adminService.list(context.admin)));
 
 export const POST = compose(
   withAuth,
   withPermission(PERMISSIONS.USERS_CREATE),
   withHandler,
 )(async (request, context) => {
-  const body = validateBody(createAdminSchema, await parseJsonBody(request));
-  const admin = await adminService.create(body, context.admin);
-  return ok(admin, 201);
+  const body = validateBody(
+    requestUserEmailVerificationSchema,
+    await parseJsonBody(request),
+  );
+  const result = await adminService.requestUserEmailVerification(body, context.admin);
+  return ok(result);
 });

@@ -3,9 +3,12 @@ export type AdminRecord = {
   username: string;
   password: string;
   name: string;
+  first_name: string;
+  last_name: string;
   email: string;
   status: number;
   role_id: number;
+  custom_permissions: string | null;
   created_at?: Date;
   updated_at?: Date;
 };
@@ -14,6 +17,8 @@ export type AdminPublic = {
   id: number;
   username: string;
   name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   status: number;
   roleId: number;
@@ -27,19 +32,29 @@ export type AdminPublic = {
 export type CreateAdminInput = {
   username: string;
   password: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
+  permissions: string[];
+  emailOtp: string;
   status?: number;
-  roleId?: number;
 };
 
 export type UpdateAdminInput = {
   username?: string;
   password?: string;
-  name?: string;
+  firstName?: string;
+  lastName?: string;
   email?: string;
+  permissions?: string[];
+  emailOtp?: string;
   status?: number;
-  roleId?: number;
+};
+
+export type RequestUserEmailVerificationInput = {
+  email: string;
+  firstName: string;
+  lastName: string;
 };
 
 export type LoginInput = {

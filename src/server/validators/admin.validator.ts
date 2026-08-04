@@ -1,4 +1,15 @@
 import { z } from "zod";
+import { ALL_PERMISSIONS } from "@/constants/permissions";
+
+const permissionsSchema = z
+  .array(z.string())
+  .min(1, "Select at least one permission")
+  .transform((values) =>
+    values.filter((value) => ALL_PERMISSIONS.includes(value) || value === "*"),
+  )
+  .refine((values) => values.length > 0, {
+    message: "Select at least one permission",
+  });
 
 export const loginSchema = z.object({
   username: z.string().trim().min(3).max(100),
@@ -13,23 +24,33 @@ export const logoutSchema = z.object({
   refreshToken: z.string().trim().min(20).optional(),
 });
 
+export const requestUserEmailVerificationSchema = z.object({
+  email: z.string().trim().email().max(255),
+  firstName: z.string().trim().min(1).max(100),
+  lastName: z.string().trim().min(1).max(100),
+});
+
 export const createAdminSchema = z.object({
   username: z.string().trim().min(3).max(100),
   password: z.string().min(6).max(128),
-  name: z.string().trim().min(2).max(150),
+  firstName: z.string().trim().min(1).max(100),
+  lastName: z.string().trim().min(1).max(100),
   email: z.string().trim().email().max(255),
+  permissions: permissionsSchema,
+  emailOtp: z.string().trim().regex(/^\d{6}$/, "Verification code must be 6 digits"),
   status: z.union([z.literal(0), z.literal(1)]).optional().default(1),
-  roleId: z.coerce.number().int().positive().optional().default(4),
 });
 
 export const updateAdminSchema = z
   .object({
     username: z.string().trim().min(3).max(100).optional(),
     password: z.string().min(6).max(128).optional(),
-    name: z.string().trim().min(2).max(150).optional(),
+    firstName: z.string().trim().min(1).max(100).optional(),
+    lastName: z.string().trim().min(1).max(100).optional(),
     email: z.string().trim().email().max(255).optional(),
+    permissions: permissionsSchema.optional(),
+    emailOtp: z.string().trim().regex(/^\d{6}$/, "Verification code must be 6 digits").optional(),
     status: z.union([z.literal(0), z.literal(1)]).optional(),
-    roleId: z.coerce.number().int().positive().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "At least one field is required",
@@ -92,3 +113,6 @@ export type ChangePasswordConfirmSchema = z.infer<typeof changePasswordConfirmSc
 export type LoginSchema = z.infer<typeof loginSchema>;
 export type CreateAdminSchema = z.infer<typeof createAdminSchema>;
 export type UpdateAdminSchema = z.infer<typeof updateAdminSchema>;
+export type RequestUserEmailVerificationSchema = z.infer<
+  typeof requestUserEmailVerificationSchema
+>;

@@ -5,6 +5,8 @@ export type DashboardUser = {
   id: number;
   username: string;
   name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   status: number;
   roleId: number;
@@ -15,29 +17,37 @@ export type DashboardUser = {
   updated_at?: string;
 };
 
-export type AdminRole = {
-  id: number;
-  name: string;
-  label: string;
-  permissions: string[];
-};
-
 export type CreateDashboardUserInput = {
   username: string;
   password: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
+  permissions: string[];
+  emailOtp: string;
   status?: 0 | 1;
-  roleId?: number;
 };
 
 export type UpdateDashboardUserInput = {
   username?: string;
   password?: string;
-  name?: string;
+  firstName?: string;
+  lastName?: string;
   email?: string;
+  permissions?: string[];
+  emailOtp?: string;
   status?: 0 | 1;
-  roleId?: number;
+};
+
+export type RequestEmailVerificationInput = {
+  email: string;
+  firstName: string;
+  lastName: string;
+};
+
+export type EmailVerificationResult = {
+  message: string;
+  emailMasked: string;
 };
 
 export const adminsApi = api.injectEndpoints({
@@ -48,10 +58,16 @@ export const adminsApi = api.injectEndpoints({
       providesTags: [{ type: "Admin", id: "LIST" }],
     }),
 
-    getAdminRoles: builder.query<AdminRole[], void>({
-      query: () => "/admin/roles",
-      transformResponse: (response: ApiResponse<AdminRole[]>) => response.data,
-      providesTags: [{ type: "Admin", id: "ROLES" }],
+    requestUserEmailVerification: builder.mutation<
+      EmailVerificationResult,
+      RequestEmailVerificationInput
+    >({
+      query: (body) => ({
+        url: "/admin/email-verification",
+        method: "POST",
+        body,
+      }),
+      transformResponse: (response: ApiResponse<EmailVerificationResult>) => response.data,
     }),
 
     createDashboardUser: builder.mutation<DashboardUser, CreateDashboardUserInput>({
@@ -91,7 +107,7 @@ export const adminsApi = api.injectEndpoints({
 
 export const {
   useGetDashboardUsersQuery,
-  useGetAdminRolesQuery,
+  useRequestUserEmailVerificationMutation,
   useCreateDashboardUserMutation,
   useUpdateDashboardUserMutation,
   useDeleteDashboardUserMutation,

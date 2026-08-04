@@ -35,7 +35,7 @@ export const GET = compose(
 
 export const PUT = compose(
   withAuth,
-  withPermission(PERMISSIONS.USERS_WRITE),
+  withPermission(PERMISSIONS.USERS_UPDATE),
   withHandler,
 )(async (request, context: ApiContext) => {
   const params = await context.params;
@@ -46,7 +46,7 @@ export const PUT = compose(
 
 export const DELETE = compose(
   withAuth,
-  withPermission(PERMISSIONS.USERS_WRITE),
+  withPermission(PERMISSIONS.USERS_DELETE),
   withHandler,
 )(async (_request, context: ApiContext) => {
   const params = await context.params;

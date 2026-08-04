@@ -102,7 +102,8 @@ async function ensureRolesTable() {
            (1, 'super_admin', 'Super Admin', :superAdmin),
            (2, 'manager', 'Manager', :manager),
            (3, 'editor', 'Editor', :editor),
-           (4, 'viewer', 'Viewer', :viewer)
+           (4, 'viewer', 'Viewer', :viewer),
+           (5, 'custom', 'Custom', :custom)
          ON DUPLICATE KEY UPDATE
            label = VALUES(label),
            permissions = VALUES(permissions)`,
@@ -111,6 +112,7 @@ async function ensureRolesTable() {
           manager: managerPermissions,
           editor: editorPermissions,
           viewer: viewerPermissions,
+          custom: JSON.stringify([]),
         },
       );
 

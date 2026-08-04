@@ -1,4 +1,12 @@
-import { adminRepository, type AdminRow } from "@/server/database/repositories/admin.repository";
+import {
+  adminRepository,
+  getEffectivePermissions,
+  type AdminRow,
+} from "@/server/database/repositories/admin.repository";
+import {
+  emailVerificationRepository,
+  verifyEmailOtpHash,
+} from "@/server/database/repositories/email-verification.repository";
 import {
   generateOtpCode,
   passwordResetRepository,
@@ -18,7 +26,7 @@ import {
 } from "@/server/auth/jwt";
 import { hashPassword, verifyPassword } from "@/server/auth/password";
 import { hasPermission } from "@/lib/auth/permissions";
-import { PERMISSIONS } from "@/constants/permissions";
+import { normalizePermissions, PERMISSIONS } from "@/constants/permissions";
 import { mailService } from "@/server/services/mail.service";
 import { AppError } from "@/server/utils/errors";
 import type {
@@ -29,6 +37,7 @@ import type {
   CreateAdminInput,
   ForgotPasswordInput,
   LoginInput,
+  RequestUserEmailVerificationInput,
   ResetPasswordInput,
   UpdateAdminInput,
   VerifyOtpInput,
@@ -51,16 +60,19 @@ async function findActiveAdminByIdentifier(identifier: string) {
 }
 
 function toPublicAdmin(admin: AdminRow): AdminPublic {
+  const permissions = getEffectivePermissions(admin);
   return {
     id: admin.id,
     username: admin.username,
     name: admin.name,
+    firstName: admin.first_name ?? admin.name.split(" ")[0] ?? "",
+    lastName: admin.last_name ?? admin.name.split(" ").slice(1).join(" "),
     email: admin.email,
     status: admin.status,
     roleId: admin.role_id,
     roleName: admin.role_name,
-    roleLabel: admin.role_label,
-    permissions: roleRepository.parsePermissions(admin.role_permissions),
+    roleLabel: admin.role_id === 5 ? "Custom access" : admin.role_label,
+    permissions,
     created_at: admin.created_at,
     updated_at: admin.updated_at,
   };
@@ -73,8 +85,16 @@ function toTokenPayload(admin: AdminRow): AuthTokenPayload {
     name: admin.name,
     roleId: admin.role_id,
     roleName: admin.role_name,
-    permissions: roleRepository.parsePermissions(admin.role_permissions),
+    permissions: getEffectivePermissions(admin),
   };
+}
+
+async function verifyInviteEmailOtp(email: string, otp: string) {
+  const record = await emailVerificationRepository.findLatestValid(email, "user-invite");
+  if (!record || !verifyEmailOtpHash(otp, record.otp_hash)) {
+    throw new AppError("Invalid or expired email verification code.", 400);
+  }
+  await emailVerificationRepository.markUsed(record.id);
 }
 
 async function issueTokenPair(admin: AdminRow) {
@@ -97,8 +117,16 @@ async function issueTokenPair(admin: AdminRow) {
   };
 }
 
-function assertCanManageUsers(actor?: AuthTokenPayload) {
-  if (!actor || !hasPermission(actor.permissions, PERMISSIONS.USERS_WRITE)) {
+  function assertCanManageUsers(actor?: AuthTokenPayload) {
+  if (
+    !actor ||
+    !(
+      hasPermission(actor.permissions, PERMISSIONS.USERS_WRITE) ||
+      hasPermission(actor.permissions, PERMISSIONS.USERS_CREATE) ||
+      hasPermission(actor.permissions, PERMISSIONS.USERS_UPDATE) ||
+      hasPermission(actor.permissions, PERMISSIONS.USERS_DELETE)
+    )
+  ) {
     throw new AppError("You do not have permission to manage dashboard users.", 403);
   }
 }
@@ -106,7 +134,6 @@ function assertCanManageUsers(actor?: AuthTokenPayload) {
 async function assertSafeAdminMutation(input: {
   actor?: AuthTokenPayload;
   targetId: number;
-  nextRoleId?: number;
   nextStatus?: number;
   deleting?: boolean;
 }) {
@@ -123,17 +150,11 @@ async function assertSafeAdminMutation(input: {
     const superAdminCount = await adminRepository.countByRole(SUPER_ADMIN_ROLE_ID);
     const willLoseSuperAdmin =
       input.deleting ||
-      (input.nextRoleId !== undefined && input.nextRoleId !== SUPER_ADMIN_ROLE_ID) ||
       (input.nextStatus !== undefined && input.nextStatus === 0);
 
     if (willLoseSuperAdmin && superAdminCount <= 1) {
       throw new AppError("At least one active super admin is required.", 400);
     }
-  }
-
-  if (input.nextRoleId !== undefined) {
-    const role = await roleRepository.findById(input.nextRoleId);
-    if (!role) throw new AppError("Role not found", 404);
   }
 
   return target;
@@ -158,20 +179,64 @@ export const adminService = {
     return toPublicAdmin(admin);
   },
 
+  async requestUserEmailVerification(
+    input: RequestUserEmailVerificationInput,
+    actor?: AuthTokenPayload,
+  ) {
+    assertCanManageUsers(actor);
+
+    const email = input.email.trim().toLowerCase();
+    const existing = await adminRepository.findByEmail(email);
+    if (existing) {
+      throw new AppError("This email is already used by another dashboard user.", 409);
+    }
+
+    const otp = generateOtpCode();
+    const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
+
+    await emailVerificationRepository.create({
+      email,
+      otp,
+      expiresAt,
+      purpose: "user-invite",
+      createdBy: actor?.sub,
+    });
+
+    await mailService.sendUserEmailVerificationOtp({
+      to: email,
+      firstName: input.firstName.trim(),
+      lastName: input.lastName.trim(),
+      otp,
+    });
+
+    return {
+      message: `Verification code sent to ${maskEmail(email)}.`,
+      emailMasked: maskEmail(email),
+    };
+  },
+
   async create(input: CreateAdminInput, actor?: AuthTokenPayload): Promise<AdminPublic> {
     assertCanManageUsers(actor);
 
-    const existing = await adminRepository.findByUsername(input.username);
-    if (existing) throw new AppError("Username already exists", 409);
+    const existingUsername = await adminRepository.findByUsername(input.username);
+    if (existingUsername) throw new AppError("Username already exists", 409);
 
-    if (input.roleId !== undefined) {
-      const role = await roleRepository.findById(input.roleId);
-      if (!role) throw new AppError("Role not found", 404);
+    const email = input.email.trim().toLowerCase();
+    const existingEmail = await adminRepository.findByEmail(email);
+    if (existingEmail) throw new AppError("Email already exists", 409);
+
+    const permissions = normalizePermissions(input.permissions);
+    if (permissions.length === 0) {
+      throw new AppError("Select at least one permission for this user.", 400);
     }
+
+    await verifyInviteEmailOtp(email, input.emailOtp);
 
     const passwordHash = await hashPassword(input.password);
     const id = await adminRepository.create({
       ...input,
+      email,
+      permissions,
       password: passwordHash,
     });
 
@@ -183,12 +248,15 @@ export const adminService = {
     input: UpdateAdminInput,
     actor?: AuthTokenPayload,
   ): Promise<AdminPublic> {
-    await assertSafeAdminMutation({
+    const target = await assertSafeAdminMutation({
       actor,
       targetId: id,
-      nextRoleId: input.roleId,
       nextStatus: input.status,
     });
+
+    if (target.role_id === SUPER_ADMIN_ROLE_ID && (input.permissions || input.status === 0)) {
+      throw new AppError("Super admin access cannot be changed from here.", 400);
+    }
 
     const admin = await adminRepository.findById(id);
     if (!admin) throw new AppError("Admin not found", 404);
@@ -196,6 +264,28 @@ export const adminService = {
     if (input.username && input.username !== admin.username) {
       const existing = await adminRepository.findByUsername(input.username);
       if (existing) throw new AppError("Username already exists", 409);
+    }
+
+    const nextEmail = input.email?.trim().toLowerCase();
+    const emailChanged = !!nextEmail && nextEmail !== admin.email.trim().toLowerCase();
+
+    if (emailChanged) {
+      if (!input.emailOtp) {
+        throw new AppError("Email verification code is required when changing email.", 400);
+      }
+      const taken = await adminRepository.findByEmail(nextEmail);
+      if (taken && taken.id !== id) {
+        throw new AppError("This email is already used by another dashboard user.", 409);
+      }
+      await verifyInviteEmailOtp(nextEmail, input.emailOtp);
+    }
+
+    if (input.permissions !== undefined) {
+      const permissions = normalizePermissions(input.permissions);
+      if (permissions.length === 0) {
+        throw new AppError("Select at least one permission for this user.", 400);
+      }
+      input.permissions = permissions;
     }
 
     const payload: UpdateAdminInput & { password?: string } = { ...input };
