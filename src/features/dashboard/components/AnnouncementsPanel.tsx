@@ -123,9 +123,6 @@ export function AnnouncementsPanel() {
           <h2 className="text-[15px] font-semibold text-[var(--brand-navy)]">
             Send announcement
           </h2>
-          <p className="mt-1 text-[13px] text-[var(--muted)]">
-            Sends instantly via Firebase to online guests who enabled notifications.
-          </p>
 
           <div className="mt-4 space-y-4">
             <TextInput
