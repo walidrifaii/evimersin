@@ -60,10 +60,17 @@ export function AnnouncementsPanel() {
           Announcements
         </h1>
         <p className="mt-2 max-w-2xl text-[14px] text-[var(--muted)]">
-          Send a live notification to guests who are currently browsing the
-          website. Active visitors are tracked in real time.
+          Send Firebase push notifications to guests who are currently browsing
+          the website and have allowed browser notifications.
         </p>
       </div>
+
+      {!data?.firebaseEnabled ? (
+        <div className="rounded-[24px] border border-[#fde68a] bg-[#fffbeb] px-5 py-4 text-[13px] text-[#92400e]">
+          Firebase is not fully configured. Add your Firebase client and admin
+          keys to enable guest push notifications.
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <div className="rounded-[24px] border border-[#e8eef6] bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
@@ -78,6 +85,17 @@ export function AnnouncementsPanel() {
             {isFetching ? " · refreshing..." : ""}
           </p>
         </div>
+        <div className="rounded-[24px] border border-[#e8eef6] bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--muted)]">
+            Can receive push
+          </p>
+          <p className="mt-2 text-[2rem] font-bold text-[var(--brand-navy)]">
+            {data?.reachableGuestCount ?? 0}
+          </p>
+          <p className="mt-1 text-[12px] text-[var(--muted)]">
+            Online guests with notifications enabled
+          </p>
+        </div>
       </div>
 
       <form
@@ -88,7 +106,7 @@ export function AnnouncementsPanel() {
           Send announcement
         </h2>
         <p className="mt-1 text-[13px] text-[var(--muted)]">
-          This replaces any previous active announcement for all guests.
+          Sends instantly via Firebase to online guests who enabled notifications.
         </p>
 
         <div className="mt-4 space-y-4">
@@ -132,7 +150,7 @@ export function AnnouncementsPanel() {
             disabled={sendState.isLoading}
             className="inline-flex h-11 cursor-pointer items-center justify-center rounded-full bg-[var(--brand-red)] px-5 text-[13px] font-semibold text-white transition-colors hover:bg-[#c9181e] disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {sendState.isLoading ? "Sending..." : "Send to online guests"}
+            {sendState.isLoading ? "Sending..." : "Send Firebase push"}
           </button>
           <button
             type="button"

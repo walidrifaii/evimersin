@@ -21,9 +21,10 @@ importScripts("https://www.gstatic.com/firebasejs/11.6.0/firebase-messaging-comp
 
 firebase.initializeApp(${JSON.stringify(config)});
 firebase.messaging().onBackgroundMessage(function (payload) {
-  const title = payload.notification?.title || "EviMersin";
+  const title = payload.notification?.title || payload.data?.title || "EviMersin";
+  const body = payload.notification?.body || payload.data?.message || "New announcement";
   const options = {
-    body: payload.notification?.body || "New website activity",
+    body: body,
     icon: ${JSON.stringify(iconUrl)},
     badge: ${JSON.stringify(iconUrl)},
     data: payload.data || {},
@@ -32,7 +33,8 @@ firebase.messaging().onBackgroundMessage(function (payload) {
 });
 self.addEventListener("notificationclick", function (event) {
   event.notification.close();
-  event.waitUntil(clients.openWindow("/dashboard?tab=overview"));
+  const target = self.location.origin + "/";
+  event.waitUntil(clients.openWindow(target));
 });
 `.trim();
 

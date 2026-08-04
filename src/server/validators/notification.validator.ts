@@ -12,4 +12,11 @@ export const registerFcmTokenSchema = z.object({
   deviceLabel: z.string().trim().max(150).optional().default(""),
 });
 
+export const registerGuestFcmTokenSchema = z.object({
+  sessionId: z.string().trim().min(8).max(64),
+  token: z.string().trim().min(20).max(512),
+  locale: z.enum(["en", "ar"]).optional().default("en"),
+});
+
 export type TrackVisitInput = z.infer<typeof trackVisitSchema>;
+export type RegisterGuestFcmTokenInput = z.infer<typeof registerGuestFcmTokenSchema>;

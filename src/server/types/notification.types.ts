@@ -30,3 +30,18 @@ export type RegisterFcmTokenInput = {
   token: string;
   device_label?: string | null;
 };
+
+export type GuestFcmToken = {
+  id: number;
+  session_id: string;
+  token: string;
+  locale: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type RegisterGuestFcmTokenInput = {
+  session_id: string;
+  token: string;
+  locale?: string;
+};

@@ -114,25 +114,25 @@ function getMessagingClient() {
 export const firebaseService = {
   isReady: () => isFirebaseAdminConfigured(),
 
-  async sendVisitorNotification(input: {
-    path: string;
-    locale: string;
+  async sendAnnouncementNotification(input: {
+    announcementId: number;
+    title: string;
+    message: string;
     tokens: string[];
   }) {
     const messaging = getMessagingClient();
-    if (!messaging || input.tokens.length === 0) return { sent: 0, failed: 0 };
-
-    const localeLabel = input.locale === "ar" ? "Arabic" : "English";
-    const page = input.path === "/" ? "Homepage" : input.path;
+    if (!messaging || input.tokens.length === 0) {
+      return { sent: 0, failed: 0, invalidTokens: [] as string[] };
+    }
 
     const iconUrl = getNotificationIconUrl();
-    const dashboardLink = `${getAppBaseUrl()}/dashboard?tab=overview`;
+    const siteLink = getAppBaseUrl();
 
     const result = await messaging.sendEachForMulticast({
       tokens: input.tokens,
       notification: {
-        title: "New website visitor",
-        body: `A guest opened ${page} (${localeLabel}).`,
+        title: input.title,
+        body: input.message,
         imageUrl: iconUrl,
       },
       webpush: {
@@ -141,19 +141,34 @@ export const firebaseService = {
           badge: iconUrl,
         },
         fcmOptions: {
-          link: dashboardLink,
+          link: siteLink,
         },
       },
       data: {
-        type: "site_visit",
-        path: input.path,
-        locale: input.locale,
+        type: "announcement",
+        announcementId: String(input.announcementId),
+        title: input.title,
+        message: input.message,
       },
     });
+
+    const invalidTokens = result.responses
+      .map((response, index) =>
+        response.success ||
+        !response.error ||
+        !(
+          response.error.code === "messaging/invalid-registration-token" ||
+          response.error.code === "messaging/registration-token-not-registered"
+        )
+          ? null
+          : input.tokens[index],
+      )
+      .filter((token): token is string => Boolean(token));
 
     return {
       sent: result.successCount,
       failed: result.failureCount,
+      invalidTokens,
     };
   },
 };

@@ -3,6 +3,7 @@ import type {
   AdminFcmToken,
   CreateSiteVisitInput,
   RegisterFcmTokenInput,
+  RegisterGuestFcmTokenInput,
   SiteVisit,
 } from "@/server/types/notification.types";
 
@@ -39,6 +40,53 @@ export const fcmTokenRepository = {
 
   deleteByToken: (token: string) =>
     execute(`DELETE FROM admin_fcm_tokens WHERE token = :token`, { token }),
+};
+
+export const guestFcmTokenRepository = {
+  async upsert(input: RegisterGuestFcmTokenInput) {
+    await execute(
+      `INSERT INTO guest_fcm_tokens (session_id, token, locale)
+       VALUES (:session_id, :token, :locale)
+       ON DUPLICATE KEY UPDATE
+         session_id = VALUES(session_id),
+         locale = VALUES(locale),
+         updated_at = CURRENT_TIMESTAMP`,
+      {
+        session_id: input.session_id,
+        token: input.token,
+        locale: input.locale ?? "en",
+      },
+    );
+  },
+
+  findActiveTokens: (withinMinutes = 5) => {
+    const minutes = Math.max(1, Math.min(60, Math.floor(withinMinutes)));
+    return query<Array<{ token: string }>>(
+      `SELECT DISTINCT gft.token
+       FROM guest_fcm_tokens gft
+       INNER JOIN guest_sessions gs ON gs.session_id = gft.session_id
+       WHERE gs.last_seen_at >= (NOW() - INTERVAL ${minutes} MINUTE)`,
+    );
+  },
+
+  countReachable: (withinMinutes = 5) => {
+    const minutes = Math.max(1, Math.min(60, Math.floor(withinMinutes)));
+    return query<Array<{ total: number }>>(
+      `SELECT COUNT(DISTINCT gft.token) AS total
+       FROM guest_fcm_tokens gft
+       INNER JOIN guest_sessions gs ON gs.session_id = gft.session_id
+       WHERE gs.last_seen_at >= (NOW() - INTERVAL ${minutes} MINUTE)`,
+    ).then((rows) => Number(rows[0]?.total ?? 0));
+  },
+
+  deleteByTokens: async (tokens: string[]) => {
+    if (tokens.length === 0) return;
+    const placeholders = tokens.map((_, index) => `:token${index}`).join(", ");
+    const params = Object.fromEntries(
+      tokens.map((token, index) => [`token${index}`, token]),
+    );
+    await execute(`DELETE FROM guest_fcm_tokens WHERE token IN (${placeholders})`, params);
+  },
 };
 
 export const siteVisitRepository = {

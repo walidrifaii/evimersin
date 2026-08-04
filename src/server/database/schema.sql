@@ -262,6 +262,19 @@ CREATE TABLE IF NOT EXISTS site_announcements (
     ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS guest_fcm_tokens (
+  id INT NOT NULL AUTO_INCREMENT,
+  session_id VARCHAR(64) NOT NULL,
+  token VARCHAR(512) NOT NULL,
+  locale VARCHAR(5) NOT NULL DEFAULT 'en',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_guest_fcm_token (token),
+  KEY idx_guest_fcm_session (session_id),
+  KEY idx_guest_fcm_updated (updated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 INSERT IGNORE INTO site_settings (
   id,
   email,

@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
-import { GuestAnnouncementBanner } from "@/components/announcements/GuestAnnouncementBanner";
+import { GuestFirebaseNotifications } from "@/components/announcements/GuestFirebaseNotifications";
 import { VisitTracker } from "@/components/visits/VisitTracker";
 import { SiteSettingsProvider } from "@/components/providers/SiteSettingsProvider";
 import { getSiteSettings } from "@/lib/site-settings";
@@ -29,7 +29,7 @@ export default async function SiteLayout({
         <Footer />
         <Suspense fallback={null}>
           <VisitTracker />
-          <GuestAnnouncementBanner />
+          <GuestFirebaseNotifications />
         </Suspense>
       </div>
     </SiteSettingsProvider>

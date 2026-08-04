@@ -11,6 +11,8 @@ export type AnnouncementItem = {
 
 export type AnnouncementsOverview = {
   activeGuestCount: number;
+  reachableGuestCount: number;
+  firebaseEnabled: boolean;
   announcements: AnnouncementItem[];
 };
 
@@ -22,6 +24,9 @@ export type SendAnnouncementInput = {
 export type SendAnnouncementResult = {
   id: number;
   activeGuestCount: number;
+  reachableGuestCount: number;
+  notificationsSent: number;
+  notificationsFailed: number;
   message: string;
 };
 
