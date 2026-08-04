@@ -10,6 +10,9 @@ export const routes = {
   apiDocs: "/api-docs",
   property: (id: string) => `/products/${id}`,
   dashboardTab: (tab: string) => `/dashboard?tab=${tab}`,
+  dashboardUserPermissionsNew: "/dashboard/users/new/permissions",
+  dashboardUserPermissions: (id: number) => `/dashboard/users/${id}/permissions`,
+  dashboardUsersResume: "/dashboard?tab=users&resumeUserDraft=1",
   lookupNew: (resource: string) => `/dashboard/${resource}/new`,
   lookupEdit: (resource: string, id: number) => `/dashboard/${resource}/${id}`,
 } as const;
