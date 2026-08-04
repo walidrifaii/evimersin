@@ -4,6 +4,10 @@ export type AuthAdmin = {
   name: string;
   email: string;
   status: number;
+  roleId: number;
+  roleName: string;
+  roleLabel: string;
+  permissions: string[];
 };
 
 export type AuthSession = {

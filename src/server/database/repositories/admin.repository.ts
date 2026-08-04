@@ -1,15 +1,35 @@
 import { execute, query } from "@/server/database/connection";
+import { roleRepository } from "@/server/database/repositories/role.repository";
 import type { AdminRecord, CreateAdminInput, UpdateAdminInput } from "@/server/types/admin.types";
 
 const SELECT_FIELDS = `
-  id, username, password, name, email, status, created_at, updated_at
+  a.id,
+  a.username,
+  a.password,
+  a.name,
+  a.email,
+  a.status,
+  a.role_id,
+  a.created_at,
+  a.updated_at,
+  r.name AS role_name,
+  r.label AS role_label,
+  r.permissions AS role_permissions
 `;
+
+type AdminRow = AdminRecord & {
+  role_name: string;
+  role_label: string;
+  role_permissions: string;
+};
 
 let ensurePromise: Promise<void> | null = null;
 
 async function ensureEmailColumn() {
   if (!ensurePromise) {
     ensurePromise = (async () => {
+      await roleRepository.ensureReady();
+
       try {
         await execute(
           `ALTER TABLE admin ADD COLUMN email VARCHAR(255) NULL AFTER name`,
@@ -40,23 +60,25 @@ async function ensureEmailColumn() {
 }
 
 export const adminRepository = {
-  async findAll(): Promise<AdminRecord[]> {
+  async findAll(): Promise<AdminRow[]> {
     await ensureEmailColumn();
 
-    return query<AdminRecord[]>(
+    return query<AdminRow[]>(
       `SELECT ${SELECT_FIELDS}
-       FROM admin
-       ORDER BY id DESC`,
+       FROM admin a
+       INNER JOIN admin_roles r ON r.id = a.role_id
+       ORDER BY a.id DESC`,
     );
   },
 
-  async findById(id: number): Promise<AdminRecord | null> {
+  async findById(id: number): Promise<AdminRow | null> {
     await ensureEmailColumn();
 
-    const rows = await query<AdminRecord[]>(
+    const rows = await query<AdminRow[]>(
       `SELECT ${SELECT_FIELDS}
-       FROM admin
-       WHERE id = :id
+       FROM admin a
+       INNER JOIN admin_roles r ON r.id = a.role_id
+       WHERE a.id = :id
        LIMIT 1`,
       { id },
     );
@@ -64,13 +86,14 @@ export const adminRepository = {
     return rows[0] ?? null;
   },
 
-  async findByUsername(username: string): Promise<AdminRecord | null> {
+  async findByUsername(username: string): Promise<AdminRow | null> {
     await ensureEmailColumn();
 
-    const rows = await query<AdminRecord[]>(
+    const rows = await query<AdminRow[]>(
       `SELECT ${SELECT_FIELDS}
-       FROM admin
-       WHERE username = :username
+       FROM admin a
+       INNER JOIN admin_roles r ON r.id = a.role_id
+       WHERE a.username = :username
        LIMIT 1`,
       { username },
     );
@@ -78,13 +101,14 @@ export const adminRepository = {
     return rows[0] ?? null;
   },
 
-  async findByEmailOrUsername(identifier: string): Promise<AdminRecord | null> {
+  async findByEmailOrUsername(identifier: string): Promise<AdminRow | null> {
     await ensureEmailColumn();
 
-    const rows = await query<AdminRecord[]>(
+    const rows = await query<AdminRow[]>(
       `SELECT ${SELECT_FIELDS}
-       FROM admin
-       WHERE username = :identifier OR email = :identifier
+       FROM admin a
+       INNER JOIN admin_roles r ON r.id = a.role_id
+       WHERE a.username = :identifier OR a.email = :identifier
        LIMIT 1`,
       { identifier },
     );
@@ -109,18 +133,28 @@ export const adminRepository = {
     return email || null;
   },
 
+  async countByRole(roleId: number) {
+    await ensureEmailColumn();
+    const rows = await query<Array<{ total: number }>>(
+      `SELECT COUNT(*) AS total FROM admin WHERE role_id = :roleId`,
+      { roleId },
+    );
+    return Number(rows[0]?.total ?? 0);
+  },
+
   async create(input: CreateAdminInput & { password: string }): Promise<number> {
     await ensureEmailColumn();
 
     const result = await execute(
-      `INSERT INTO admin (username, password, name, email, status)
-       VALUES (:username, :password, :name, :email, :status)`,
+      `INSERT INTO admin (username, password, name, email, status, role_id)
+       VALUES (:username, :password, :name, :email, :status, :role_id)`,
       {
         username: input.username,
         password: input.password,
         name: input.name,
         email: input.email,
         status: input.status ?? 1,
+        role_id: input.roleId ?? 4,
       },
     );
 
@@ -149,6 +183,10 @@ export const adminRepository = {
       fields.push("status = :status");
       params.status = input.status;
     }
+    if (input.roleId !== undefined) {
+      fields.push("role_id = :role_id");
+      params.role_id = input.roleId;
+    }
     if (input.password !== undefined) {
       fields.push("password = :password");
       params.password = input.password;
@@ -172,3 +210,5 @@ export const adminRepository = {
     return result.affectedRows > 0;
   },
 };
+
+export type { AdminRow };

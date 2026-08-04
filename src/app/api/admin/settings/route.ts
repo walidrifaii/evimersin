@@ -4,7 +4,9 @@ import {
   validateBody,
   withAuth,
   withHandler,
+  withPermission,
 } from "@/server/middleware";
+import { PERMISSIONS } from "@/constants/permissions";
 import { settingsService } from "@/server/services/settings.service";
 import { ok } from "@/server/utils/response";
 import { revalidateSettingsCache } from "@/server/utils/revalidate";
@@ -14,11 +16,13 @@ export const runtime = "nodejs";
 
 export const GET = compose(
   withAuth,
+  withPermission(PERMISSIONS.SETTINGS_READ),
   withHandler,
 )(async () => ok(await settingsService.get()));
 
 export const PUT = compose(
   withAuth,
+  withPermission(PERMISSIONS.SETTINGS_WRITE),
   withHandler,
 )(async (request) => {
   const input = validateBody(

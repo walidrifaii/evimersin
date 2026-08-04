@@ -5,22 +5,26 @@ import {
   validateBody,
   withAuth,
   withHandler,
+  withPermission,
 } from "@/server/middleware";
+import { PERMISSIONS } from "@/constants/permissions";
 import { adminService } from "@/server/services/admin.service";
 import { createAdminSchema } from "@/server/validators/admin.validator";
 
 export const runtime = "nodejs";
 
-const getHandler = compose(withAuth, withHandler)(async () => {
-  const admins = await adminService.list();
-  return ok(admins);
-});
+export const GET = compose(
+  withAuth,
+  withPermission(PERMISSIONS.USERS_READ),
+  withHandler,
+)(async (_request, context) => ok(await adminService.list(context.admin)));
 
-const postHandler = compose(withAuth, withHandler)(async (request) => {
+export const POST = compose(
+  withAuth,
+  withPermission(PERMISSIONS.USERS_WRITE),
+  withHandler,
+)(async (request, context) => {
   const body = validateBody(createAdminSchema, await parseJsonBody(request));
-  const admin = await adminService.create(body);
+  const admin = await adminService.create(body, context.admin);
   return ok(admin, 201);
 });
-
-export const GET = getHandler;
-export const POST = postHandler;

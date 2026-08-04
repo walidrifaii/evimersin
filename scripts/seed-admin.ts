@@ -30,6 +30,7 @@ async function seedAdmin() {
     name,
     email,
     status: 1,
+    roleId: 1,
   });
 
   console.log(`Admin created successfully with id: ${id}`);

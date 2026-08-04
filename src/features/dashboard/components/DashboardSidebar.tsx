@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useMemo } from "react";
 import { config } from "@/constants/config";
 import { dashboardNav } from "@/features/dashboard/data";
 import { routes } from "@/constants/routes";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useLogoutMutation } from "@/store/slices/auth/authApi";
 import { clearCredentials } from "@/store/slices/auth/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -163,7 +165,13 @@ export function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
   const activeTab = searchParams.get("tab") ?? "overview";
   const dispatch = useAppDispatch();
   const { admin, refreshToken } = useAppSelector((state) => state.auth);
+  const { canAccessTab } = usePermissions();
   const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
+
+  const visibleNav = useMemo(
+    () => dashboardNav.filter((item) => canAccessTab(item.id)),
+    [canAccessTab],
+  );
 
   async function handleLogout() {
     try {
@@ -237,7 +245,7 @@ export function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
         </div>
 
         <nav className="mt-2 flex-1 space-y-1 overflow-y-auto px-3 pb-4" aria-label="Dashboard">
-          {dashboardNav.map((item) => {
+          {visibleNav.map((item) => {
             const tab =
               new URL(item.href, "http://local").searchParams.get("tab") ?? "overview";
             const isActive =
@@ -300,7 +308,7 @@ export function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
                 {admin?.name ?? "Admin"}
               </p>
               <p className="truncate text-[11px] text-white/60">
-                {admin?.email ?? "—"}
+                {admin?.roleLabel ?? admin?.email ?? "—"}
               </p>
             </div>
           </div>

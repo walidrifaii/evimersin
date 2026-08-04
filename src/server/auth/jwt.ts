@@ -25,6 +25,9 @@ export async function signAccessToken(payload: AuthTokenPayload): Promise<string
   return new SignJWT({
     username: payload.username,
     name: payload.name,
+    roleId: payload.roleId,
+    roleName: payload.roleName,
+    permissions: payload.permissions,
     type: "access",
   })
     .setProtectedHeader({ alg: "HS256" })
@@ -48,6 +51,11 @@ export async function verifyAccessToken(token: string): Promise<AuthTokenPayload
     sub: Number(sub),
     username: String(payload.username ?? ""),
     name: String(payload.name ?? ""),
+    roleId: Number(payload.roleId ?? 0),
+    roleName: String(payload.roleName ?? ""),
+    permissions: Array.isArray(payload.permissions)
+      ? payload.permissions.filter((item): item is string => typeof item === "string")
+      : [],
   };
 }
 
@@ -78,6 +86,9 @@ export async function verifyRefreshJwt(token: string): Promise<AuthTokenPayload>
     sub: Number(sub),
     username: String(payload.username ?? ""),
     name: String(payload.name ?? ""),
+    roleId: 0,
+    roleName: "",
+    permissions: [],
   };
 }
 

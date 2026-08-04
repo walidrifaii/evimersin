@@ -5,6 +5,7 @@ export type AdminRecord = {
   name: string;
   email: string;
   status: number;
+  role_id: number;
   created_at?: Date;
   updated_at?: Date;
 };
@@ -15,6 +16,10 @@ export type AdminPublic = {
   name: string;
   email: string;
   status: number;
+  roleId: number;
+  roleName: string;
+  roleLabel: string;
+  permissions: string[];
   created_at?: Date;
   updated_at?: Date;
 };
@@ -25,6 +30,7 @@ export type CreateAdminInput = {
   name: string;
   email: string;
   status?: number;
+  roleId?: number;
 };
 
 export type UpdateAdminInput = {
@@ -33,6 +39,7 @@ export type UpdateAdminInput = {
   name?: string;
   email?: string;
   status?: number;
+  roleId?: number;
 };
 
 export type LoginInput = {
@@ -59,6 +66,9 @@ export type AuthTokenPayload = {
   sub: number;
   username: string;
   name: string;
+  roleId: number;
+  roleName: string;
+  permissions: string[];
 };
 
 export type ChangePasswordRequestInput = {

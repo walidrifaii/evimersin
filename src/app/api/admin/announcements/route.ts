@@ -4,7 +4,9 @@ import {
   validateBody,
   withAuth,
   withHandler,
+  withPermission,
 } from "@/server/middleware";
+import { PERMISSIONS } from "@/constants/permissions";
 import { announcementService } from "@/server/services/announcement.service";
 import {
   getFirebaseVapidKey,
@@ -16,7 +18,11 @@ import { createAnnouncementSchema } from "@/server/validators/announcement.valid
 
 export const runtime = "nodejs";
 
-export const GET = compose(withAuth, withHandler)(async () => {
+export const GET = compose(
+  withAuth,
+  withPermission(PERMISSIONS.ANNOUNCEMENTS_READ),
+  withHandler,
+)(async () => {
   const [announcements, activeGuestCount, reachableGuestCount] = await Promise.all([
     announcementService.listRecent(),
     announcementService.getActiveGuestCount(),
@@ -38,7 +44,11 @@ export const GET = compose(withAuth, withHandler)(async () => {
   });
 });
 
-export const POST = compose(withAuth, withHandler)(async (request, context) => {
+export const POST = compose(
+  withAuth,
+  withPermission(PERMISSIONS.ANNOUNCEMENTS_WRITE),
+  withHandler,
+)(async (request, context) => {
   const adminId = context.admin?.sub;
   if (!adminId) throw new Error("Unauthorized");
 

@@ -1,4 +1,4 @@
-import { adminRepository } from "@/server/database/repositories/admin.repository";
+import { adminRepository, type AdminRow } from "@/server/database/repositories/admin.repository";
 import {
   generateOtpCode,
   passwordResetRepository,
@@ -7,6 +7,7 @@ import {
 import {
   refreshTokenRepository,
 } from "@/server/database/repositories/refresh-token.repository";
+import { roleRepository } from "@/server/database/repositories/role.repository";
 import {
   getRefreshExpiryDate,
   signAccessToken,
@@ -16,10 +17,13 @@ import {
   verifyRefreshJwt,
 } from "@/server/auth/jwt";
 import { hashPassword, verifyPassword } from "@/server/auth/password";
+import { hasPermission } from "@/lib/auth/permissions";
+import { PERMISSIONS } from "@/constants/permissions";
 import { mailService } from "@/server/services/mail.service";
 import { AppError } from "@/server/utils/errors";
 import type {
   AdminPublic,
+  AuthTokenPayload,
   ChangePasswordConfirmInput,
   ChangePasswordRequestInput,
   CreateAdminInput,
@@ -31,6 +35,7 @@ import type {
 } from "@/server/types/admin.types";
 
 const OTP_EXPIRY_MINUTES = 10;
+const SUPER_ADMIN_ROLE_ID = 1;
 
 function maskEmail(email: string) {
   const [local, domain] = email.split("@");
@@ -39,52 +44,44 @@ function maskEmail(email: string) {
   return `${visible}${"*".repeat(Math.max(local.length - visible.length, 1))}@${domain}`;
 }
 
-
 async function findActiveAdminByIdentifier(identifier: string) {
   const admin = await adminRepository.findByEmailOrUsername(identifier.trim());
   if (!admin || admin.status !== 1) return null;
   return admin;
 }
 
-function toPublicAdmin(admin: {
-  id: number;
-  username: string;
-  name: string;
-  email: string;
-  status: number;
-  created_at?: Date;
-  updated_at?: Date;
-}): AdminPublic {
+function toPublicAdmin(admin: AdminRow): AdminPublic {
   return {
     id: admin.id,
     username: admin.username,
     name: admin.name,
     email: admin.email,
     status: admin.status,
+    roleId: admin.role_id,
+    roleName: admin.role_name,
+    roleLabel: admin.role_label,
+    permissions: roleRepository.parsePermissions(admin.role_permissions),
     created_at: admin.created_at,
     updated_at: admin.updated_at,
   };
 }
 
-async function issueTokenPair(admin: {
-  id: number;
-  username: string;
-  name: string;
-  email: string;
-  status: number;
-  created_at?: Date;
-  updated_at?: Date;
-}) {
-  const payload = {
+function toTokenPayload(admin: AdminRow): AuthTokenPayload {
+  return {
     sub: admin.id,
     username: admin.username,
     name: admin.name,
+    roleId: admin.role_id,
+    roleName: admin.role_name,
+    permissions: roleRepository.parsePermissions(admin.role_permissions),
   };
+}
 
+async function issueTokenPair(admin: AdminRow) {
+  const payload = toTokenPayload(admin);
   const accessToken = await signAccessToken(payload);
   const refreshToken = await signRefreshJwt(payload);
 
-  // Store hashed opaque-compatible token value (JWT string hashed)
   await refreshTokenRepository.create(
     admin.id,
     refreshToken,
@@ -100,21 +97,77 @@ async function issueTokenPair(admin: {
   };
 }
 
+function assertCanManageUsers(actor?: AuthTokenPayload) {
+  if (!actor || !hasPermission(actor.permissions, PERMISSIONS.USERS_WRITE)) {
+    throw new AppError("You do not have permission to manage dashboard users.", 403);
+  }
+}
+
+async function assertSafeAdminMutation(input: {
+  actor?: AuthTokenPayload;
+  targetId: number;
+  nextRoleId?: number;
+  nextStatus?: number;
+  deleting?: boolean;
+}) {
+  assertCanManageUsers(input.actor);
+
+  const target = await adminRepository.findById(input.targetId);
+  if (!target) throw new AppError("Admin not found", 404);
+
+  if (input.deleting && input.actor?.sub === input.targetId) {
+    throw new AppError("You cannot delete your own account.", 400);
+  }
+
+  if (target.role_id === SUPER_ADMIN_ROLE_ID) {
+    const superAdminCount = await adminRepository.countByRole(SUPER_ADMIN_ROLE_ID);
+    const willLoseSuperAdmin =
+      input.deleting ||
+      (input.nextRoleId !== undefined && input.nextRoleId !== SUPER_ADMIN_ROLE_ID) ||
+      (input.nextStatus !== undefined && input.nextStatus === 0);
+
+    if (willLoseSuperAdmin && superAdminCount <= 1) {
+      throw new AppError("At least one active super admin is required.", 400);
+    }
+  }
+
+  if (input.nextRoleId !== undefined) {
+    const role = await roleRepository.findById(input.nextRoleId);
+    if (!role) throw new AppError("Role not found", 404);
+  }
+
+  return target;
+}
+
 export const adminService = {
-  async list(): Promise<AdminPublic[]> {
-    const admins = await adminRepository.findAll();
-    return admins.map(toPublicAdmin);
+  list(actor?: AuthTokenPayload): Promise<AdminPublic[]> {
+    if (!actor || !hasPermission(actor.permissions, PERMISSIONS.USERS_READ)) {
+      throw new AppError("You do not have permission to view dashboard users.", 403);
+    }
+
+    return adminRepository.findAll().then((admins) => admins.map(toPublicAdmin));
   },
 
-  async getById(id: number): Promise<AdminPublic> {
+  async getById(id: number, actor?: AuthTokenPayload): Promise<AdminPublic> {
+    if (!actor || !hasPermission(actor.permissions, PERMISSIONS.USERS_READ)) {
+      throw new AppError("You do not have permission to view dashboard users.", 403);
+    }
+
     const admin = await adminRepository.findById(id);
     if (!admin) throw new AppError("Admin not found", 404);
     return toPublicAdmin(admin);
   },
 
-  async create(input: CreateAdminInput): Promise<AdminPublic> {
+  async create(input: CreateAdminInput, actor?: AuthTokenPayload): Promise<AdminPublic> {
+    assertCanManageUsers(actor);
+
     const existing = await adminRepository.findByUsername(input.username);
     if (existing) throw new AppError("Username already exists", 409);
+
+    if (input.roleId !== undefined) {
+      const role = await roleRepository.findById(input.roleId);
+      if (!role) throw new AppError("Role not found", 404);
+    }
 
     const passwordHash = await hashPassword(input.password);
     const id = await adminRepository.create({
@@ -122,10 +175,21 @@ export const adminService = {
       password: passwordHash,
     });
 
-    return this.getById(id);
+    return this.getById(id, actor);
   },
 
-  async update(id: number, input: UpdateAdminInput): Promise<AdminPublic> {
+  async update(
+    id: number,
+    input: UpdateAdminInput,
+    actor?: AuthTokenPayload,
+  ): Promise<AdminPublic> {
+    await assertSafeAdminMutation({
+      actor,
+      targetId: id,
+      nextRoleId: input.roleId,
+      nextStatus: input.status,
+    });
+
     const admin = await adminRepository.findById(id);
     if (!admin) throw new AppError("Admin not found", 404);
 
@@ -140,10 +204,16 @@ export const adminService = {
     }
 
     await adminRepository.update(id, payload);
-    return this.getById(id);
+    return this.getById(id, actor);
   },
 
-  async remove(id: number): Promise<void> {
+  async remove(id: number, actor?: AuthTokenPayload): Promise<void> {
+    await assertSafeAdminMutation({
+      actor,
+      targetId: id,
+      deleting: true,
+    });
+
     const deleted = await adminRepository.delete(id);
     if (!deleted) throw new AppError("Admin not found", 404);
   },
@@ -178,7 +248,6 @@ export const adminService = {
       throw new AppError("Account is inactive", 403);
     }
 
-    // Rotate refresh token
     await refreshTokenRepository.revokeByToken(refreshToken);
     return issueTokenPair(admin);
   },
@@ -198,7 +267,9 @@ export const adminService = {
   },
 
   async me(adminId: number) {
-    return this.getById(adminId);
+    const admin = await adminRepository.findById(adminId);
+    if (!admin) throw new AppError("Admin not found", 404);
+    return toPublicAdmin(admin);
   },
 
   async requestPasswordReset(input: ForgotPasswordInput) {
@@ -354,7 +425,7 @@ export const adminService = {
       await refreshTokenRepository.revokeAllForAdmin(admin.id);
     }
 
-    const updated = await this.getById(admin.id);
+    const updated = await this.me(admin.id);
     const message = challenge.passwordHash
       ? "Password and email updated successfully."
       : "Email updated successfully.";
@@ -364,4 +435,8 @@ export const adminService = {
       admin: updated,
     };
   },
+};
+
+export const roleService = {
+  list: () => roleRepository.findAll(),
 };

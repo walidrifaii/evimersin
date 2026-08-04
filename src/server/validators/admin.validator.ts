@@ -19,6 +19,7 @@ export const createAdminSchema = z.object({
   name: z.string().trim().min(2).max(150),
   email: z.string().trim().email().max(255),
   status: z.union([z.literal(0), z.literal(1)]).optional().default(1),
+  roleId: z.coerce.number().int().positive().optional().default(4),
 });
 
 export const updateAdminSchema = z
@@ -28,6 +29,7 @@ export const updateAdminSchema = z
     name: z.string().trim().min(2).max(150).optional(),
     email: z.string().trim().email().max(255).optional(),
     status: z.union([z.literal(0), z.literal(1)]).optional(),
+    roleId: z.coerce.number().int().positive().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "At least one field is required",

@@ -6,8 +6,10 @@ import {
   validateBody,
   withAuth,
   withHandler,
+  withPermission,
   type ApiContext,
 } from "@/server/middleware";
+import { PERMISSIONS } from "@/constants/permissions";
 import { adminService } from "@/server/services/admin.service";
 import { updateAdminSchema } from "@/server/validators/admin.validator";
 
@@ -21,25 +23,33 @@ function parseId(params: Record<string, string>) {
   return parsed;
 }
 
-const getHandler = compose(withAuth, withHandler)(async (_request, context: ApiContext) => {
+export const GET = compose(
+  withAuth,
+  withPermission(PERMISSIONS.USERS_READ),
+  withHandler,
+)(async (_request, context: ApiContext) => {
   const params = await context.params;
-  const admin = await adminService.getById(parseId(params));
+  const admin = await adminService.getById(parseId(params), context.admin);
   return ok(admin);
 });
 
-const putHandler = compose(withAuth, withHandler)(async (request, context: ApiContext) => {
+export const PUT = compose(
+  withAuth,
+  withPermission(PERMISSIONS.USERS_WRITE),
+  withHandler,
+)(async (request, context: ApiContext) => {
   const params = await context.params;
   const body = validateBody(updateAdminSchema, await parseJsonBody(request));
-  const admin = await adminService.update(parseId(params), body);
+  const admin = await adminService.update(parseId(params), body, context.admin);
   return ok(admin);
 });
 
-const deleteHandler = compose(withAuth, withHandler)(async (_request, context: ApiContext) => {
+export const DELETE = compose(
+  withAuth,
+  withPermission(PERMISSIONS.USERS_WRITE),
+  withHandler,
+)(async (_request, context: ApiContext) => {
   const params = await context.params;
-  await adminService.remove(parseId(params));
+  await adminService.remove(parseId(params), context.admin);
   return ok({ message: "Admin deleted successfully" });
 });
-
-export const GET = getHandler;
-export const PUT = putHandler;
-export const DELETE = deleteHandler;
