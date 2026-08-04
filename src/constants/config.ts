@@ -7,11 +7,11 @@ export const config = {
     address: "Palmiye, 2.Cadde, 33110 Yenişehir/Mersin",
     mapsUrl:
       "https://www.google.com/maps?cid=17182616818109508322&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAMYASAF&hl=tr&gl=TR&source=embed",
-    phone: "+90 555 123 45 67",
+    phone: "+961 71 959 921",
     email: "info@evimersin.com",
   },
   whatsapp: {
-    phone: "905551234567",
+    phone: "96171959921",
     message: "Hello EviMersin, I would like to know more about your properties.",
   },
   social: {

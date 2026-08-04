@@ -105,7 +105,7 @@ export function SettingsPanel() {
                 label="Phone"
                 value={form.phone}
                 required
-                placeholder="+90 555 123 45 67"
+                placeholder="+961 71 959 921"
                 onChange={(value) => updateField("phone", value)}
               />
             </div>
@@ -120,7 +120,7 @@ export function SettingsPanel() {
                 label="WhatsApp number"
                 value={form.whatsapp_phone}
                 required
-                placeholder="905551234567"
+                placeholder="96171959921"
                 onChange={(value) => updateField("whatsapp_phone", value)}
               />
               <div className="sm:col-span-2">
@@ -135,7 +135,7 @@ export function SettingsPanel() {
             </div>
             <p className="mt-2 text-[12px] text-[var(--muted)]">
               Use digits only for WhatsApp (country code + number), e.g.
-              905551234567.
+              96171959921.
             </p>
           </section>
 

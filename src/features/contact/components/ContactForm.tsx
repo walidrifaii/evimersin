@@ -163,7 +163,7 @@ export function ContactForm() {
             type="tel"
             value={form.phone}
             onChange={(e) => updateField("phone", e.target.value)}
-            placeholder="+90 555 000 00 00"
+            placeholder="+961 71 959 921"
             className={inputClassName}
             autoComplete="tel"
           />
