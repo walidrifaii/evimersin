@@ -19,6 +19,8 @@ export const announcementService = {
   updatePresence: (input: UpsertGuestSessionInput) =>
     guestSessionRepository.upsert(input),
 
+  removePresence: (sessionId: string) => guestSessionRepository.remove(sessionId),
+
   registerGuestToken: (input: RegisterGuestFcmTokenInput) =>
     guestFcmTokenRepository.upsert(input),
 

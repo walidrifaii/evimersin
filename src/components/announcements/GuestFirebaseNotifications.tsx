@@ -12,6 +12,7 @@ import {
 const SESSION_KEY = "evimersin_visit_session";
 const FCM_REGISTERED_KEY = "evimersin_guest_fcm_registered";
 const PROMPT_DISMISSED_KEY = "evimersin_guest_fcm_prompt_dismissed";
+const PRESENCE_HEARTBEAT_MS = 30000;
 
 type FcmConfigResponse = {
   success?: boolean;
@@ -77,12 +78,40 @@ export function GuestFirebaseNotifications() {
         sessionId,
         path: pathname || "/",
         locale,
+        action: "heartbeat",
       }),
       keepalive: true,
     }).catch(() => {
       // Ignore presence errors on the public site.
     });
   }, [locale, pathname]);
+
+  const sendLeave = useCallback(() => {
+    const sessionId = sessionStorage.getItem(SESSION_KEY);
+    if (!sessionId) return;
+
+    const payload = JSON.stringify({
+      sessionId,
+      action: "leave",
+    });
+
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(
+        "/api/visits/presence",
+        new Blob([payload], { type: "application/json" }),
+      );
+      return;
+    }
+
+    fetch("/api/visits/presence", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: payload,
+      keepalive: true,
+    }).catch(() => {
+      // Ignore leave errors on the public site.
+    });
+  }, []);
 
   const registerGuestToken = useCallback(async () => {
     const config = firebaseConfigRef.current;
@@ -148,9 +177,20 @@ export function GuestFirebaseNotifications() {
 
   useEffect(() => {
     sendPresence();
-    const presenceTimer = window.setInterval(sendPresence, 60000);
-    return () => window.clearInterval(presenceTimer);
-  }, [sendPresence]);
+    const presenceTimer = window.setInterval(sendPresence, PRESENCE_HEARTBEAT_MS);
+
+    function handlePageHide() {
+      sendLeave();
+    }
+
+    window.addEventListener("pagehide", handlePageHide);
+
+    return () => {
+      window.clearInterval(presenceTimer);
+      window.removeEventListener("pagehide", handlePageHide);
+      sendLeave();
+    };
+  }, [sendLeave, sendPresence]);
 
   useEffect(() => {
     let cancelled = false;

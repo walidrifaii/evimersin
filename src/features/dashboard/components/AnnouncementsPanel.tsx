@@ -22,7 +22,7 @@ function formatDate(value: string) {
 export function AnnouncementsPanel() {
   const { data, isLoading, error, refetch, isFetching } =
     useGetAnnouncementsOverviewQuery(undefined, {
-      pollingInterval: 15000,
+      pollingInterval: 5000,
     });
   const [sendAnnouncement, sendState] = useSendAnnouncementMutation();
   const [title, setTitle] = useState("");
@@ -97,7 +97,7 @@ export function AnnouncementsPanel() {
             {data?.activeGuestCount ?? 0}
           </p>
           <p className="mt-1 text-[12px] text-[var(--muted)]">
-            Active in the last 5 minutes
+            Browsing right now
             {isFetching ? " · refreshing..." : ""}
           </p>
         </div>

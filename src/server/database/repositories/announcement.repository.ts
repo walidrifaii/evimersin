@@ -1,4 +1,8 @@
 import { execute, query } from "@/server/database/connection";
+import {
+  clampOnlineWindowSeconds,
+  GUEST_ONLINE_WINDOW_SECONDS,
+} from "@/constants/guest-presence";
 import type {
   CreateAnnouncementInput,
   GuestSession,
@@ -58,21 +62,26 @@ export const guestSessionRepository = {
     );
   },
 
-  countActive(withinMinutes = 5) {
-    const minutes = Math.max(1, Math.min(60, Math.floor(withinMinutes)));
+  remove: (sessionId: string) =>
+    execute(`DELETE FROM guest_sessions WHERE session_id = :sessionId`, {
+      sessionId,
+    }),
+
+  countActive(withinSeconds = GUEST_ONLINE_WINDOW_SECONDS) {
+    const seconds = clampOnlineWindowSeconds(withinSeconds);
     return query<Array<{ total: number }>>(
       `SELECT COUNT(*) AS total
        FROM guest_sessions
-       WHERE last_seen_at >= (NOW() - INTERVAL ${minutes} MINUTE)`,
+       WHERE last_seen_at >= (NOW() - INTERVAL ${seconds} SECOND)`,
     ).then((rows) => Number(rows[0]?.total ?? 0));
   },
 
-  findActive: (withinMinutes = 5, limit = 50) => {
-    const minutes = Math.max(1, Math.min(60, Math.floor(withinMinutes)));
+  findActive: (withinSeconds = GUEST_ONLINE_WINDOW_SECONDS, limit = 50) => {
+    const seconds = clampOnlineWindowSeconds(withinSeconds);
     return query<GuestSession[]>(
       `SELECT session_id, path, locale, last_seen_at
        FROM guest_sessions
-       WHERE last_seen_at >= (NOW() - INTERVAL ${minutes} MINUTE)
+       WHERE last_seen_at >= (NOW() - INTERVAL ${seconds} SECOND)
        ORDER BY last_seen_at DESC
        LIMIT ${Math.max(1, Math.min(100, Math.floor(limit)))}`,
     );

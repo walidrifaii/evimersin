@@ -1,4 +1,8 @@
 import { execute, query } from "@/server/database/connection";
+import {
+  clampOnlineWindowSeconds,
+  GUEST_ONLINE_WINDOW_SECONDS,
+} from "@/constants/guest-presence";
 import type {
   AdminFcmToken,
   CreateSiteVisitInput,
@@ -59,23 +63,23 @@ export const guestFcmTokenRepository = {
     );
   },
 
-  findActiveTokens: (withinMinutes = 5) => {
-    const minutes = Math.max(1, Math.min(60, Math.floor(withinMinutes)));
+  findActiveTokens: (withinSeconds = GUEST_ONLINE_WINDOW_SECONDS) => {
+    const seconds = clampOnlineWindowSeconds(withinSeconds);
     return query<Array<{ token: string }>>(
       `SELECT DISTINCT gft.token
        FROM guest_fcm_tokens gft
        INNER JOIN guest_sessions gs ON gs.session_id = gft.session_id
-       WHERE gs.last_seen_at >= (NOW() - INTERVAL ${minutes} MINUTE)`,
+       WHERE gs.last_seen_at >= (NOW() - INTERVAL ${seconds} SECOND)`,
     );
   },
 
-  countReachable: (withinMinutes = 5) => {
-    const minutes = Math.max(1, Math.min(60, Math.floor(withinMinutes)));
+  countReachable: (withinSeconds = GUEST_ONLINE_WINDOW_SECONDS) => {
+    const seconds = clampOnlineWindowSeconds(withinSeconds);
     return query<Array<{ total: number }>>(
       `SELECT COUNT(DISTINCT gft.token) AS total
        FROM guest_fcm_tokens gft
        INNER JOIN guest_sessions gs ON gs.session_id = gft.session_id
-       WHERE gs.last_seen_at >= (NOW() - INTERVAL ${minutes} MINUTE)`,
+       WHERE gs.last_seen_at >= (NOW() - INTERVAL ${seconds} SECOND)`,
     ).then((rows) => Number(rows[0]?.total ?? 0));
   },
 

@@ -7,8 +7,9 @@ export const createAnnouncementSchema = z.object({
 
 export const guestPresenceSchema = z.object({
   sessionId: z.string().trim().min(8).max(64),
-  path: z.string().trim().min(1).max(500),
+  path: z.string().trim().min(1).max(500).optional().default("/"),
   locale: z.enum(["en", "ar"]).optional().default("en"),
+  action: z.enum(["heartbeat", "leave"]).optional().default("heartbeat"),
 });
 
 export type CreateAnnouncementInput = z.infer<typeof createAnnouncementSchema>;
