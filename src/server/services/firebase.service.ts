@@ -1,6 +1,7 @@
 import { getApps, initializeApp, cert, type App } from "firebase-admin/app";
 import { getMessaging, type Messaging } from "firebase-admin/messaging";
 import { getNotificationIconUrl } from "@/lib/firebase/notification-icon";
+import { getValidatedVapidKey } from "@/lib/firebase/vapid-key";
 import { getAppBaseUrl } from "@/lib/image-url";
 
 type FirebasePublicConfig = {
@@ -76,8 +77,13 @@ export function isFirebaseAdminConfigured() {
 }
 
 export function isFirebaseClientConfigured() {
-  const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
-  return getFirebasePublicConfig() !== null && !isEnvPlaceholder(vapidKey);
+  const publicConfig = getFirebasePublicConfig();
+  const vapid = getValidatedVapidKey();
+  return publicConfig !== null && vapid.valid;
+}
+
+export function getFirebaseVapidKey() {
+  return getValidatedVapidKey();
 }
 
 let adminApp: App | null = null;

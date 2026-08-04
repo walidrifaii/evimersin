@@ -13,6 +13,7 @@ export type AnnouncementsOverview = {
   activeGuestCount: number;
   reachableGuestCount: number;
   firebaseEnabled: boolean;
+  firebaseVapidError?: string | null;
   announcements: AnnouncementItem[];
 };
 

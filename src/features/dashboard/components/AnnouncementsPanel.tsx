@@ -67,8 +67,24 @@ export function AnnouncementsPanel() {
 
       {!data?.firebaseEnabled ? (
         <div className="rounded-[24px] border border-[#fde68a] bg-[#fffbeb] px-5 py-4 text-[13px] text-[#92400e]">
-          Firebase is not fully configured. Add your Firebase client and admin
-          keys to enable guest push notifications.
+          {data?.firebaseVapidError ? (
+            <>
+              <p className="font-semibold">Firebase VAPID key is invalid</p>
+              <p className="mt-1">{data.firebaseVapidError}</p>
+              <p className="mt-2">
+                Open Firebase Console → Project Settings → Cloud Messaging →
+                Web Push certificates → copy the key pair into{" "}
+                <code className="text-[12px]">NEXT_PUBLIC_FIREBASE_VAPID_KEY</code>{" "}
+                in <code className="text-[12px]">.env.local</code>, then restart
+                the dev server.
+              </p>
+            </>
+          ) : (
+            <>
+              Firebase is not fully configured. Add your Firebase client and admin
+              keys to enable guest push notifications.
+            </>
+          )}
         </div>
       ) : null}
 

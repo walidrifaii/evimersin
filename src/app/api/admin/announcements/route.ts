@@ -7,6 +7,7 @@ import {
 } from "@/server/middleware";
 import { announcementService } from "@/server/services/announcement.service";
 import {
+  getFirebaseVapidKey,
   isFirebaseAdminConfigured,
   isFirebaseClientConfigured,
 } from "@/server/services/firebase.service";
@@ -26,6 +27,7 @@ export const GET = compose(withAuth, withHandler)(async () => {
     activeGuestCount,
     reachableGuestCount,
     firebaseEnabled: isFirebaseClientConfigured() && isFirebaseAdminConfigured(),
+    firebaseVapidError: getFirebaseVapidKey().error,
     announcements: announcements.map((item) => ({
       id: item.id,
       title: item.title,

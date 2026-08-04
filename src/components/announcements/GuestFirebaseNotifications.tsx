@@ -19,6 +19,7 @@ type FcmConfigResponse = {
     enabled: boolean;
     config: FirebaseClientConfig | null;
     vapidKey: string | null;
+    vapidKeyError?: string | null;
   };
 };
 
@@ -127,12 +128,18 @@ export function GuestFirebaseNotifications() {
       window.setTimeout(() => setPromptVisible(false), 1200);
       return true;
     } catch (error) {
+      const message = error instanceof Error ? error.message : "";
       setPromptStatus("error");
-      setPromptMessage(
-        error instanceof Error
-          ? error.message
-          : "Could not enable notifications. Please try again.",
-      );
+
+      if (message.includes("applicationServerKey is not valid")) {
+        setPromptMessage(
+          "Firebase VAPID key is invalid. In Firebase Console open Project Settings → Cloud Messaging → Web Push certificates, copy the key pair, and set NEXT_PUBLIC_FIREBASE_VAPID_KEY in .env.local, then restart the server.",
+        );
+      } else {
+        setPromptMessage(
+          message || "Could not enable notifications. Please try again.",
+        );
+      }
       return false;
     } finally {
       registeringRef.current = false;
@@ -157,8 +164,15 @@ export function GuestFirebaseNotifications() {
 
         if (cancelled || !response.ok || !payload.data) return;
 
-        const { enabled, config, vapidKey } = payload.data;
-        if (!enabled || !config || !vapidKey) return;
+        const { enabled, config, vapidKey, vapidKeyError } = payload.data;
+        if (!enabled || !config || !vapidKey) {
+          if (vapidKeyError) {
+            setPromptVisible(true);
+            setPromptStatus("error");
+            setPromptMessage(vapidKeyError);
+          }
+          return;
+        }
 
         firebaseConfigRef.current = { config, vapidKey };
         setFirebaseReady(true);
@@ -222,6 +236,7 @@ export function GuestFirebaseNotifications() {
   }
 
   const isLoading = promptStatus === "loading";
+  const canEnable = Boolean(firebaseConfigRef.current);
 
   return (
     <>
@@ -251,21 +266,23 @@ export function GuestFirebaseNotifications() {
               ) : null}
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              <button
-                type="button"
-                onClick={() => void registerGuestToken()}
-                disabled={isLoading}
-                className="inline-flex h-10 cursor-pointer items-center justify-center rounded-full bg-[var(--brand-red)] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#c9181e] disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {isLoading ? "Enabling..." : "Enable"}
-              </button>
+              {canEnable ? (
+                <button
+                  type="button"
+                  onClick={() => void registerGuestToken()}
+                  disabled={isLoading}
+                  className="inline-flex h-10 cursor-pointer items-center justify-center rounded-full bg-[var(--brand-red)] px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#c9181e] disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {isLoading ? "Enabling..." : "Enable"}
+                </button>
+              ) : null}
               <button
                 type="button"
                 onClick={dismissPrompt}
                 disabled={isLoading}
                 className="inline-flex h-10 cursor-pointer items-center justify-center rounded-full border border-[#dbe4f0] px-4 text-[13px] font-semibold text-[var(--brand-navy)] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-70"
               >
-                Not now
+                {canEnable ? "Not now" : "Close"}
               </button>
             </div>
           </div>

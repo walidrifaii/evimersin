@@ -7,6 +7,7 @@ import {
 import { announcementService } from "@/server/services/announcement.service";
 import {
   getFirebasePublicConfig,
+  getFirebaseVapidKey,
   isFirebaseAdminConfigured,
   isFirebaseClientConfigured,
 } from "@/server/services/firebase.service";
@@ -15,16 +16,17 @@ import { registerGuestFcmTokenSchema } from "@/server/validators/notification.va
 
 export const runtime = "nodejs";
 
-export const GET = compose(withHandler)(async () =>
-  ok({
+export const GET = compose(withHandler)(async () => {
+  const vapid = getFirebaseVapidKey();
+
+  return ok({
     enabled: isFirebaseClientConfigured(),
     adminReady: isFirebaseAdminConfigured(),
     config: getFirebasePublicConfig(),
-    vapidKey: isFirebaseClientConfigured()
-      ? (process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY ?? null)
-      : null,
-  }),
-);
+    vapidKey: vapid.valid ? vapid.key : null,
+    vapidKeyError: vapid.error,
+  });
+});
 
 export const POST = compose(withHandler)(async (request) => {
   const input = validateBody(
