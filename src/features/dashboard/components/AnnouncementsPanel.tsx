@@ -11,6 +11,7 @@ import {
   useGetAnnouncementsOverviewQuery,
   useSendAnnouncementMutation,
 } from "@/store/slices/admin/announcementsApi";
+import { useGuestPresenceStream } from "@/hooks/useGuestPresenceStream";
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat(undefined, {
@@ -20,10 +21,8 @@ function formatDate(value: string) {
 }
 
 export function AnnouncementsPanel() {
-  const { data, isLoading, error, refetch, isFetching } =
-    useGetAnnouncementsOverviewQuery(undefined, {
-      pollingInterval: 5000,
-    });
+  const { data, isLoading, error, refetch } = useGetAnnouncementsOverviewQuery();
+  useGuestPresenceStream(true);
   const [sendAnnouncement, sendState] = useSendAnnouncementMutation();
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
@@ -97,8 +96,7 @@ export function AnnouncementsPanel() {
             {data?.activeGuestCount ?? 0}
           </p>
           <p className="mt-1 text-[12px] text-[var(--muted)]">
-            Browsing right now
-            {isFetching ? " · refreshing..." : ""}
+            Live — updates when guests join or leave
           </p>
         </div>
         <div className="rounded-[24px] border border-[#e8eef6] bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">

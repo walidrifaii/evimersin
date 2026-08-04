@@ -4,25 +4,41 @@ import {
 } from "@/server/database/repositories/announcement.repository";
 import { guestFcmTokenRepository } from "@/server/database/repositories/notification.repository";
 import { firebaseService } from "@/server/services/firebase.service";
+import { guestPresenceHub } from "@/server/services/guest-presence-hub";
 import type { UpsertGuestSessionInput } from "@/server/types/announcement.types";
 import type { RegisterGuestFcmTokenInput } from "@/server/types/notification.types";
+
+guestPresenceHub.configure(async () => ({
+  activeGuestCount: await guestSessionRepository.countActive(),
+  reachableGuestCount: await guestFcmTokenRepository.countReachable(),
+}));
 
 export const announcementService = {
   listRecent: (limit = 20) => announcementRepository.findRecent(limit),
 
-  getActiveGuestCount: (withinMinutes = 5) =>
-    guestSessionRepository.countActive(withinMinutes),
+  getLiveCounts: async () => ({
+    activeGuestCount: await guestSessionRepository.countActive(),
+    reachableGuestCount: await guestFcmTokenRepository.countReachable(),
+  }),
 
-  getReachableGuestCount: (withinMinutes = 5) =>
-    guestFcmTokenRepository.countReachable(withinMinutes),
+  getActiveGuestCount: () => guestSessionRepository.countActive(),
 
-  updatePresence: (input: UpsertGuestSessionInput) =>
-    guestSessionRepository.upsert(input),
+  getReachableGuestCount: () => guestFcmTokenRepository.countReachable(),
 
-  removePresence: (sessionId: string) => guestSessionRepository.remove(sessionId),
+  async updatePresence(input: UpsertGuestSessionInput) {
+    await guestSessionRepository.upsert(input);
+    void guestPresenceHub.notifyChange();
+  },
 
-  registerGuestToken: (input: RegisterGuestFcmTokenInput) =>
-    guestFcmTokenRepository.upsert(input),
+  async removePresence(sessionId: string) {
+    await guestSessionRepository.remove(sessionId);
+    void guestPresenceHub.notifyChange({ immediate: true });
+  },
+
+  async registerGuestToken(input: RegisterGuestFcmTokenInput) {
+    await guestFcmTokenRepository.upsert(input);
+    void guestPresenceHub.notifyChange({ immediate: true });
+  },
 
   async send(input: { title: string; message: string; adminId: number }) {
     const id = await announcementRepository.create({
