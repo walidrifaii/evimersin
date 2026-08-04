@@ -199,7 +199,7 @@ export function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
       />
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-[270px] flex-col text-white transition-transform duration-300 lg:static lg:z-auto lg:w-[250px] lg:shrink-0 lg:translate-x-0 lg:rounded-[28px] ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-[270px] flex-col text-white transition-transform duration-300 lg:relative lg:inset-auto lg:z-auto lg:h-full lg:max-h-full lg:w-[250px] lg:shrink-0 lg:translate-x-0 lg:rounded-[28px] ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
         style={{
