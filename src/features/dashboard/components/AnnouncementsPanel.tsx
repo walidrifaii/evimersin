@@ -11,7 +11,7 @@ import {
   useGetAnnouncementsOverviewQuery,
   useSendAnnouncementMutation,
 } from "@/store/slices/admin/announcementsApi";
-import { useGuestPresenceStream } from "@/hooks/useGuestPresenceStream";
+import { useGuestPresenceStream } from "@/features/dashboard/hooks/useGuestPresenceStream";
 import { usePermissions } from "@/hooks/usePermissions";
 
 function formatDate(value: string) {
