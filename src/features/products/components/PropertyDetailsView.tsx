@@ -70,6 +70,9 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
                   ) : null}
                 </div>
               ) : null}
+              <p className="mb-2 text-[13px] font-bold tracking-[0.02em] text-[var(--brand-navy)] sm:mb-2.5 sm:text-[14px]">
+                #{property.id}
+              </p>
               <h1 className="text-[1.55rem] font-bold leading-[1.2] tracking-[-0.02em] text-[var(--brand-navy)] sm:text-[1.9rem] lg:text-[2.1rem]">
                 {property.title}
               </h1>
@@ -166,10 +169,6 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
                 <FaWhatsapp className="h-5 w-5" aria-hidden="true" />
                 {tCommon("contactOnWhatsapp")}
               </a>
-
-              <p className="mt-6 text-center text-[12px] font-medium tracking-[0.04em] text-[var(--muted)] lg:mt-8">
-                #{property.id}
-              </p>
             </div>
           </div>
         </div>
