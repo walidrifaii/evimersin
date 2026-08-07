@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useLayoutEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { FaWhatsapp } from "react-icons/fa";
 import { HiCheckCircle } from "react-icons/hi";
 import { useTranslations } from "next-intl";
@@ -33,6 +33,12 @@ function FieldLabel({ children, htmlFor }: { children: ReactNode; htmlFor: strin
 const inputClassName =
   "w-full rounded-xl border border-[#e8edf5] bg-white px-4 py-3 text-[15px] text-[var(--brand-navy)] outline-none transition-colors placeholder:text-[#9ca3af] focus:border-[var(--brand-blue)] focus:ring-2 focus:ring-[#eff6ff]";
 
+function resizeMessageField(textarea: HTMLTextAreaElement | null) {
+  if (!textarea) return;
+  textarea.style.height = "auto";
+  textarea.style.height = `${textarea.scrollHeight}px`;
+}
+
 export function ContactForm() {
   const t = useTranslations("contact");
   const tCommon = useTranslations("common");
@@ -41,6 +47,11 @@ export function ContactForm() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const messageRef = useRef<HTMLTextAreaElement>(null);
+
+  useLayoutEffect(() => {
+    resizeMessageField(messageRef.current);
+  }, [form.message]);
 
   function updateField<K extends keyof ContactFormState>(key: K, value: ContactFormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -188,12 +199,13 @@ export function ContactForm() {
         <div className="sm:col-span-2">
           <FieldLabel htmlFor="contact-message">{t("message")}</FieldLabel>
           <textarea
+            ref={messageRef}
             id="contact-message"
             value={form.message}
             onChange={(e) => updateField("message", e.target.value)}
             placeholder={t("messagePlaceholder")}
-            rows={5}
-            className={`${inputClassName} resize-y min-h-[140px]`}
+            rows={1}
+            className={`${inputClassName} min-h-[56px] resize-none overflow-hidden`}
             required
           />
         </div>
