@@ -1,4 +1,5 @@
 import { config } from "@/constants/config";
+import { deriveSocialHandleFromUrl } from "@/lib/social-settings";
 import type { PublicSiteSettings } from "@/lib/site-settings";
 
 export const contactData = {
@@ -58,7 +59,7 @@ export function getContactSocial(settings: PublicSiteSettings) {
     {
       id: "instagram" as const,
       title: "Instagram",
-      value: settings.instagram_handle,
+      value: deriveSocialHandleFromUrl(settings.instagram_url, "instagram"),
       href: settings.instagram_url,
       description: "Follow our latest listings and updates",
       visible: settings.instagram_visible ?? true,
@@ -66,7 +67,7 @@ export function getContactSocial(settings: PublicSiteSettings) {
     {
       id: "facebook" as const,
       title: "Facebook",
-      value: settings.facebook_handle,
+      value: deriveSocialHandleFromUrl(settings.facebook_url, "facebook"),
       href: settings.facebook_url,
       description: "Connect with us on Facebook",
       visible: settings.facebook_visible ?? true,

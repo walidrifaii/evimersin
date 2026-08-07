@@ -6,6 +6,7 @@ import {
   FormLoading,
   TextInput,
 } from "@/features/dashboard/components/lookups/LookupManager";
+import { deriveSocialHandleFromUrl } from "@/lib/social-settings";
 import { getApiErrorMessage } from "@/store/api/errors";
 import {
   useGetSiteSettingsQuery,
@@ -14,7 +15,10 @@ import {
 } from "@/store/slices/admin";
 import { usePermissions } from "@/hooks/usePermissions";
 
-type FormState = UpdateSiteSettingsInput;
+type FormState = Omit<
+  UpdateSiteSettingsInput,
+  "instagram_handle" | "facebook_handle"
+>;
 
 const emptyForm: FormState = {
   email: "",
@@ -22,10 +26,8 @@ const emptyForm: FormState = {
   whatsapp_phone: "",
   whatsapp_message: "",
   instagram_url: "",
-  instagram_handle: "",
   instagram_visible: true,
   facebook_url: "",
-  facebook_handle: "",
   facebook_visible: true,
 };
 
@@ -46,10 +48,8 @@ export function SettingsPanel() {
       whatsapp_phone: data.whatsapp_phone,
       whatsapp_message: data.whatsapp_message,
       instagram_url: data.instagram_url,
-      instagram_handle: data.instagram_handle,
       instagram_visible: data.instagram_visible,
       facebook_url: data.facebook_url,
-      facebook_handle: data.facebook_handle,
       facebook_visible: data.facebook_visible,
     });
   }, [data]);
@@ -67,7 +67,14 @@ export function SettingsPanel() {
     setSaved(false);
 
     try {
-      await updateSettings(form).unwrap();
+      await updateSettings({
+        ...form,
+        instagram_handle: deriveSocialHandleFromUrl(
+          form.instagram_url,
+          "instagram",
+        ),
+        facebook_handle: deriveSocialHandleFromUrl(form.facebook_url, "facebook"),
+      }).unwrap();
       setSaved(true);
     } catch (err) {
       setActionError(err);
@@ -184,25 +191,11 @@ export function SettingsPanel() {
                 onChange={(value) => updateField("instagram_url", value)}
               />
               <TextInput
-                label="Instagram handle"
-                value={form.instagram_handle}
-                required
-                placeholder="@evimersin"
-                onChange={(value) => updateField("instagram_handle", value)}
-              />
-              <TextInput
                 label="Facebook URL"
                 value={form.facebook_url}
                 required
                 placeholder="https://facebook.com/evimersin"
                 onChange={(value) => updateField("facebook_url", value)}
-              />
-              <TextInput
-                label="Facebook handle"
-                value={form.facebook_handle}
-                required
-                placeholder="EviMersin"
-                onChange={(value) => updateField("facebook_handle", value)}
               />
             </div>
             <p className="mt-2 text-[12px] text-[var(--muted)]">

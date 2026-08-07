@@ -1,4 +1,5 @@
 import { config } from "@/constants/config";
+import { deriveSocialHandleFromUrl } from "@/lib/social-settings";
 import { settingsRepository } from "@/server/database/repositories/settings.repository";
 import type {
   SiteSettings,
@@ -69,7 +70,15 @@ export const settingsService = {
 
   async update(input: UpdateSiteSettingsInput) {
     try {
-      await settingsRepository.upsert(input);
+      const normalized: UpdateSiteSettingsInput = {
+        ...input,
+        instagram_handle: deriveSocialHandleFromUrl(
+          input.instagram_url,
+          "instagram",
+        ),
+        facebook_handle: deriveSocialHandleFromUrl(input.facebook_url, "facebook"),
+      };
+      await settingsRepository.upsert(normalized);
       const saved = await settingsRepository.find();
       if (!saved) {
         throw new AppError("Settings were saved but could not be loaded", 500);
