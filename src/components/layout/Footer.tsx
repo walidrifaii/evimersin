@@ -134,7 +134,7 @@ export function Footer() {
               rel="noopener noreferrer"
               className="text-white/80 transition-colors hover:text-white"
             >
-              Amctag
+              amctag
             </a>
           </p>
         </div>
