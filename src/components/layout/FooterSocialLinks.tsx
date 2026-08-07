@@ -1,20 +1,34 @@
 "use client";
 
 import type { IconType } from "react-icons";
-import { FaFacebook, FaInstagram } from "react-icons/fa";
+import {
+  FaFacebook,
+  FaInstagram,
+  FaTelegram,
+  FaTiktok,
+  FaYoutube,
+} from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
 import { useTranslations } from "next-intl";
+import {
+  SOCIAL_PLATFORM_CONFIG,
+  type SocialPlatformId,
+} from "@/constants/social-platforms";
 import { useSiteSettings } from "@/components/providers/SiteSettingsProvider";
 import { getContactSocial } from "@/features/contact/data";
 
-const socialIcons = {
+const socialIcons: Record<SocialPlatformId, IconType> = {
   instagram: FaInstagram,
   facebook: FaFacebook,
-} as const satisfies Record<string, IconType>;
+  x: FaXTwitter,
+  telegram: FaTelegram,
+  youtube: FaYoutube,
+  tiktok: FaTiktok,
+};
 
-const labelKeys = {
-  instagram: "socialInstagram",
-  facebook: "socialFacebook",
-} as const;
+const labelKeys = Object.fromEntries(
+  SOCIAL_PLATFORM_CONFIG.map((platform) => [platform.id, platform.contactTitleKey]),
+) as Record<SocialPlatformId, (typeof SOCIAL_PLATFORM_CONFIG)[number]["contactTitleKey"]>;
 
 export function FooterSocialLinks({ className = "" }: { className?: string }) {
   const settings = useSiteSettings();

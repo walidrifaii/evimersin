@@ -1,4 +1,9 @@
 import { config } from "@/constants/config";
+import {
+  SOCIAL_PLATFORM_CONFIG,
+  SOCIAL_PLATFORMS,
+  type SocialPlatformId,
+} from "@/constants/social-platforms";
 import { deriveSocialHandleFromUrl } from "@/lib/social-settings";
 import type { PublicSiteSettings } from "@/lib/site-settings";
 
@@ -54,27 +59,26 @@ export function getContactMethods(settings: PublicSiteSettings) {
   ];
 }
 
-export function getContactSocial(settings: PublicSiteSettings) {
-  const items = [
-    {
-      id: "instagram" as const,
-      title: "Instagram",
-      value: deriveSocialHandleFromUrl(settings.instagram_url, "instagram"),
-      href: settings.instagram_url,
-      description: "Follow our latest listings and updates",
-      visible: settings.instagram_visible ?? true,
-    },
-    {
-      id: "facebook" as const,
-      title: "Facebook",
-      value: deriveSocialHandleFromUrl(settings.facebook_url, "facebook"),
-      href: settings.facebook_url,
-      description: "Connect with us on Facebook",
-      visible: settings.facebook_visible ?? true,
-    },
-  ];
+const CONTACT_DESCRIPTIONS: Record<SocialPlatformId, string> = {
+  instagram: "Follow our latest listings and updates",
+  facebook: "Connect with us on Facebook",
+  x: "Follow us on X for news and updates",
+  telegram: "Join our Telegram channel",
+  youtube: "Watch property tours and market updates",
+  tiktok: "Follow us on TikTok for short property videos",
+};
 
-  return items.filter((item) => item.visible);
+export function getContactSocial(settings: PublicSiteSettings) {
+  return SOCIAL_PLATFORM_CONFIG.map((platform) => ({
+    id: platform.id,
+    title: platform.label,
+    value: deriveSocialHandleFromUrl(settings[`${platform.id}_url`], platform.id),
+    href: settings[`${platform.id}_url`],
+    description: CONTACT_DESCRIPTIONS[platform.id],
+    visible:
+      settings[`${platform.id}_visible`] ??
+      (platform.id === "instagram" || platform.id === "facebook"),
+  })).filter((item) => item.visible && item.href.trim().length > 0);
 }
 
 export type ContactFormState = {
@@ -92,3 +96,14 @@ export const initialContactForm: ContactFormState = {
   subject: contactData.form.subjects[0],
   message: "",
 };
+
+export function socialSettingsFromData(data: PublicSiteSettings) {
+  return SOCIAL_PLATFORMS.reduce(
+    (fields, platform) => {
+      fields[`${platform}_url`] = data[`${platform}_url`];
+      fields[`${platform}_visible`] = data[`${platform}_visible`];
+      return fields;
+    },
+    {} as Record<`${SocialPlatformId}_url` | `${SocialPlatformId}_visible`, string | boolean>,
+  );
+}

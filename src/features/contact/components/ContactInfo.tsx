@@ -4,14 +4,22 @@ import type { IconType } from "react-icons";
 import {
   FaFacebook,
   FaInstagram,
+  FaTelegram,
+  FaTiktok,
   FaWhatsapp,
+  FaYoutube,
 } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
 import {
   HiOutlineLocationMarker,
   HiOutlineMail,
   HiOutlinePhone,
 } from "react-icons/hi";
 import { useTranslations } from "next-intl";
+import {
+  SOCIAL_PLATFORM_CONFIG,
+  type SocialPlatformId,
+} from "@/constants/social-platforms";
 import {
   useSiteSettings,
   useWhatsAppUrl,
@@ -24,15 +32,30 @@ const methodIcons = {
   address: HiOutlineLocationMarker,
   instagram: FaInstagram,
   facebook: FaFacebook,
+  x: FaXTwitter,
+  telegram: FaTelegram,
+  youtube: FaYoutube,
+  tiktok: FaTiktok,
 } as const satisfies Record<string, IconType>;
 
 const methodLabelKeys = {
   phone: { title: "methodPhone", description: "methodPhoneDesc" },
   email: { title: "methodEmail", description: "methodEmailDesc" },
   address: { title: "methodOffice", description: null },
-  instagram: { title: "socialInstagram", description: "socialInstagramDesc" },
-  facebook: { title: "socialFacebook", description: "socialFacebookDesc" },
 } as const;
+
+const socialLabelKeys = Object.fromEntries(
+  SOCIAL_PLATFORM_CONFIG.map((platform) => [
+    platform.id,
+    { title: platform.contactTitleKey, description: platform.contactDescKey },
+  ]),
+) as Record<
+  SocialPlatformId,
+  {
+    title: (typeof SOCIAL_PLATFORM_CONFIG)[number]["contactTitleKey"];
+    description: (typeof SOCIAL_PLATFORM_CONFIG)[number]["contactDescKey"];
+  }
+>;
 
 function ContactCard({
   id,
@@ -115,7 +138,7 @@ export function ContactInfo() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         {social.map((item) => {
-          const keys = methodLabelKeys[item.id];
+          const keys = socialLabelKeys[item.id];
 
           return (
             <ContactCard
@@ -124,7 +147,7 @@ export function ContactInfo() {
               title={t(keys.title)}
               value={item.value}
               href={item.href}
-              description={t(keys.description!)}
+              description={t(keys.description)}
               external
             />
           );

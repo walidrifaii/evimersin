@@ -1,22 +1,13 @@
 import { api } from "@/store/api/baseApi";
 import type { ApiResponse } from "@/store/api/types";
+import type { UpdateSiteSettingsInput } from "@/server/types/settings.types";
 
-export type SiteSettings = {
+export type SiteSettings = UpdateSiteSettingsInput & {
   id: number;
-  email: string;
-  phone: string;
-  whatsapp_phone: string;
-  whatsapp_message: string;
-  instagram_url: string;
-  instagram_handle: string;
-  instagram_visible: boolean;
-  facebook_url: string;
-  facebook_handle: string;
-  facebook_visible: boolean;
   updated_at: string;
 };
 
-export type UpdateSiteSettingsInput = Omit<SiteSettings, "id" | "updated_at">;
+export type { UpdateSiteSettingsInput };
 
 export const settingsApi = api.injectEndpoints({
   endpoints: (builder) => ({

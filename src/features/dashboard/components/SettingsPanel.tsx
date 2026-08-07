@@ -3,10 +3,15 @@
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
 import {
+  SOCIAL_PLATFORM_CONFIG,
+  SOCIAL_PLATFORMS,
+} from "@/constants/social-platforms";
+import {
   FormLoading,
   TextInput,
 } from "@/features/dashboard/components/lookups/LookupManager";
-import { deriveSocialHandleFromUrl } from "@/lib/social-settings";
+import { socialSettingsFromData } from "@/features/contact/data";
+import { normalizeSocialSettings } from "@/lib/social-settings";
 import { getApiErrorMessage } from "@/store/api/errors";
 import {
   useGetSiteSettingsQuery,
@@ -15,20 +20,23 @@ import {
 } from "@/store/slices/admin";
 import { usePermissions } from "@/hooks/usePermissions";
 
-type FormState = Omit<
-  UpdateSiteSettingsInput,
-  "instagram_handle" | "facebook_handle"
->;
+type FormState = Omit<UpdateSiteSettingsInput, `${(typeof SOCIAL_PLATFORMS)[number]}_handle`>;
+
+const emptySocial = SOCIAL_PLATFORMS.reduce(
+  (fields, platform) => {
+    fields[`${platform}_url`] = "";
+    fields[`${platform}_visible`] = platform === "instagram" || platform === "facebook";
+    return fields;
+  },
+  {} as Pick<FormState, `${(typeof SOCIAL_PLATFORMS)[number]}_url` | `${(typeof SOCIAL_PLATFORMS)[number]}_visible`>,
+);
 
 const emptyForm: FormState = {
   email: "",
   phone: "",
   whatsapp_phone: "",
   whatsapp_message: "",
-  instagram_url: "",
-  instagram_visible: true,
-  facebook_url: "",
-  facebook_visible: true,
+  ...emptySocial,
 };
 
 export function SettingsPanel() {
@@ -47,11 +55,8 @@ export function SettingsPanel() {
       phone: data.phone,
       whatsapp_phone: data.whatsapp_phone,
       whatsapp_message: data.whatsapp_message,
-      instagram_url: data.instagram_url,
-      instagram_visible: data.instagram_visible,
-      facebook_url: data.facebook_url,
-      facebook_visible: data.facebook_visible,
-    });
+      ...socialSettingsFromData(data),
+    } as FormState);
   }, [data]);
 
   function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
@@ -67,14 +72,7 @@ export function SettingsPanel() {
     setSaved(false);
 
     try {
-      await updateSettings({
-        ...form,
-        instagram_handle: deriveSocialHandleFromUrl(
-          form.instagram_url,
-          "instagram",
-        ),
-        facebook_handle: deriveSocialHandleFromUrl(form.facebook_url, "facebook"),
-      }).unwrap();
+      await updateSettings(normalizeSocialSettings(form)).unwrap();
       setSaved(true);
     } catch (err) {
       setActionError(err);
@@ -154,53 +152,47 @@ export function SettingsPanel() {
             <h2 className="text-[15px] font-semibold text-[var(--brand-navy)]">
               Social media
             </h2>
-            <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-4 sm:col-span-2">
-                <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-[#e8eef6] bg-[#f8fafc] px-4 py-3">
-                  <input
-                    type="checkbox"
-                    checked={form.instagram_visible}
-                    onChange={(event) =>
-                      updateField("instagram_visible", event.target.checked)
-                    }
-                    className="h-4 w-4 rounded border-[#cbd5e1] text-[var(--brand-red)] focus:ring-[var(--brand-red)]"
-                  />
-                  <span className="text-[13px] font-medium text-[var(--brand-navy)]">
-                    Show Instagram icon in footer
-                  </span>
-                </label>
-                <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-[#e8eef6] bg-[#f8fafc] px-4 py-3">
-                  <input
-                    type="checkbox"
-                    checked={form.facebook_visible}
-                    onChange={(event) =>
-                      updateField("facebook_visible", event.target.checked)
-                    }
-                    className="h-4 w-4 rounded border-[#cbd5e1] text-[var(--brand-red)] focus:ring-[var(--brand-red)]"
-                  />
-                  <span className="text-[13px] font-medium text-[var(--brand-navy)]">
-                    Show Facebook icon in footer
-                  </span>
-                </label>
-              </div>
-              <TextInput
-                label="Instagram URL"
-                value={form.instagram_url}
-                required
-                placeholder="https://instagram.com/evimersin"
-                onChange={(value) => updateField("instagram_url", value)}
-              />
-              <TextInput
-                label="Facebook URL"
-                value={form.facebook_url}
-                required
-                placeholder="https://facebook.com/evimersin"
-                onChange={(value) => updateField("facebook_url", value)}
-              />
+            <div className="mt-3 space-y-4">
+              {SOCIAL_PLATFORM_CONFIG.map((platform) => {
+                const urlKey = `${platform.id}_url` as const;
+                const visibleKey = `${platform.id}_visible` as const;
+
+                return (
+                  <div
+                    key={platform.id}
+                    className="rounded-xl border border-[#e8eef6] bg-[#f8fafc] p-4"
+                  >
+                    <label className="flex cursor-pointer items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(form[visibleKey])}
+                        onChange={(event) =>
+                          updateField(visibleKey, event.target.checked)
+                        }
+                        className="h-4 w-4 rounded border-[#cbd5e1] text-[var(--brand-red)] focus:ring-[var(--brand-red)]"
+                      />
+                      <span className="text-[13px] font-semibold text-[var(--brand-navy)]">
+                        Show {platform.label} icon
+                      </span>
+                    </label>
+                    <div className="mt-3">
+                      <TextInput
+                        label={`${platform.label} URL`}
+                        value={String(form[urlKey] ?? "")}
+                        required={
+                          platform.id === "instagram" || platform.id === "facebook"
+                        }
+                        placeholder={platform.placeholder}
+                        onChange={(value) => updateField(urlKey, value)}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
             <p className="mt-2 text-[12px] text-[var(--muted)]">
-              Social links open in a new tab. Uncheck a platform to hide its icon
-              from the footer and contact page.
+              Social links open in a new tab. A platform only appears when it is
+              enabled and has a URL.
             </p>
           </section>
         </div>

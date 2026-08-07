@@ -1,5 +1,6 @@
 import { config } from "@/constants/config";
-import { deriveSocialHandleFromUrl } from "@/lib/social-settings";
+import { SOCIAL_PLATFORMS } from "@/constants/social-platforms";
+import { normalizeSocialSettings } from "@/lib/social-settings";
 import { settingsRepository } from "@/server/database/repositories/settings.repository";
 import type {
   SiteSettings,
@@ -7,17 +8,41 @@ import type {
 } from "@/server/types/settings.types";
 import { AppError } from "@/server/utils/errors";
 
+const defaultSocialFields = SOCIAL_PLATFORMS.reduce((fields, platform) => {
+  const urlKey = `${platform}_url` as const;
+  const handleKey = `${platform}_handle` as const;
+  const visibleKey = `${platform}_visible` as const;
+
+  const url =
+    platform === "instagram"
+      ? config.social.instagram
+      : platform === "facebook"
+        ? config.social.facebook
+        : "";
+
+  fields[urlKey] = url;
+  fields[handleKey] =
+    platform === "instagram"
+      ? config.social.instagramHandle
+      : platform === "facebook"
+        ? config.social.facebookHandle
+        : platform.charAt(0).toUpperCase() + platform.slice(1);
+  fields[visibleKey] = platform === "instagram" || platform === "facebook";
+
+  return fields;
+}, {} as SocialPlatformFieldsOnly);
+
+type SocialPlatformFieldsOnly = Pick<
+  UpdateSiteSettingsInput,
+  `${(typeof SOCIAL_PLATFORMS)[number]}_url` | `${(typeof SOCIAL_PLATFORMS)[number]}_handle` | `${(typeof SOCIAL_PLATFORMS)[number]}_visible`
+>;
+
 export const defaultSiteSettings: UpdateSiteSettingsInput = {
   email: config.contact.email,
   phone: config.contact.phone,
   whatsapp_phone: config.whatsapp.phone,
   whatsapp_message: config.whatsapp.message,
-  instagram_url: config.social.instagram,
-  instagram_handle: config.social.instagramHandle,
-  instagram_visible: true,
-  facebook_url: config.social.facebook,
-  facebook_handle: config.social.facebookHandle,
-  facebook_visible: true,
+  ...defaultSocialFields,
 };
 
 export type PublicSiteSettings = UpdateSiteSettingsInput & {
@@ -26,18 +51,25 @@ export type PublicSiteSettings = UpdateSiteSettingsInput & {
 };
 
 function toPublicSettings(row: SiteSettings): PublicSiteSettings {
+  const social = SOCIAL_PLATFORMS.reduce((fields, platform) => {
+    const urlKey = `${platform}_url` as const;
+    const handleKey = `${platform}_handle` as const;
+    const visibleKey = `${platform}_visible` as const;
+
+    fields[urlKey] = row[urlKey] ?? "";
+    fields[handleKey] = row[handleKey] ?? "";
+    fields[visibleKey] = Number(row[visibleKey] ?? 0) === 1;
+
+    return fields;
+  }, {} as SocialPlatformFieldsOnly);
+
   return {
     id: row.id,
     email: row.email,
     phone: row.phone,
     whatsapp_phone: row.whatsapp_phone,
     whatsapp_message: row.whatsapp_message,
-    instagram_url: row.instagram_url,
-    instagram_handle: row.instagram_handle,
-    instagram_visible: Number(row.instagram_visible ?? 1) === 1,
-    facebook_url: row.facebook_url,
-    facebook_handle: row.facebook_handle,
-    facebook_visible: Number(row.facebook_visible ?? 1) === 1,
+    ...social,
     updated_at: row.updated_at,
   };
 }
@@ -70,14 +102,7 @@ export const settingsService = {
 
   async update(input: UpdateSiteSettingsInput) {
     try {
-      const normalized: UpdateSiteSettingsInput = {
-        ...input,
-        instagram_handle: deriveSocialHandleFromUrl(
-          input.instagram_url,
-          "instagram",
-        ),
-        facebook_handle: deriveSocialHandleFromUrl(input.facebook_url, "facebook"),
-      };
+      const normalized = normalizeSocialSettings(input);
       await settingsRepository.upsert(normalized);
       const saved = await settingsRepository.find();
       if (!saved) {

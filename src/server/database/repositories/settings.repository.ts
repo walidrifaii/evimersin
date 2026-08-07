@@ -1,8 +1,15 @@
 import { execute, query } from "@/server/database/connection";
+import { SOCIAL_PLATFORMS } from "@/constants/social-platforms";
 import type {
   SiteSettings,
   UpdateSiteSettingsInput,
 } from "@/server/types/settings.types";
+
+const SOCIAL_SELECT = SOCIAL_PLATFORMS.flatMap((platform) => [
+  `${platform}_url`,
+  `${platform}_handle`,
+  `${platform}_visible`,
+]).join(",\n  ");
 
 const SELECT_FIELDS = `
   id,
@@ -11,14 +18,24 @@ const SELECT_FIELDS = `
   phone_label,
   whatsapp_phone,
   whatsapp_message,
-  instagram_url,
-  instagram_handle,
-  instagram_visible,
-  facebook_url,
-  facebook_handle,
-  facebook_visible,
+  ${SOCIAL_SELECT},
   updated_at
 `;
+
+const NEW_PLATFORM_MIGRATIONS = [
+  `ALTER TABLE site_settings ADD COLUMN x_url VARCHAR(500) NOT NULL DEFAULT '' AFTER facebook_visible`,
+  `ALTER TABLE site_settings ADD COLUMN x_handle VARCHAR(100) NOT NULL DEFAULT '' AFTER x_url`,
+  `ALTER TABLE site_settings ADD COLUMN x_visible TINYINT NOT NULL DEFAULT 0 AFTER x_handle`,
+  `ALTER TABLE site_settings ADD COLUMN telegram_url VARCHAR(500) NOT NULL DEFAULT '' AFTER x_visible`,
+  `ALTER TABLE site_settings ADD COLUMN telegram_handle VARCHAR(100) NOT NULL DEFAULT '' AFTER telegram_url`,
+  `ALTER TABLE site_settings ADD COLUMN telegram_visible TINYINT NOT NULL DEFAULT 0 AFTER telegram_handle`,
+  `ALTER TABLE site_settings ADD COLUMN youtube_url VARCHAR(500) NOT NULL DEFAULT '' AFTER telegram_visible`,
+  `ALTER TABLE site_settings ADD COLUMN youtube_handle VARCHAR(100) NOT NULL DEFAULT '' AFTER youtube_url`,
+  `ALTER TABLE site_settings ADD COLUMN youtube_visible TINYINT NOT NULL DEFAULT 0 AFTER youtube_handle`,
+  `ALTER TABLE site_settings ADD COLUMN tiktok_url VARCHAR(500) NOT NULL DEFAULT '' AFTER youtube_visible`,
+  `ALTER TABLE site_settings ADD COLUMN tiktok_handle VARCHAR(100) NOT NULL DEFAULT '' AFTER tiktok_url`,
+  `ALTER TABLE site_settings ADD COLUMN tiktok_visible TINYINT NOT NULL DEFAULT 0 AFTER tiktok_handle`,
+];
 
 let ensurePromise: Promise<void> | null = null;
 
@@ -39,6 +56,18 @@ async function ensureTable() {
           facebook_url VARCHAR(500) NOT NULL,
           facebook_handle VARCHAR(100) NOT NULL,
           facebook_visible TINYINT NOT NULL DEFAULT 1,
+          x_url VARCHAR(500) NOT NULL DEFAULT '',
+          x_handle VARCHAR(100) NOT NULL DEFAULT '',
+          x_visible TINYINT NOT NULL DEFAULT 0,
+          telegram_url VARCHAR(500) NOT NULL DEFAULT '',
+          telegram_handle VARCHAR(100) NOT NULL DEFAULT '',
+          telegram_visible TINYINT NOT NULL DEFAULT 0,
+          youtube_url VARCHAR(500) NOT NULL DEFAULT '',
+          youtube_handle VARCHAR(100) NOT NULL DEFAULT '',
+          youtube_visible TINYINT NOT NULL DEFAULT 0,
+          tiktok_url VARCHAR(500) NOT NULL DEFAULT '',
+          tiktok_handle VARCHAR(100) NOT NULL DEFAULT '',
+          tiktok_visible TINYINT NOT NULL DEFAULT 0,
           updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
       `);
@@ -46,6 +75,7 @@ async function ensureTable() {
       for (const statement of [
         `ALTER TABLE site_settings ADD COLUMN instagram_visible TINYINT NOT NULL DEFAULT 1 AFTER instagram_handle`,
         `ALTER TABLE site_settings ADD COLUMN facebook_visible TINYINT NOT NULL DEFAULT 1 AFTER facebook_handle`,
+        ...NEW_PLATFORM_MIGRATIONS,
       ]) {
         try {
           await execute(statement);
@@ -62,6 +92,41 @@ async function ensureTable() {
 
   await ensurePromise;
 }
+
+function toDbPayload(input: UpdateSiteSettingsInput) {
+  const payload: Record<string, string | number> = {
+    email: input.email,
+    phone: input.phone,
+    whatsapp_phone: input.whatsapp_phone,
+    whatsapp_message: input.whatsapp_message,
+  };
+
+  for (const platform of SOCIAL_PLATFORMS) {
+    payload[`${platform}_url`] = input[`${platform}_url`];
+    payload[`${platform}_handle`] = input[`${platform}_handle`];
+    payload[`${platform}_visible`] = input[`${platform}_visible`] ? 1 : 0;
+  }
+
+  return payload;
+}
+
+const SOCIAL_INSERT_COLUMNS = SOCIAL_PLATFORMS.flatMap((platform) => [
+  `${platform}_url`,
+  `${platform}_handle`,
+  `${platform}_visible`,
+]).join(",\n        ");
+
+const SOCIAL_INSERT_VALUES = SOCIAL_PLATFORMS.flatMap((platform) => [
+  `:${platform}_url`,
+  `:${platform}_handle`,
+  `:${platform}_visible`,
+]).join(",\n        ");
+
+const SOCIAL_UPDATE_SET = SOCIAL_PLATFORMS.flatMap((platform) => [
+  `${platform}_url = VALUES(${platform}_url)`,
+  `${platform}_handle = VALUES(${platform}_handle)`,
+  `${platform}_visible = VALUES(${platform}_visible)`,
+]).join(",\n        ");
 
 export const settingsRepository = {
   ensureTable,
@@ -84,12 +149,7 @@ export const settingsRepository = {
         phone_label,
         whatsapp_phone,
         whatsapp_message,
-        instagram_url,
-        instagram_handle,
-        instagram_visible,
-        facebook_url,
-        facebook_handle,
-        facebook_visible
+        ${SOCIAL_INSERT_COLUMNS}
       ) VALUES (
         1,
         :email,
@@ -97,12 +157,7 @@ export const settingsRepository = {
         :phone,
         :whatsapp_phone,
         :whatsapp_message,
-        :instagram_url,
-        :instagram_handle,
-        :instagram_visible,
-        :facebook_url,
-        :facebook_handle,
-        :facebook_visible
+        ${SOCIAL_INSERT_VALUES}
       )
       ON DUPLICATE KEY UPDATE
         email = VALUES(email),
@@ -110,17 +165,8 @@ export const settingsRepository = {
         phone_label = VALUES(phone),
         whatsapp_phone = VALUES(whatsapp_phone),
         whatsapp_message = VALUES(whatsapp_message),
-        instagram_url = VALUES(instagram_url),
-        instagram_handle = VALUES(instagram_handle),
-        instagram_visible = VALUES(instagram_visible),
-        facebook_url = VALUES(facebook_url),
-        facebook_handle = VALUES(facebook_handle),
-        facebook_visible = VALUES(facebook_visible)`,
-      {
-        ...input,
-        instagram_visible: input.instagram_visible ? 1 : 0,
-        facebook_visible: input.facebook_visible ? 1 : 0,
-      },
+        ${SOCIAL_UPDATE_SET}`,
+      toDbPayload(input),
     );
   },
 };
