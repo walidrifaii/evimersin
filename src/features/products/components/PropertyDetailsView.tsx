@@ -58,14 +58,14 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
             <div className="bg-white lg:rounded-2xl lg:border lg:border-[#e8edf5] lg:p-7 lg:shadow-[0_8px_28px_rgba(15,23,42,0.06)]">
               {property.city || property.region ? (
                 <div className="mb-3 flex flex-wrap gap-2 sm:mb-4">
-                  {property.region ? (
-                    <span className="inline-flex rounded-md bg-[var(--brand-navy)] px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.06em] text-white">
-                      {property.region}
-                    </span>
-                  ) : null}
                   {property.city ? (
                     <span className="inline-flex rounded-md bg-[var(--brand-blue)] px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.06em] text-white">
                       {property.city}
+                    </span>
+                  ) : null}
+                  {property.region ? (
+                    <span className="inline-flex rounded-md bg-[var(--brand-navy)] px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.06em] text-white">
+                      {property.region}
                     </span>
                   ) : null}
                 </div>
@@ -166,6 +166,10 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
                 <FaWhatsapp className="h-5 w-5" aria-hidden="true" />
                 {tCommon("contactOnWhatsapp")}
               </a>
+
+              <p className="mt-6 text-center text-[12px] font-medium tracking-[0.04em] text-[var(--muted)] lg:mt-8">
+                #{property.id}
+              </p>
             </div>
           </div>
         </div>
