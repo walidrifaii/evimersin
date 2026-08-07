@@ -13,8 +13,10 @@ const SELECT_FIELDS = `
   whatsapp_message,
   instagram_url,
   instagram_handle,
+  instagram_visible,
   facebook_url,
   facebook_handle,
+  facebook_visible,
   updated_at
 `;
 
@@ -33,11 +35,25 @@ async function ensureTable() {
           whatsapp_message VARCHAR(500) NOT NULL,
           instagram_url VARCHAR(500) NOT NULL,
           instagram_handle VARCHAR(100) NOT NULL,
+          instagram_visible TINYINT NOT NULL DEFAULT 1,
           facebook_url VARCHAR(500) NOT NULL,
           facebook_handle VARCHAR(100) NOT NULL,
+          facebook_visible TINYINT NOT NULL DEFAULT 1,
           updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
       `);
+
+      for (const statement of [
+        `ALTER TABLE site_settings ADD COLUMN instagram_visible TINYINT NOT NULL DEFAULT 1 AFTER instagram_handle`,
+        `ALTER TABLE site_settings ADD COLUMN facebook_visible TINYINT NOT NULL DEFAULT 1 AFTER facebook_handle`,
+      ]) {
+        try {
+          await execute(statement);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          if (!message.includes("Duplicate column name")) throw error;
+        }
+      }
     })().catch((error) => {
       ensurePromise = null;
       throw error;
@@ -70,8 +86,10 @@ export const settingsRepository = {
         whatsapp_message,
         instagram_url,
         instagram_handle,
+        instagram_visible,
         facebook_url,
-        facebook_handle
+        facebook_handle,
+        facebook_visible
       ) VALUES (
         1,
         :email,
@@ -81,8 +99,10 @@ export const settingsRepository = {
         :whatsapp_message,
         :instagram_url,
         :instagram_handle,
+        :instagram_visible,
         :facebook_url,
-        :facebook_handle
+        :facebook_handle,
+        :facebook_visible
       )
       ON DUPLICATE KEY UPDATE
         email = VALUES(email),
@@ -92,9 +112,15 @@ export const settingsRepository = {
         whatsapp_message = VALUES(whatsapp_message),
         instagram_url = VALUES(instagram_url),
         instagram_handle = VALUES(instagram_handle),
+        instagram_visible = VALUES(instagram_visible),
         facebook_url = VALUES(facebook_url),
-        facebook_handle = VALUES(facebook_handle)`,
-      input,
+        facebook_handle = VALUES(facebook_handle),
+        facebook_visible = VALUES(facebook_visible)`,
+      {
+        ...input,
+        instagram_visible: input.instagram_visible ? 1 : 0,
+        facebook_visible: input.facebook_visible ? 1 : 0,
+      },
     );
   },
 };

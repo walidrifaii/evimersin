@@ -17,6 +17,8 @@ export const updateSiteSettingsSchema = z.object({
   whatsapp_message: messageSchema,
   instagram_url: urlSchema,
   instagram_handle: handleSchema,
+  instagram_visible: z.boolean(),
   facebook_url: urlSchema,
   facebook_handle: handleSchema,
+  facebook_visible: z.boolean(),
 });

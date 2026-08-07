@@ -13,8 +13,10 @@ export const defaultSiteSettings: UpdateSiteSettingsInput = {
   whatsapp_message: config.whatsapp.message,
   instagram_url: config.social.instagram,
   instagram_handle: config.social.instagramHandle,
+  instagram_visible: true,
   facebook_url: config.social.facebook,
   facebook_handle: config.social.facebookHandle,
+  facebook_visible: true,
 };
 
 export type PublicSiteSettings = UpdateSiteSettingsInput & {
@@ -31,8 +33,10 @@ function toPublicSettings(row: SiteSettings): PublicSiteSettings {
     whatsapp_message: row.whatsapp_message,
     instagram_url: row.instagram_url,
     instagram_handle: row.instagram_handle,
+    instagram_visible: Number(row.instagram_visible ?? 1) === 1,
     facebook_url: row.facebook_url,
     facebook_handle: row.facebook_handle,
+    facebook_visible: Number(row.facebook_visible ?? 1) === 1,
     updated_at: row.updated_at,
   };
 }

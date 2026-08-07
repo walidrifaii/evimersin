@@ -54,13 +54,14 @@ export function getContactMethods(settings: PublicSiteSettings) {
 }
 
 export function getContactSocial(settings: PublicSiteSettings) {
-  return [
+  const items = [
     {
       id: "instagram" as const,
       title: "Instagram",
       value: settings.instagram_handle,
       href: settings.instagram_url,
       description: "Follow our latest listings and updates",
+      visible: settings.instagram_visible ?? true,
     },
     {
       id: "facebook" as const,
@@ -68,8 +69,11 @@ export function getContactSocial(settings: PublicSiteSettings) {
       value: settings.facebook_handle,
       href: settings.facebook_url,
       description: "Connect with us on Facebook",
+      visible: settings.facebook_visible ?? true,
     },
   ];
+
+  return items.filter((item) => item.visible);
 }
 
 export type ContactFormState = {

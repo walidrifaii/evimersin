@@ -1,6 +1,7 @@
 "use client";
 
 import { BrandLogo } from "@/components/layout/BrandLogo";
+import { FooterSocialLinks } from "@/components/layout/FooterSocialLinks";
 import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import { useSiteSettings } from "@/components/providers/SiteSettingsProvider";
 import { config, getWhatsAppUrlFromSettings } from "@/constants/config";
@@ -41,9 +42,12 @@ export function Footer() {
         <div className="grid grid-cols-2 gap-x-6 gap-y-10 border-b border-white/12 pb-10 sm:gap-x-8 sm:gap-y-12 lg:grid-cols-[1.3fr_0.8fr_0.9fr_1fr] lg:gap-10">
           <div className="col-span-2 max-w-sm lg:col-span-1">
             <BrandLogo variant="onDark" />
-            <p className="mt-5 text-[14px] leading-7 text-white/72 sm:text-[15px]">
-              {t("description")}
-            </p>
+            <div className="mt-5 sm:mt-6">
+              <p className="text-[14px] leading-7 text-white/72 sm:text-[15px]">
+                {t("description")}
+              </p>
+              <FooterSocialLinks className="mt-4 border-t border-white/10 pt-4 sm:mt-5 sm:pt-5" />
+            </div>
           </div>
 
           <div>

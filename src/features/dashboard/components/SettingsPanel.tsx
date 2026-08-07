@@ -23,8 +23,10 @@ const emptyForm: FormState = {
   whatsapp_message: "",
   instagram_url: "",
   instagram_handle: "",
+  instagram_visible: true,
   facebook_url: "",
   facebook_handle: "",
+  facebook_visible: true,
 };
 
 export function SettingsPanel() {
@@ -45,8 +47,10 @@ export function SettingsPanel() {
       whatsapp_message: data.whatsapp_message,
       instagram_url: data.instagram_url,
       instagram_handle: data.instagram_handle,
+      instagram_visible: data.instagram_visible,
       facebook_url: data.facebook_url,
       facebook_handle: data.facebook_handle,
+      facebook_visible: data.facebook_visible,
     });
   }, [data]);
 
@@ -144,6 +148,34 @@ export function SettingsPanel() {
               Social media
             </h2>
             <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-4 sm:col-span-2">
+                <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-[#e8eef6] bg-[#f8fafc] px-4 py-3">
+                  <input
+                    type="checkbox"
+                    checked={form.instagram_visible}
+                    onChange={(event) =>
+                      updateField("instagram_visible", event.target.checked)
+                    }
+                    className="h-4 w-4 rounded border-[#cbd5e1] text-[var(--brand-red)] focus:ring-[var(--brand-red)]"
+                  />
+                  <span className="text-[13px] font-medium text-[var(--brand-navy)]">
+                    Show Instagram icon in footer
+                  </span>
+                </label>
+                <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-[#e8eef6] bg-[#f8fafc] px-4 py-3">
+                  <input
+                    type="checkbox"
+                    checked={form.facebook_visible}
+                    onChange={(event) =>
+                      updateField("facebook_visible", event.target.checked)
+                    }
+                    className="h-4 w-4 rounded border-[#cbd5e1] text-[var(--brand-red)] focus:ring-[var(--brand-red)]"
+                  />
+                  <span className="text-[13px] font-medium text-[var(--brand-navy)]">
+                    Show Facebook icon in footer
+                  </span>
+                </label>
+              </div>
               <TextInput
                 label="Instagram URL"
                 value={form.instagram_url}
@@ -173,6 +205,10 @@ export function SettingsPanel() {
                 onChange={(value) => updateField("facebook_handle", value)}
               />
             </div>
+            <p className="mt-2 text-[12px] text-[var(--muted)]">
+              Social links open in a new tab. Uncheck a platform to hide its icon
+              from the footer and contact page.
+            </p>
           </section>
         </div>
 

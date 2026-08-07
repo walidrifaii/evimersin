@@ -7,8 +7,10 @@ export type SiteSettings = {
   whatsapp_message: string;
   instagram_url: string;
   instagram_handle: string;
+  instagram_visible: number;
   facebook_url: string;
   facebook_handle: string;
+  facebook_visible: number;
   updated_at: Date | string;
 };
 
@@ -19,6 +21,8 @@ export type UpdateSiteSettingsInput = {
   whatsapp_message: string;
   instagram_url: string;
   instagram_handle: string;
+  instagram_visible: boolean;
   facebook_url: string;
   facebook_handle: string;
+  facebook_visible: boolean;
 };
