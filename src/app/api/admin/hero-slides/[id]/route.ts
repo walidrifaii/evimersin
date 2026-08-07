@@ -53,9 +53,9 @@ export const PUT = compose(
 
   const input = validateBody(updateHeroSlideSchema, {
     image: nextImage,
-    alt_text: formData.get("alt_text"),
-    sort_order: formData.get("sort_order"),
-    status: formData.get("status"),
+    alt_text: formData.get("alt_text") ?? "",
+    sort_order: formData.get("sort_order") ?? current.sort_order,
+    status: formData.get("status") ?? current.status,
   });
 
   const updated = await heroSlideService.update(id, input);

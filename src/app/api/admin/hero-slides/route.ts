@@ -37,9 +37,9 @@ export const POST = compose(
 
   const input = validateBody(createHeroSlideSchema, {
     image,
-    alt_text: formData.get("alt_text"),
-    sort_order: formData.get("sort_order"),
-    status: formData.get("status"),
+    alt_text: formData.get("alt_text") ?? "",
+    sort_order: formData.get("sort_order") ?? 0,
+    status: formData.get("status") ?? 1,
   });
 
   const created = await heroSlideService.create(input);
