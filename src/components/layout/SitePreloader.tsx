@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import logoSvg from "@/assets/icons/evimersin-logo.svg";
+import logoFooterImage from "@/assets/images/logo-footer.png";
 import { config } from "@/constants/config";
 
 const MIN_VISIBLE_MS = 300;
@@ -78,12 +78,24 @@ export function SitePreloader() {
           exiting ? "translate-y-4 scale-[0.97] opacity-0" : "translate-y-0 scale-100 opacity-100"
         }`}
       >
-        <Image
-          src={logoSvg}
-          alt={config.appName}
-          priority
-          className="preloader-logo h-auto w-[min(78vw,16rem)] sm:w-[min(72vw,20rem)] lg:w-[22rem]"
-        />
+        <p className="preloader-tagline mb-7 text-[0.68rem] font-semibold uppercase tracking-[0.32em] text-white/40 sm:mb-8 sm:text-[0.72rem]">
+          {config.tagline}
+        </p>
+
+        <div className="preloader-logo-drawer" aria-hidden="true">
+          <Image
+            src={logoFooterImage}
+            alt={config.appName}
+            priority
+            className="preloader-logo-inner h-14 w-auto sm:h-16 lg:h-[4.5rem]"
+          />
+        </div>
+
+        <div className="preloader-underline mt-5 h-px w-0 bg-gradient-to-r from-transparent via-[var(--brand-red)] to-transparent sm:mt-6" />
+
+        <p className="preloader-subtitle mt-6 text-[12px] font-medium tracking-[0.06em] text-white/35 sm:mt-7 sm:text-[13px]">
+          Finding your place in Mersin
+        </p>
 
         <div className="preloader-bar-wrap mt-8 h-[2px] w-28 overflow-hidden rounded-full bg-white/10 sm:mt-9 sm:w-32">
           <div className="preloader-progress relative h-full w-full origin-left rounded-full bg-gradient-to-r from-[var(--brand-red)] via-white/90 to-[var(--brand-blue)]">

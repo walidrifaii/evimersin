@@ -63,7 +63,7 @@ body {
   }
 }
 
-/* Site preloader — logo reveal */
+/* Site preloader — footer logo drawer reveal */
 @keyframes preloaderFadeIn {
   from {
     opacity: 0;
@@ -73,14 +73,34 @@ body {
   }
 }
 
-@keyframes preloaderLogoReveal {
+@keyframes preloaderRiseIn {
   from {
     opacity: 0;
-    transform: scale(0.9) translateY(14px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
-    transform: scale(1) translateY(0);
+    transform: translateY(0);
+  }
+}
+
+@keyframes preloaderLogoDrawer {
+  from {
+    transform: translateY(110%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes preloaderUnderline {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+  to {
+    width: min(72vw, 11.5rem);
+    opacity: 1;
   }
 }
 
@@ -136,9 +156,28 @@ body {
   }
 }
 
-.preloader-logo {
+.preloader-logo-drawer {
+  overflow: hidden;
+}
+
+.preloader-logo-inner {
+  display: block;
+  transform: translateY(110%);
+  animation: preloaderLogoDrawer 0.72s cubic-bezier(0.16, 1, 0.3, 1) 0.12s forwards;
+}
+
+.preloader-tagline {
   opacity: 0;
-  animation: preloaderLogoReveal 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.12s forwards;
+  animation: preloaderRiseIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.15s forwards;
+}
+
+.preloader-subtitle {
+  opacity: 0;
+  animation: preloaderRiseIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) 1.35s forwards;
+}
+
+.preloader-underline {
+  animation: preloaderUnderline 0.7s cubic-bezier(0.22, 1, 0.36, 1) 1.15s forwards;
 }
 
 .preloader-bar-wrap {
@@ -173,7 +212,11 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .preloader-logo,
+  .preloader-logo-drawer,
+  .preloader-logo-inner,
+  .preloader-tagline,
+  .preloader-subtitle,
+  .preloader-underline,
   .preloader-bar-wrap,
   .preloader-progress,
   .preloader-shimmer,
@@ -183,13 +226,19 @@ body {
     animation: none;
   }
 
-  .preloader-logo,
+  .preloader-tagline,
+  .preloader-subtitle,
   .preloader-bar-wrap {
     opacity: 1;
   }
 
-  .preloader-logo {
+  .preloader-logo-inner {
     transform: none;
+  }
+
+  .preloader-underline {
+    width: min(72vw, 11.5rem);
+    opacity: 1;
   }
 
   .preloader-progress {
