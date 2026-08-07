@@ -42,6 +42,7 @@ export function getContactMethods(settings: PublicSiteSettings) {
       href: `tel:${settings.phone}`,
       description: "Speak with our team",
     },
+    // TODO: Add WhatsApp
     {
       id: "email" as const,
       title: "Email",
