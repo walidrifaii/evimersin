@@ -3,7 +3,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import Image from "next/image";
 import type { StaticImageData } from "next/image";
-import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
 import type { PublicHeroSlide } from "@/lib/hero-slides";
 
 type HeroBannerInteractiveProps = {
@@ -33,11 +32,6 @@ export function HeroBannerInteractive({
   const [activeIndex, setActiveIndex] = useState(0);
   const total = items.length;
   const hasMultiple = total > 1;
-
-  function goTo(index: number) {
-    if (total === 0) return;
-    setActiveIndex((index + total) % total);
-  }
 
   useEffect(() => {
     if (!hasMultiple) return;
@@ -82,27 +76,6 @@ export function HeroBannerInteractive({
 
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/45 via-black/35 to-black/55" />
       </div>
-
-      {hasMultiple ? (
-        <div className="pointer-events-none absolute inset-0 z-40">
-          <button
-            type="button"
-            onClick={() => goTo(activeIndex - 1)}
-            aria-label="Previous slide"
-            className="pointer-events-auto absolute left-4 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[var(--brand-navy)] shadow-[0_8px_24px_rgba(15,23,42,0.2)] transition-colors hover:bg-white sm:left-6 sm:h-12 sm:w-12 lg:left-10"
-          >
-            <HiChevronLeft className="h-6 w-6" aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            onClick={() => goTo(activeIndex + 1)}
-            aria-label="Next slide"
-            className="pointer-events-auto absolute right-4 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[var(--brand-navy)] shadow-[0_8px_24px_rgba(15,23,42,0.2)] transition-colors hover:bg-white sm:right-6 sm:h-12 sm:w-12 lg:right-10"
-          >
-            <HiChevronRight className="h-6 w-6" aria-hidden="true" />
-          </button>
-        </div>
-      ) : null}
 
       {children}
     </>
