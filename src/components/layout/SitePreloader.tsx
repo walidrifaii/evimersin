@@ -87,7 +87,7 @@ export function SitePreloader() {
             src={logoFooterImage}
             alt={config.appName}
             priority
-            className="preloader-logo-inner h-14 w-auto sm:h-16 lg:h-[4.5rem]"
+            className="preloader-logo-inner h-24 w-auto sm:h-28 md:h-32 lg:h-36"
           />
         </div>
 
