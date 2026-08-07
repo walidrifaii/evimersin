@@ -34,7 +34,8 @@ export function toDisplayImageSrc(url: string | null | undefined) {
   if (
     value.startsWith("/products/") ||
     value.startsWith("/categories/") ||
-    value.startsWith("/products/gallery/")
+    value.startsWith("/products/gallery/") ||
+    value.startsWith("/hero-slides/")
   ) {
     value = `/uploads${value}`;
   }

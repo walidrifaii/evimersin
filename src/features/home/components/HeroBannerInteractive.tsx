@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import Image from "next/image";
 import type { StaticImageData } from "next/image";
+import { SafeImage } from "@/components/ui/SafeImage";
+import { toDisplayImageSrc } from "@/lib/image-url";
 import type { PublicHeroSlide } from "@/lib/hero-slides";
 
 type HeroBannerInteractiveProps = {
@@ -22,15 +23,22 @@ export function HeroBannerInteractive({
 }: HeroBannerInteractiveProps) {
   const items =
     slides.length > 0
-      ? slides.map((slide) => ({
-          id: slide.id,
-          src: slide.image,
-          alt: slide.altText,
-        }))
+      ? slides
+          .map((slide) => ({
+            id: slide.id,
+            src: toDisplayImageSrc(slide.image),
+            alt: slide.altText,
+          }))
+          .filter((slide) => slide.src.length > 0)
+      : [];
+
+  const displayItems =
+    items.length > 0
+      ? items
       : [{ id: 0, src: fallbackImage, alt: fallbackAlt }];
 
   const [activeIndex, setActiveIndex] = useState(0);
-  const total = items.length;
+  const total = displayItems.length;
   const hasMultiple = total > 1;
 
   useEffect(() => {
@@ -46,7 +54,7 @@ export function HeroBannerInteractive({
   return (
     <>
       <div className="absolute inset-0 z-0 overflow-hidden">
-        {items.map((item, index) => {
+        {displayItems.map((item, index) => {
           const isActive = index === activeIndex;
 
           return (
@@ -59,16 +67,13 @@ export function HeroBannerInteractive({
               }`}
               aria-hidden={!isActive}
             >
-              <Image
+              <SafeImage
                 src={item.src}
                 alt={item.alt}
                 fill
                 priority={index === 0}
                 sizes="100vw"
                 className="object-cover object-center"
-                unoptimized={
-                  typeof item.src === "string" && item.src.startsWith("/uploads/")
-                }
               />
             </div>
           );
