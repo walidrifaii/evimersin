@@ -117,7 +117,7 @@ export function Navbar() {
                   <Link
                     href={item.href}
                     aria-current={active ? "page" : undefined}
-                    className={`inline-flex items-center gap-1 text-[0.95rem] font-semibold transition-colors group-hover:text-[var(--brand-red)] ${
+                    className={`inline-flex items-center gap-1 text-[1.1rem] font-semibold transition-colors group-hover:text-[var(--brand-red)] ${
                       active
                         ? "text-[var(--brand-red)]"
                         : "text-[var(--nav-text)]"
@@ -167,7 +167,7 @@ export function Navbar() {
                   key={item.href}
                   href={item.href}
                   aria-current={active ? "page" : undefined}
-                  className={`inline-flex items-center gap-1 text-[0.95rem] font-semibold transition-colors hover:text-[var(--brand-red)] ${
+                  className={`inline-flex items-center gap-1 text-[1.1rem] font-semibold transition-colors hover:text-[var(--brand-red)] ${
                     active
                       ? "text-[var(--brand-red)]"
                       : "text-[var(--nav-text)]"

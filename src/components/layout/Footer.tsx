@@ -46,7 +46,7 @@ export function Footer() {
               <p className="text-[14px] leading-7 text-white/72 sm:text-[15px]">
                 {t("description")}
               </p>
-              <FooterSocialLinks className="mt-4 border-t border-white/10 pt-4 sm:mt-5 sm:pt-5" />
+              <FooterSocialLinks className="mt-4 sm:mt-5" />
             </div>
           </div>
 

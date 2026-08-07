@@ -71,7 +71,7 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
                 </div>
               ) : null}
               <p className="mb-2 text-[13px] font-bold tracking-[0.02em] text-[var(--brand-navy)] sm:mb-2.5 sm:text-[14px]">
-                #{property.id}
+                {t("ref")} #{property.id}
               </p>
               <h1 className="text-[1.55rem] font-bold leading-[1.2] tracking-[-0.02em] text-[var(--brand-navy)] sm:text-[1.9rem] lg:text-[2.1rem]">
                 {property.title}

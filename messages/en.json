@@ -252,6 +252,7 @@
     "sortPriceDesc": "Price: High to Low",
     "sortFeatured": "Featured First",
     "filters": "Filters",
+    "ref": "Ref",
     "whatsappMessage": "Hello EviMersin, I am interested in this property:\n\n{title}\n{url}"
   },
   "notFound": {

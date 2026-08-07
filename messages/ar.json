@@ -252,6 +252,7 @@
     "sortPriceDesc": "السعر: من الأعلى للأقل",
     "sortFeatured": "المميز أولاً",
     "filters": "الفلاتر",
+    "ref": "المرجع",
     "whatsappMessage": "مرحباً EviMersin، أنا مهتم بهذا العقار:\n\n{title}\n{url}"
   },
   "notFound": {
