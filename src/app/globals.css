@@ -63,7 +63,7 @@ body {
   }
 }
 
-/* Site preloader — brand letter drawer reveal */
+/* Site preloader — logo reveal */
 @keyframes preloaderFadeIn {
   from {
     opacity: 0;
@@ -73,34 +73,14 @@ body {
   }
 }
 
-@keyframes preloaderRiseIn {
+@keyframes preloaderLogoReveal {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: scale(0.9) translateY(14px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes preloaderLetterDrawer {
-  from {
-    transform: translateY(110%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-@keyframes preloaderUnderline {
-  from {
-    width: 0;
-    opacity: 0;
-  }
-  to {
-    width: min(72vw, 11.5rem);
-    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
 
@@ -156,30 +136,9 @@ body {
   }
 }
 
-.preloader-letter-drawer {
-  display: inline-block;
-  overflow: hidden;
-  vertical-align: bottom;
-}
-
-.preloader-letter-inner {
-  display: inline-block;
-  transform: translateY(110%);
-  animation: preloaderLetterDrawer 0.72s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.preloader-tagline {
+.preloader-logo {
   opacity: 0;
-  animation: preloaderRiseIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.15s forwards;
-}
-
-.preloader-subtitle {
-  opacity: 0;
-  animation: preloaderRiseIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) 1.35s forwards;
-}
-
-.preloader-underline {
-  animation: preloaderUnderline 0.7s cubic-bezier(0.22, 1, 0.36, 1) 1.15s forwards;
+  animation: preloaderLogoReveal 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.12s forwards;
 }
 
 .preloader-bar-wrap {
@@ -214,11 +173,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .preloader-letter-drawer,
-  .preloader-letter-inner,
-  .preloader-tagline,
-  .preloader-subtitle,
-  .preloader-underline,
+  .preloader-logo,
   .preloader-bar-wrap,
   .preloader-progress,
   .preloader-shimmer,
@@ -228,19 +183,13 @@ body {
     animation: none;
   }
 
-  .preloader-tagline,
-  .preloader-subtitle,
+  .preloader-logo,
   .preloader-bar-wrap {
     opacity: 1;
   }
 
-  .preloader-letter-inner {
+  .preloader-logo {
     transform: none;
-  }
-
-  .preloader-underline {
-    width: min(72vw, 11.5rem);
-    opacity: 1;
   }
 
   .preloader-progress {
