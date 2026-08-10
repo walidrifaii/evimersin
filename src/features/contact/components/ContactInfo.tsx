@@ -60,25 +60,27 @@ function ContactSocialLinks() {
   if (social.length === 0) return null;
 
   return (
-    <div className="flex flex-nowrap items-center gap-3 overflow-x-auto pb-1">
-      {social.map((item) => {
-        const Icon = socialIcons[item.id];
-        const label = t(socialLabelKeys[item.id]);
+    <div className="rounded-2xl border border-[#e8edf5] bg-[#f8fafc] px-4 py-5 sm:px-5 sm:py-6">
+      <div className="flex flex-nowrap items-center justify-start gap-4 overflow-x-auto pb-0.5 sm:justify-between sm:gap-3">
+        {social.map((item) => {
+          const Icon = socialIcons[item.id];
+          const label = t(socialLabelKeys[item.id]);
 
-        return (
-          <a
-            key={item.id}
-            href={item.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={label}
-            title={label}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[#e8edf5] bg-[#f5f7fa] text-[var(--brand-blue)] transition-colors hover:border-[var(--brand-blue)] hover:bg-[#eff6ff]"
-          >
-            <Icon className="h-5 w-5" aria-hidden="true" />
-          </a>
-        );
-      })}
+          return (
+            <a
+              key={item.id}
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={label}
+              title={label}
+              className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[#e8edf5] bg-white text-[var(--brand-blue)] shadow-sm transition-all hover:-translate-y-0.5 hover:border-[var(--brand-blue)] hover:bg-[#eff6ff] hover:shadow-md sm:h-16 sm:w-16"
+            >
+              <Icon className="h-6 w-6 sm:h-7 sm:w-7" aria-hidden="true" />
+            </a>
+          );
+        })}
+      </div>
     </div>
   );
 }
