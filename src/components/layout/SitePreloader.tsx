@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import logoFooterImage from "@/assets/images/logo-footer.png";
+import { images } from "@/constants/images";
 import { config } from "@/constants/config";
 
 const MIN_VISIBLE_MS = 300;
@@ -84,7 +84,7 @@ export function SitePreloader() {
 
         <div className="preloader-logo-drawer" aria-hidden="true">
           <Image
-            src={logoFooterImage}
+            src={images.logoFooter}
             alt={config.appName}
             priority
             className="preloader-logo-inner h-24 w-auto sm:h-28 md:h-32 lg:h-36"

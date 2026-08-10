@@ -1,6 +1,5 @@
 import Image from "next/image";
-import logoImage from "@/assets/images/logo.png";
-import logoFooterImage from "@/assets/images/logo-footer.png";
+import { images } from "@/constants/images";
 import { config } from "@/constants/config";
 import { Link } from "@/i18n/navigation";
 import { routes } from "@/constants/routes";
@@ -10,7 +9,7 @@ type BrandLogoProps = {
 };
 
 export function BrandLogo({ variant = "default" }: BrandLogoProps) {
-  const logoSrc = variant === "onDark" ? logoFooterImage : logoImage;
+  const logoSrc = variant === "onDark" ? images.logoFooter : images.logo;
 
   return (
     <Link href={routes.home} className="group inline-flex shrink-0">

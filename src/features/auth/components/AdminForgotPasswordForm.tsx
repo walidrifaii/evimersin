@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useState } from "react";
-import logoImage from "@/assets/images/logo.png";
+import { images } from "@/constants/images";
 import { routes } from "@/constants/routes";
 import { getApiErrorMessage } from "@/store/api/errors";
 import {
@@ -167,7 +167,7 @@ export function AdminForgotPasswordForm() {
         <div className="rounded-[28px] border border-white/25 bg-white/95 p-7 shadow-[0_24px_80px_rgba(15,23,42,0.28)] backdrop-blur-xl sm:p-8">
           <div className="mb-5 text-center">
             <Image
-              src={logoImage}
+              src={images.logo}
               alt="EviMersin"
               className="mx-auto h-14 w-auto sm:h-16"
               priority
