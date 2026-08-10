@@ -93,7 +93,7 @@ function FilterDropdown({
       {isOpen ? (
         <div
           role="listbox"
-          className="absolute inset-x-0 top-full z-[100] mt-2 max-h-64 overflow-y-auto rounded-xl border border-[#e5e7eb] bg-white shadow-[0_12px_32px_rgba(0,0,0,0.18)]"
+          className="relative z-[100] w-full border-t border-[#e5e7eb] bg-white lg:absolute lg:inset-x-0 lg:top-full lg:mt-2 lg:max-h-64 lg:overflow-y-auto lg:rounded-xl lg:border lg:border-[#e5e7eb] lg:shadow-[0_12px_32px_rgba(0,0,0,0.18)]"
         >
           {options.map((opt) => (
             <button
@@ -185,7 +185,11 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
       className="relative z-50 flex w-full flex-col gap-2 overflow-visible rounded-2xl bg-white p-3 text-start shadow-[0_12px_32px_rgba(0,0,0,0.14)] lg:flex-row lg:items-stretch lg:gap-0 lg:rounded-[20px] lg:p-4"
     >
       <div className="grid min-w-0 flex-1 grid-cols-1 divide-y divide-[#e5e7eb] overflow-visible lg:grid-cols-4 lg:items-stretch lg:divide-y-0">
-        <div className="relative z-[1] flex w-full min-w-0 items-stretch overflow-visible lg:border-e lg:border-[#e5e7eb]">
+        <div
+          className={`relative flex w-full min-w-0 items-stretch overflow-visible lg:border-e lg:border-[#e5e7eb] ${
+            openDropdown === "purpose" ? "z-30" : "z-[1]"
+          }`}
+        >
           <FilterDropdown
             label={t("searchPurpose")}
             options={filterOptions.purpose}
@@ -202,7 +206,11 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
           />
         </div>
 
-        <div className="flex w-full min-w-0 items-stretch lg:border-e lg:border-[#e5e7eb]">
+        <div
+          className={`flex w-full min-w-0 items-stretch lg:border-e lg:border-[#e5e7eb] ${
+            openDropdown === "propertyType" ? "z-30" : ""
+          }`}
+        >
           <FilterDropdown
             label={t("searchPropertyType")}
             options={filterOptions.propertyType}
@@ -221,7 +229,11 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
           />
         </div>
 
-        <div className="relative z-[1] flex w-full min-w-0 items-stretch overflow-visible lg:border-e lg:border-[#e5e7eb]">
+        <div
+          className={`relative flex w-full min-w-0 items-stretch overflow-visible lg:border-e lg:border-[#e5e7eb] ${
+            openDropdown === "city" ? "z-30" : "z-[1]"
+          }`}
+        >
           <FilterDropdown
             label={t("searchCity")}
             options={filterOptions.city}
@@ -238,7 +250,12 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
           />
         </div>
 
-        <div ref={priceRangeRef} className="relative flex w-full min-w-0 items-stretch">
+        <div
+          ref={priceRangeRef}
+          className={`relative flex w-full min-w-0 items-stretch ${
+            openDropdown === "priceRange" ? "z-30" : ""
+          }`}
+        >
           <button
             type="button"
             aria-expanded={openDropdown === "priceRange"}
@@ -263,7 +280,7 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
           </button>
 
           {openDropdown === "priceRange" ? (
-            <div className="absolute inset-x-0 top-full z-[100] mt-2 max-h-64 overflow-y-auto rounded-xl border border-[#e5e7eb] bg-white shadow-[0_12px_32px_rgba(0,0,0,0.18)]">
+            <div className="relative z-[100] w-full border-t border-[#e5e7eb] bg-white lg:absolute lg:inset-x-0 lg:top-full lg:mt-2 lg:max-h-64 lg:overflow-y-auto lg:rounded-xl lg:border lg:border-[#e5e7eb] lg:shadow-[0_12px_32px_rgba(0,0,0,0.18)]">
               {priceKeys.map((key) => (
                 <button
                   key={key}
