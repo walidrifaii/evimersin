@@ -23,7 +23,6 @@ export function isSocialPlatformActive(
   const url = settings[`${platform}_url`];
   const isVisible =
     visible === true ||
-    visible === 1 ||
     (visible === undefined &&
       (platform === "instagram" || platform === "facebook"));
 
