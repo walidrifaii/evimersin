@@ -38,7 +38,6 @@ const emptyForm: FormState = {
   whatsapp_message: "",
   address_name: "",
   address: "",
-  maps_url: "",
   ...emptySocial,
 };
 
@@ -60,7 +59,6 @@ export function SettingsPanel() {
       whatsapp_message: data.whatsapp_message,
       address_name: data.address_name,
       address: data.address,
-      maps_url: data.maps_url,
       ...socialSettingsFromData(data),
     } as FormState);
   }, [data]);
@@ -147,13 +145,6 @@ export function SettingsPanel() {
                 required
                 placeholder="Palmiye, 2.Cadde, 33110 Yenişehir/Mersin"
                 onChange={(value) => updateField("address", value)}
-              />
-              <TextInput
-                label="Google Maps URL"
-                value={form.maps_url}
-                required
-                placeholder="https://www.google.com/maps?..."
-                onChange={(value) => updateField("maps_url", value)}
               />
             </div>
           </section>

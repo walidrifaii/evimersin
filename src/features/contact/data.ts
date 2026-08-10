@@ -53,7 +53,6 @@ export function getContactMethods(settings: PublicSiteSettings) {
       id: "address" as const,
       title: "Office",
       value: settings.address_name,
-      href: settings.maps_url,
       description: settings.address,
     },
   ];

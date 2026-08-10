@@ -14,7 +14,6 @@ const SOCIAL_SELECT = SOCIAL_PLATFORMS.flatMap((platform) => [
 const ADDRESS_MIGRATIONS = [
   `ALTER TABLE site_settings ADD COLUMN address_name VARCHAR(100) NOT NULL DEFAULT 'EviMersin' AFTER whatsapp_message`,
   `ALTER TABLE site_settings ADD COLUMN address VARCHAR(500) NOT NULL DEFAULT 'Palmiye, 2.Cadde, 33110 Yenişehir/Mersin' AFTER address_name`,
-  `ALTER TABLE site_settings ADD COLUMN maps_url VARCHAR(500) NOT NULL DEFAULT 'https://www.google.com/maps?cid=17182616818109508322' AFTER address`,
 ];
 
 const SELECT_FIELDS = `
@@ -26,7 +25,6 @@ const SELECT_FIELDS = `
   whatsapp_message,
   address_name,
   address,
-  maps_url,
   ${SOCIAL_SELECT},
   updated_at
 `;
@@ -61,7 +59,6 @@ async function ensureTable() {
           whatsapp_message VARCHAR(500) NOT NULL,
           address_name VARCHAR(100) NOT NULL DEFAULT 'EviMersin',
           address VARCHAR(500) NOT NULL DEFAULT 'Palmiye, 2.Cadde, 33110 Yenişehir/Mersin',
-          maps_url VARCHAR(500) NOT NULL DEFAULT 'https://www.google.com/maps?cid=17182616818109508322',
           instagram_url VARCHAR(500) NOT NULL,
           instagram_handle VARCHAR(100) NOT NULL,
           instagram_visible TINYINT NOT NULL DEFAULT 1,
@@ -114,7 +111,6 @@ function toDbPayload(input: UpdateSiteSettingsInput) {
     whatsapp_message: input.whatsapp_message,
     address_name: input.address_name,
     address: input.address,
-    maps_url: input.maps_url,
   };
 
   for (const platform of SOCIAL_PLATFORMS) {
@@ -167,7 +163,6 @@ export const settingsRepository = {
         whatsapp_message,
         address_name,
         address,
-        maps_url,
         ${SOCIAL_INSERT_COLUMNS}
       ) VALUES (
         1,
@@ -178,7 +173,6 @@ export const settingsRepository = {
         :whatsapp_message,
         :address_name,
         :address,
-        :maps_url,
         ${SOCIAL_INSERT_VALUES}
       )
       ON DUPLICATE KEY UPDATE
@@ -189,7 +183,6 @@ export const settingsRepository = {
         whatsapp_message = VALUES(whatsapp_message),
         address_name = VALUES(address_name),
         address = VALUES(address),
-        maps_url = VALUES(maps_url),
         ${SOCIAL_UPDATE_SET}`,
       toDbPayload(input),
     );

@@ -9,7 +9,6 @@ export type SiteSettings = {
   whatsapp_message: string;
   address_name: string;
   address: string;
-  maps_url: string;
   instagram_url: string;
   instagram_handle: string;
   instagram_visible: number;
@@ -38,5 +37,4 @@ export type UpdateSiteSettingsInput = {
   whatsapp_message: string;
   address_name: string;
   address: string;
-  maps_url: string;
 } & SocialPlatformFields;

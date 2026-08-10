@@ -5,8 +5,6 @@ export const config = {
   contact: {
     addressName: "EviMersin",
     address: "Palmiye, 2.Cadde, 33110 Yenişehir/Mersin",
-    mapsUrl:
-      "https://www.google.com/maps?cid=17182616818109508322&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAMYASAF&hl=tr&gl=TR&source=embed",
     phone: "+961 71 959 921",
     email: "info@evimersin.com",
   },

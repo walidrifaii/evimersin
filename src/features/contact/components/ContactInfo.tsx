@@ -68,19 +68,16 @@ function ContactCard({
   id: keyof typeof methodIcons;
   title: string;
   value: string;
-  href: string;
+  href?: string;
   description: string;
   external?: boolean;
 }) {
   const Icon = methodIcons[id];
+  const className =
+    "flex items-start gap-4 rounded-2xl border border-[#e8edf5] bg-[#f5f7fa] p-5 transition-colors";
 
-  return (
-    <a
-      href={href}
-      target={external ? "_blank" : undefined}
-      rel={external ? "noopener noreferrer" : undefined}
-      className="flex items-start gap-4 rounded-2xl border border-[#e8edf5] bg-[#f5f7fa] p-5 transition-colors hover:border-[var(--brand-blue)] hover:bg-[#eff6ff]"
-    >
+  const content = (
+    <>
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-[var(--brand-blue)] shadow-sm">
         <Icon className="h-5 w-5" aria-hidden="true" />
       </span>
@@ -93,6 +90,21 @@ function ContactCard({
         </span>
         <span className="mt-1 block text-[14px] text-[var(--muted)]">{description}</span>
       </span>
+    </>
+  );
+
+  if (!href) {
+    return <div className={className}>{content}</div>;
+  }
+
+  return (
+    <a
+      href={href}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
+      className={`${className} hover:border-[var(--brand-blue)] hover:bg-[#eff6ff]`}
+    >
+      {content}
     </a>
   );
 }
@@ -128,9 +140,9 @@ export function ContactInfo() {
               id={method.id}
               title={t(keys.title)}
               value={method.value}
-              href={method.href}
+              href={"href" in method ? method.href : undefined}
               description={description}
-              external={method.id === "address"}
+              external={"href" in method && method.id !== "address"}
             />
           );
         })}

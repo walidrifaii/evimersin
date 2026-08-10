@@ -21,7 +21,6 @@ export const updateSiteSettingsSchema = z.object({
   whatsapp_message: messageSchema,
   address_name: addressNameSchema,
   address: addressSchema,
-  maps_url: urlSchema,
   instagram_url: urlSchema,
   instagram_handle: handleSchema,
   instagram_visible: z.boolean(),
