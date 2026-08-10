@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useState } from "react";
 import { routes } from "@/constants/routes";
+import { useDashboardFormErrors } from "@/features/dashboard/hooks/useDashboardFormErrors";
 import {
   FormLoading,
   LookupFormLayout,
@@ -32,14 +33,14 @@ function CountryFormFields({ id, initial }: { id?: number; initial?: Country }) 
   const router = useRouter();
   const [createCountry, createState] = useCreateCountryMutation();
   const [updateCountry, updateState] = useUpdateCountryMutation();
+  const formErrors = useDashboardFormErrors();
 
   const [name, setName] = useState(initial?.name ?? "");
   const [status, setStatus] = useState<Status>(initial?.status ?? 1);
-  const [error, setError] = useState<unknown>(null);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError(null);
+    formErrors.clear();
 
     try {
       if (id) {
@@ -49,7 +50,7 @@ function CountryFormFields({ id, initial }: { id?: number; initial?: Country }) 
       }
       router.push(backHref);
     } catch (err) {
-      setError(err);
+      formErrors.apply(err);
     }
   }
 
@@ -61,16 +62,28 @@ function CountryFormFields({ id, initial }: { id?: number; initial?: Country }) 
       onSubmit={onSubmit}
       submitting={createState.isLoading || updateState.isLoading}
       submitLabel={id ? "Update" : "Create"}
-      error={error}
+      error={formErrors.banner}
+      fieldErrors={formErrors.fields}
     >
       <TextInput
         label="Name"
         value={name}
         required
         placeholder="Lebanon"
-        onChange={setName}
+        error={formErrors.field("name")}
+        onChange={(value) => {
+          setName(value);
+          formErrors.clearField("name");
+        }}
       />
-      <StatusSelect value={status} onChange={setStatus} />
+      <StatusSelect
+        value={status}
+        error={formErrors.field("status")}
+        onChange={(value) => {
+          setStatus(value);
+          formErrors.clearField("status");
+        }}
+      />
     </LookupFormLayout>
   );
 }

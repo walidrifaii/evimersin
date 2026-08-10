@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useId, useState, type FormEvent, type ReactNode } from "react";
-import { getApiErrorMessage } from "@/store/api/errors";
+import {
+  DashboardFormAlert,
+  FieldErrorText,
+  fieldControlClass,
+} from "@/features/dashboard/components/DashboardFormAlert";
+import { getApiErrorMessage, parseApiError } from "@/store/api/errors";
 
 export function LookupListLayout({
   title,
@@ -46,9 +51,11 @@ export function LookupListLayout({
       </div>
 
       {error ? (
-        <div className="rounded-xl border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-[13px] font-medium text-[#b91c1c]">
-          {getApiErrorMessage(error)}
-        </div>
+        <DashboardFormAlert
+          message={getApiErrorMessage(error)}
+          fieldErrors={parseApiError(error).fieldErrors}
+          showFieldList
+        />
       ) : null}
 
       <div className="overflow-hidden rounded-[24px] border border-[#e8eef6] bg-white shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
@@ -70,6 +77,7 @@ export function LookupFormLayout({
   submitting,
   submitLabel,
   error,
+  fieldErrors,
   children,
   columns = 2,
   wide = false,
@@ -81,6 +89,7 @@ export function LookupFormLayout({
   submitting: boolean;
   submitLabel: string;
   error?: unknown;
+  fieldErrors?: Record<string, string>;
   children: ReactNode;
   columns?: 2 | 3 | 4;
   wide?: boolean;
@@ -122,9 +131,23 @@ export function LookupFormLayout({
       >
         <div className={gridClass}>{children}</div>
 
-        {error ? (
-          <div className="mt-4 rounded-xl border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-[13px] font-medium text-[#b91c1c]">
-            {getApiErrorMessage(error)}
+        {error || fieldErrors ? (
+          <div className="mt-4">
+            <DashboardFormAlert
+              message={
+                error
+                  ? typeof error === "string"
+                    ? error
+                    : getApiErrorMessage(error)
+                  : null
+              }
+              fieldErrors={
+                fieldErrors ??
+                (error && typeof error !== "string"
+                  ? parseApiError(error).fieldErrors
+                  : undefined)
+              }
+            />
           </div>
         ) : null}
 
@@ -151,9 +174,11 @@ export function LookupFormLayout({
 export function StatusSelect({
   value,
   onChange,
+  error,
 }: {
   value: 0 | 1;
   onChange: (value: 0 | 1) => void;
+  error?: string;
 }) {
   return (
     <label className="block">
@@ -161,11 +186,12 @@ export function StatusSelect({
       <select
         value={value}
         onChange={(e) => onChange(Number(e.target.value) as 0 | 1)}
-        className="h-11 w-full rounded-xl border border-[#dbe3ef] bg-[#f8fafc] px-3 text-[14px] text-[var(--brand-navy)] outline-none focus:border-[var(--brand-blue)] focus:bg-white"
+        className={fieldControlClass(error)}
       >
         <option value={1}>Active</option>
         <option value={0}>Inactive</option>
       </select>
+      <FieldErrorText message={error} />
     </label>
   );
 }
@@ -173,9 +199,11 @@ export function StatusSelect({
 export function FeaturedSelect({
   value,
   onChange,
+  error,
 }: {
   value: 0 | 1;
   onChange: (value: 0 | 1) => void;
+  error?: string;
 }) {
   return (
     <label className="block">
@@ -185,11 +213,12 @@ export function FeaturedSelect({
       <select
         value={value}
         onChange={(e) => onChange(Number(e.target.value) as 0 | 1)}
-        className="h-11 w-full rounded-xl border border-[#dbe3ef] bg-[#f8fafc] px-3 text-[14px] text-[var(--brand-navy)] outline-none focus:border-[var(--brand-blue)] focus:bg-white"
+        className={fieldControlClass(error)}
       >
         <option value={1}>Yes</option>
         <option value={0}>No</option>
       </select>
+      <FieldErrorText message={error} />
     </label>
   );
 }
@@ -202,6 +231,7 @@ export function TextInput({
   required = false,
   placeholder,
   autoComplete,
+  error,
 }: {
   label: string;
   value: string | number;
@@ -210,6 +240,7 @@ export function TextInput({
   required?: boolean;
   placeholder?: string;
   autoComplete?: string;
+  error?: string;
 }) {
   return (
     <label className="block">
@@ -219,6 +250,7 @@ export function TextInput({
         value={value}
         required={required}
         placeholder={placeholder}
+        aria-invalid={Boolean(error)}
         autoComplete={
           autoComplete ??
           (type === "password"
@@ -228,8 +260,50 @@ export function TextInput({
               : undefined)
         }
         onChange={(e) => onChange(e.target.value)}
-        className="h-11 w-full rounded-xl border border-[#dbe3ef] bg-[#f8fafc] px-3 text-[14px] text-[var(--brand-navy)] outline-none focus:border-[var(--brand-blue)] focus:bg-white"
+        className={fieldControlClass(error)}
       />
+      <FieldErrorText message={error} />
+    </label>
+  );
+}
+
+export function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+  required = false,
+  placeholder,
+  error,
+}: {
+  label: string;
+  value: number | string;
+  onChange: (value: number) => void;
+  options: Array<{ id: number; name: string }>;
+  required?: boolean;
+  placeholder?: string;
+  error?: string;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
+        {label}
+      </span>
+      <select
+        required={required}
+        value={value || ""}
+        aria-invalid={Boolean(error)}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className={fieldControlClass(error)}
+      >
+        <option value="">{placeholder ?? `Select ${label.toLowerCase()}`}</option>
+        {options.map((option) => (
+          <option key={option.id} value={option.id}>
+            {option.name}
+          </option>
+        ))}
+      </select>
+      <FieldErrorText message={error} />
     </label>
   );
 }

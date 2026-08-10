@@ -4,9 +4,11 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { routes } from "@/constants/routes";
+import { useDashboardFormErrors } from "@/features/dashboard/hooks/useDashboardFormErrors";
 import {
   FormLoading,
   LookupFormLayout,
+  SelectField,
   StatusSelect,
   TextInput,
 } from "@/features/dashboard/components/lookups/LookupManager";
@@ -36,6 +38,7 @@ function CityFormFields({ id, initial }: { id?: number; initial?: City }) {
     useGetCountriesQuery();
   const [createCity, createState] = useCreateCityMutation();
   const [updateCity, updateState] = useUpdateCityMutation();
+  const formErrors = useDashboardFormErrors();
 
   const activeCountries = useMemo(
     () => countries.filter((country) => Number(country.status) === 1),
@@ -54,14 +57,15 @@ function CityFormFields({ id, initial }: { id?: number; initial?: City }) {
   const [name, setName] = useState(initial?.name ?? "");
   const [countryId, setCountryId] = useState<number>(defaultCountryId);
   const [status, setStatus] = useState<Status>(initial?.status ?? 1);
-  const [error, setError] = useState<unknown>(null);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError(null);
+    formErrors.clear();
 
     if (!countryId) {
-      setError(new Error("Please select a country first."));
+      formErrors.setLocal("Please select a country first.", {
+        country_id: "Country is required",
+      });
       return;
     }
 
@@ -79,7 +83,7 @@ function CityFormFields({ id, initial }: { id?: number; initial?: City }) {
       }
       router.push(backHref);
     } catch (err) {
-      setError(err);
+      formErrors.apply(err);
     }
   }
 
@@ -93,40 +97,42 @@ function CityFormFields({ id, initial }: { id?: number; initial?: City }) {
       onSubmit={onSubmit}
       submitting={createState.isLoading || updateState.isLoading}
       submitLabel={id ? "Update" : "Create"}
-      error={error}
+      error={formErrors.banner}
+      fieldErrors={formErrors.fields}
     >
       <TextInput
         label="Name"
         value={name}
         required
         placeholder="Mersin"
-        onChange={setName}
+        error={formErrors.field("name")}
+        onChange={(value) => {
+          setName(value);
+          formErrors.clearField("name");
+        }}
       />
 
-      <label className="block">
-        <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
-          Country
-        </span>
-        <select
-          value={countryId || ""}
-          required
-          onChange={(event) => setCountryId(Number(event.target.value))}
-          className="h-11 w-full rounded-xl border border-[#d7dee8] bg-white px-3 text-[14px] text-[var(--brand-navy)] outline-none focus:border-[var(--brand-blue)]"
-        >
-          <option value="" disabled>
-            Select country
-          </option>
-          {(activeCountries.length > 0 ? activeCountries : countries).map(
-            (country) => (
-              <option key={country.id} value={country.id}>
-                {country.name}
-              </option>
-            ),
-          )}
-        </select>
-      </label>
+      <SelectField
+        label="Country"
+        value={countryId}
+        required
+        placeholder="Select country"
+        options={activeCountries.length > 0 ? activeCountries : countries}
+        error={formErrors.field("country_id")}
+        onChange={(value) => {
+          setCountryId(value);
+          formErrors.clearField("country_id");
+        }}
+      />
 
-      <StatusSelect value={status} onChange={setStatus} />
+      <StatusSelect
+        value={status}
+        error={formErrors.field("status")}
+        onChange={(value) => {
+          setStatus(value);
+          formErrors.clearField("status");
+        }}
+      />
     </LookupFormLayout>
   );
 }

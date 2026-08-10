@@ -8,6 +8,8 @@ import {
   FormLoading,
   TextInput,
 } from "@/features/dashboard/components/lookups/LookupManager";
+import { DashboardFormAlert } from "@/features/dashboard/components/DashboardFormAlert";
+import { useDashboardFormErrors } from "@/features/dashboard/hooks/useDashboardFormErrors";
 import {
   loadUserDraft,
   saveUserDraft,
@@ -57,7 +59,7 @@ function UserModal({
 }) {
   const router = useRouter();
   const [form, setForm] = useState<UserFormState>(emptyForm);
-  const [localError, setLocalError] = useState<unknown>(null);
+  const formErrors = useDashboardFormErrors();
   const [verifyModalOpen, setVerifyModalOpen] = useState(false);
 
   const [createUser, createState] = useCreateDashboardUserMutation();
@@ -93,7 +95,7 @@ function UserModal({
     }
 
     setVerifyModalOpen(false);
-    setLocalError(null);
+    formErrors.clear();
   }, [open, mode, initialUser, draftForm]);
 
   const permissionTotal = useMemo(
@@ -101,21 +103,31 @@ function UserModal({
     [form.permissions],
   );
 
-  function validateForm(): string | null {
-    if (!form.firstName.trim() || !form.lastName.trim()) {
-      return "First name and last name are required.";
+  function validateForm(): Record<string, string> {
+    const errors: Record<string, string> = {};
+    if (!form.firstName.trim()) errors.firstName = "First name is required";
+    if (!form.lastName.trim()) errors.lastName = "Last name is required";
+    if (!form.username.trim()) errors.username = "Username is required";
+    if (!form.email.trim()) errors.email = "Email is required";
+    if (mode === "create" && !form.password) {
+      errors.password = "Password is required";
     }
-    if (!form.username.trim()) return "Username is required.";
-    if (!form.email.trim()) return "Email is required.";
-    if (mode === "create" && !form.password) return "Password is required.";
     if (form.permissions.length === 0) {
-      return "Add at least one permission for this user.";
+      errors.permissions = "Add at least one permission for this user";
     }
-    return null;
+    return errors;
+  }
+
+  function updateFormField<K extends keyof UserFormState>(
+    key: K,
+    value: UserFormState[K],
+  ) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    formErrors.clearField(String(key));
   }
 
   function handleOpenPermissions() {
-    setLocalError(null);
+    formErrors.clear();
 
     saveUserDraft({
       mode,
@@ -148,7 +160,7 @@ function UserModal({
       onSaved("User created successfully.");
       onClose();
     } catch (error) {
-      setLocalError(error);
+      formErrors.apply(error);
     }
   }
 
@@ -172,17 +184,17 @@ function UserModal({
       onSaved("User updated successfully.");
       onClose();
     } catch (error) {
-      setLocalError(error);
+      formErrors.apply(error);
     }
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setLocalError(null);
+    formErrors.clear();
 
-    const validationError = validateForm();
-    if (validationError) {
-      setLocalError(new Error(validationError));
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      formErrors.setLocal("Please fix the highlighted fields below.", validationErrors);
       return;
     }
 
@@ -241,9 +253,12 @@ function UserModal({
 
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <div className="overflow-y-auto px-5 py-5 sm:px-6">
-            {localError ? (
-              <div className="mb-4 rounded-xl border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-[13px] font-medium text-[#b91c1c]">
-                {getApiErrorMessage(localError)}
+            {formErrors.banner ? (
+              <div className="mb-4">
+                <DashboardFormAlert
+                  message={formErrors.banner}
+                  fieldErrors={formErrors.fields}
+                />
               </div>
             ) : null}
 
@@ -252,35 +267,42 @@ function UserModal({
                 label="First name"
                 value={form.firstName}
                 required
-                onChange={(value) => setForm((prev) => ({ ...prev, firstName: value }))}
+                error={formErrors.field("firstName")}
+                onChange={(value) => updateFormField("firstName", value)}
               />
               <TextInput
                 label="Last name"
                 value={form.lastName}
                 required
-                onChange={(value) => setForm((prev) => ({ ...prev, lastName: value }))}
+                error={formErrors.field("lastName")}
+                onChange={(value) => updateFormField("lastName", value)}
               />
               <TextInput
                 label="Username"
                 value={form.username}
                 required
-                onChange={(value) => setForm((prev) => ({ ...prev, username: value }))}
+                error={formErrors.field("username")}
+                onChange={(value) => updateFormField("username", value)}
               />
               <TextInput
                 label="Email"
                 type="email"
                 value={form.email}
                 required
-                onChange={(value) =>
-                  setForm((prev) => ({ ...prev, email: value, emailOtp: "" }))
-                }
+                error={formErrors.field("email")}
+                onChange={(value) => {
+                  setForm((prev) => ({ ...prev, email: value, emailOtp: "" }));
+                  formErrors.clearField("email");
+                  formErrors.clearField("emailOtp");
+                }}
               />
               <TextInput
                 label={mode === "create" ? "Password" : "New password (optional)"}
                 type="password"
+                error={formErrors.field("password")}
                 value={form.password}
                 required={mode === "create"}
-                onChange={(value) => setForm((prev) => ({ ...prev, password: value }))}
+                onChange={(value) => updateFormField("password", value)}
               />
               <label className="block">
                 <span className="mb-1.5 block text-[13px] font-medium text-[var(--brand-navy)]">
@@ -307,6 +329,11 @@ function UserModal({
               <p className="mt-5 text-[12px] text-[var(--muted)]">
                 {permissionTotal} permission{permissionTotal === 1 ? "" : "s"} selected.
                 Use the Permissions button to manage access.
+                {formErrors.field("permissions") ? (
+                  <span className="mt-1 block font-medium text-[#b91c1c]">
+                    {formErrors.field("permissions")}
+                  </span>
+                ) : null}
               </p>
             ) : (
               <p className="mt-5 text-[12px] font-medium text-[var(--brand-blue)]">

@@ -10,6 +10,8 @@ import {
   FormLoading,
   TextInput,
 } from "@/features/dashboard/components/lookups/LookupManager";
+import { DashboardFormAlert } from "@/features/dashboard/components/DashboardFormAlert";
+import { useDashboardFormErrors } from "@/features/dashboard/hooks/useDashboardFormErrors";
 import { socialSettingsFromData } from "@/features/contact/data";
 import { normalizeSocialSettings } from "@/lib/social-settings";
 import { getApiErrorMessage } from "@/store/api/errors";
@@ -47,7 +49,7 @@ export function SettingsPanel() {
   const { data, isLoading, error } = useGetSiteSettingsQuery();
   const [updateSettings, updateState] = useUpdateSiteSettingsMutation();
   const [form, setForm] = useState<FormState>(emptyForm);
-  const [actionError, setActionError] = useState<unknown>(null);
+  const formErrors = useDashboardFormErrors();
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -66,20 +68,20 @@ export function SettingsPanel() {
   function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
     setSaved(false);
-    setActionError(null);
+    formErrors.clearField(String(key));
   }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!canUpdate) return;
-    setActionError(null);
+    formErrors.clear();
     setSaved(false);
 
     try {
       await updateSettings(normalizeSocialSettings(form)).unwrap();
       setSaved(true);
     } catch (err) {
-      setActionError(err);
+      formErrors.apply(err);
     }
   }
 
@@ -112,6 +114,7 @@ export function SettingsPanel() {
                 value={form.email}
                 required
                 placeholder="info@evimersin.com"
+                error={formErrors.field("email")}
                 onChange={(value) => updateField("email", value)}
               />
               <TextInput
@@ -119,6 +122,7 @@ export function SettingsPanel() {
                 value={form.phone}
                 required
                 placeholder="+961 71 959 921"
+                error={formErrors.field("phone")}
                 onChange={(value) => updateField("phone", value)}
               />
             </div>
@@ -137,6 +141,7 @@ export function SettingsPanel() {
                 value={form.address_name}
                 required
                 placeholder="EviMersin"
+                error={formErrors.field("address_name")}
                 onChange={(value) => updateField("address_name", value)}
               />
               <TextInput
@@ -144,6 +149,7 @@ export function SettingsPanel() {
                 value={form.address}
                 required
                 placeholder="Palmiye, 2.Cadde, 33110 Yenişehir/Mersin"
+                error={formErrors.field("address")}
                 onChange={(value) => updateField("address", value)}
               />
             </div>
@@ -159,6 +165,7 @@ export function SettingsPanel() {
                 value={form.whatsapp_phone}
                 required
                 placeholder="96171959921"
+                error={formErrors.field("whatsapp_phone")}
                 onChange={(value) => updateField("whatsapp_phone", value)}
               />
               <div className="sm:col-span-2">
@@ -167,6 +174,7 @@ export function SettingsPanel() {
                   value={form.whatsapp_message}
                   required
                   placeholder="Hello EviMersin..."
+                  error={formErrors.field("whatsapp_message")}
                   onChange={(value) => updateField("whatsapp_message", value)}
                 />
               </div>
@@ -212,6 +220,7 @@ export function SettingsPanel() {
                           platform.id === "instagram" || platform.id === "facebook"
                         }
                         placeholder={platform.placeholder}
+                        error={formErrors.field(urlKey)}
                         onChange={(value) => updateField(urlKey, value)}
                       />
                     </div>
@@ -226,9 +235,14 @@ export function SettingsPanel() {
           </section>
         </div>
 
-        {error || actionError ? (
-          <div className="mt-4 rounded-xl border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-[13px] font-medium text-[#b91c1c]">
-            {getApiErrorMessage(actionError ?? error)}
+        {error || formErrors.banner ? (
+          <div className="mt-4">
+            <DashboardFormAlert
+              message={
+                formErrors.banner ?? (error ? getApiErrorMessage(error) : null)
+              }
+              fieldErrors={formErrors.fields}
+            />
           </div>
         ) : null}
 

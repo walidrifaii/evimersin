@@ -4,9 +4,11 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { routes } from "@/constants/routes";
+import { useDashboardFormErrors } from "@/features/dashboard/hooks/useDashboardFormErrors";
 import {
   FormLoading,
   LookupFormLayout,
+  SelectField,
   StatusSelect,
   TextInput,
 } from "@/features/dashboard/components/lookups/LookupManager";
@@ -35,6 +37,7 @@ function RegionFormFields({ id, initial }: { id?: number; initial?: Region }) {
   const { data: cities = [], isLoading: citiesLoading } = useGetCitiesQuery();
   const [createRegion, createState] = useCreateRegionMutation();
   const [updateRegion, updateState] = useUpdateRegionMutation();
+  const formErrors = useDashboardFormErrors();
 
   const activeCities = useMemo(
     () => cities.filter((city) => Number(city.status) === 1),
@@ -47,14 +50,15 @@ function RegionFormFields({ id, initial }: { id?: number; initial?: Region }) {
   const [name, setName] = useState(initial?.name ?? "");
   const [cityId, setCityId] = useState<number>(defaultCityId);
   const [status, setStatus] = useState<Status>(initial?.status ?? 1);
-  const [error, setError] = useState<unknown>(null);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError(null);
+    formErrors.clear();
 
     if (!cityId) {
-      setError(new Error("Please select a city first."));
+      formErrors.setLocal("Please select a city first.", {
+        city_id: "City is required",
+      });
       return;
     }
 
@@ -72,7 +76,7 @@ function RegionFormFields({ id, initial }: { id?: number; initial?: Region }) {
       }
       router.push(backHref);
     } catch (err) {
-      setError(err);
+      formErrors.apply(err);
     }
   }
 
@@ -86,38 +90,42 @@ function RegionFormFields({ id, initial }: { id?: number; initial?: Region }) {
       onSubmit={onSubmit}
       submitting={createState.isLoading || updateState.isLoading}
       submitLabel={id ? "Update" : "Create"}
-      error={error}
+      error={formErrors.banner}
+      fieldErrors={formErrors.fields}
     >
       <TextInput
         label="Name"
         value={name}
         required
         placeholder="Yenişehir"
-        onChange={setName}
+        error={formErrors.field("name")}
+        onChange={(value) => {
+          setName(value);
+          formErrors.clearField("name");
+        }}
       />
 
-      <label className="block">
-        <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
-          City
-        </span>
-        <select
-          value={cityId || ""}
-          required
-          onChange={(event) => setCityId(Number(event.target.value))}
-          className="h-11 w-full rounded-xl border border-[#d7dee8] bg-white px-3 text-[14px] text-[var(--brand-navy)] outline-none focus:border-[var(--brand-blue)]"
-        >
-          <option value="" disabled>
-            Select city
-          </option>
-          {(activeCities.length > 0 ? activeCities : cities).map((city) => (
-            <option key={city.id} value={city.id}>
-              {city.name}
-            </option>
-          ))}
-        </select>
-      </label>
+      <SelectField
+        label="City"
+        value={cityId}
+        required
+        placeholder="Select city"
+        options={activeCities.length > 0 ? activeCities : cities}
+        error={formErrors.field("city_id")}
+        onChange={(value) => {
+          setCityId(value);
+          formErrors.clearField("city_id");
+        }}
+      />
 
-      <StatusSelect value={status} onChange={setStatus} />
+      <StatusSelect
+        value={status}
+        error={formErrors.field("status")}
+        onChange={(value) => {
+          setStatus(value);
+          formErrors.clearField("status");
+        }}
+      />
     </LookupFormLayout>
   );
 }

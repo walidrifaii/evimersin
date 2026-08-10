@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useState } from "react";
 import { routes } from "@/constants/routes";
+import { useDashboardFormErrors } from "@/features/dashboard/hooks/useDashboardFormErrors";
 import {
   FormLoading,
   LookupFormLayout,
@@ -32,15 +33,15 @@ function PurposeFormFields({ id, initial }: { id?: number; initial?: Purpose }) 
   const router = useRouter();
   const [createPurpose, createState] = useCreatePurposeMutation();
   const [updatePurpose, updateState] = useUpdatePurposeMutation();
+  const formErrors = useDashboardFormErrors();
 
   const [name, setName] = useState(initial?.name ?? "");
   const [position, setPosition] = useState<number>(initial?.position ?? 0);
   const [status, setStatus] = useState<Status>(initial?.status ?? 1);
-  const [error, setError] = useState<unknown>(null);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError(null);
+    formErrors.clear();
 
     const payload = { name, status, position: Number(position) || 0 };
 
@@ -52,7 +53,7 @@ function PurposeFormFields({ id, initial }: { id?: number; initial?: Purpose }) 
       }
       router.push(backHref);
     } catch (err) {
-      setError(err);
+      formErrors.apply(err);
     }
   }
 
@@ -64,22 +65,38 @@ function PurposeFormFields({ id, initial }: { id?: number; initial?: Purpose }) 
       onSubmit={onSubmit}
       submitting={createState.isLoading || updateState.isLoading}
       submitLabel={id ? "Update" : "Create"}
-      error={error}
+      error={formErrors.banner}
+      fieldErrors={formErrors.fields}
     >
       <TextInput
         label="Name"
         value={name}
         required
         placeholder="For Sale"
-        onChange={setName}
+        error={formErrors.field("name")}
+        onChange={(value) => {
+          setName(value);
+          formErrors.clearField("name");
+        }}
       />
       <TextInput
         label="Position"
         type="number"
         value={position}
-        onChange={(value) => setPosition(Number(value) || 0)}
+        error={formErrors.field("position")}
+        onChange={(value) => {
+          setPosition(Number(value) || 0);
+          formErrors.clearField("position");
+        }}
       />
-      <StatusSelect value={status} onChange={setStatus} />
+      <StatusSelect
+        value={status}
+        error={formErrors.field("status")}
+        onChange={(value) => {
+          setStatus(value);
+          formErrors.clearField("status");
+        }}
+      />
     </LookupFormLayout>
   );
 }

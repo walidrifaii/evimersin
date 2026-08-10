@@ -6,6 +6,8 @@ import {
   FormLoading,
   TextInput,
 } from "@/features/dashboard/components/lookups/LookupManager";
+import { DashboardFormAlert, FieldErrorText } from "@/features/dashboard/components/DashboardFormAlert";
+import { useDashboardFormErrors } from "@/features/dashboard/hooks/useDashboardFormErrors";
 import { getApiErrorMessage } from "@/store/api/errors";
 import {
   useGetAnnouncementsOverviewQuery,
@@ -29,7 +31,7 @@ export function AnnouncementsPanel() {
   const [sendAnnouncement, sendState] = useSendAnnouncementMutation();
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
-  const [actionError, setActionError] = useState<unknown>(null);
+  const formErrors = useDashboardFormErrors();
   const [sentMessage, setSentMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -40,7 +42,7 @@ export function AnnouncementsPanel() {
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setActionError(null);
+    formErrors.clear();
     setSentMessage(null);
 
     try {
@@ -49,7 +51,7 @@ export function AnnouncementsPanel() {
       setMessage("");
       setSentMessage(result.message);
     } catch (err) {
-      setActionError(err);
+      formErrors.apply(err);
     }
   }
 
@@ -130,7 +132,11 @@ export function AnnouncementsPanel() {
               value={title}
               required
               placeholder="Special offer today"
-              onChange={setTitle}
+              error={formErrors.field("title")}
+              onChange={(value) => {
+                setTitle(value);
+                formErrors.clearField("title");
+              }}
             />
             <label className="block">
               <span className="mb-1.5 block text-[13px] font-medium text-[var(--brand-navy)]">
@@ -140,16 +146,30 @@ export function AnnouncementsPanel() {
                 value={message}
                 required
                 rows={4}
+                aria-invalid={Boolean(formErrors.field("message"))}
                 placeholder="Write the message guests will see on the website..."
-                onChange={(event) => setMessage(event.target.value)}
-                className="w-full rounded-xl border border-[#dbe4f0] bg-white px-3.5 py-2.5 text-[14px] text-[var(--brand-navy)] outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[var(--brand-blue)]"
+                onChange={(event) => {
+                  setMessage(event.target.value);
+                  formErrors.clearField("message");
+                }}
+                className={`w-full rounded-xl border bg-white px-3.5 py-2.5 text-[14px] text-[var(--brand-navy)] outline-none transition-colors placeholder:text-[#94a3b8] ${
+                  formErrors.field("message")
+                    ? "border-[#fca5a5] bg-[#fef2f2] focus:border-[#b91c1c]"
+                    : "border-[#dbe4f0] focus:border-[var(--brand-blue)]"
+                }`}
               />
+              <FieldErrorText message={formErrors.field("message")} />
             </label>
           </div>
 
-          {error || actionError ? (
-            <div className="mt-4 rounded-xl border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-[13px] font-medium text-[#b91c1c]">
-              {getApiErrorMessage(actionError ?? error)}
+          {error || formErrors.banner ? (
+            <div className="mt-4">
+              <DashboardFormAlert
+                message={
+                  formErrors.banner ?? (error ? getApiErrorMessage(error) : null)
+                }
+                fieldErrors={formErrors.fields}
+              />
             </div>
           ) : null}
 

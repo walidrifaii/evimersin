@@ -15,9 +15,16 @@ import {
   FormLoading,
   FeaturedSelect,
   LookupFormLayout,
+  SelectField,
   StatusSelect,
   TextInput,
 } from "@/features/dashboard/components/lookups/LookupManager";
+import {
+  DashboardFormAlert,
+  FieldErrorText,
+  fieldControlClass,
+} from "@/features/dashboard/components/DashboardFormAlert";
+import { useDashboardFormErrors } from "@/features/dashboard/hooks/useDashboardFormErrors";
 import { toDisplayImageSrc } from "@/lib/image-url";
 import {
   calculateFinalPrice,
@@ -45,41 +52,6 @@ const backHref = routes.dashboardTab("products");
 function boolToSelect(value: number | boolean | null | undefined) {
   if (value === null || value === undefined) return "";
   return Number(value) === 1 ? "1" : "0";
-}
-
-function SelectField({
-  label,
-  value,
-  onChange,
-  options,
-  required = false,
-}: {
-  label: string;
-  value: number;
-  onChange: (value: number) => void;
-  options: Array<{ id: number; name: string }>;
-  required?: boolean;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
-        {label}
-      </span>
-      <select
-        required={required}
-        value={value || ""}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="h-11 w-full rounded-xl border border-[#dbe3ef] bg-[#f8fafc] px-3 text-[14px] text-[var(--brand-navy)] outline-none focus:border-[var(--brand-blue)] focus:bg-white"
-      >
-        <option value="">Select {label.toLowerCase()}</option>
-        {options.map((option) => (
-          <option key={option.id} value={option.id}>
-            {option.name}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
 }
 
 function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDetail }) {
@@ -110,7 +82,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
   const [isFeatured, setIsFeatured] = useState<Status>(initial?.is_featured ?? 0);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
-  const [error, setError] = useState<unknown>(null);
+  const formErrors = useDashboardFormErrors();
   const [galleryError, setGalleryError] = useState<unknown>(null);
   const [previewUrl, setPreviewUrl] = useState(toDisplayImageSrc(initial?.image));
   const [galleryPreviewUrls, setGalleryPreviewUrls] = useState<string[]>([]);
@@ -176,24 +148,35 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError(null);
+    formErrors.clear();
 
-    if (!categoryId || !purposeId || !cityId) {
-      setError({ data: { message: "Please select category, purpose, and city" } });
+    const nextFieldErrors: Record<string, string> = {};
+
+    if (!categoryId) nextFieldErrors.category_id = "Category is required";
+    if (!purposeId) nextFieldErrors.purpose_id = "Purpose is required";
+    if (!cityId) nextFieldErrors.city_id = "City is required";
+
+    if (Object.keys(nextFieldErrors).length > 0) {
+      formErrors.setLocal("Please select category, purpose, and city.", nextFieldErrors);
       return;
     }
+
     if (discountType && discountValue <= 0) {
-      setError({ data: { message: "Discount value must be greater than 0" } });
+      formErrors.setLocal("Discount value must be greater than 0.", {
+        discount_value: "Discount value must be greater than 0",
+      });
       return;
     }
     if (discountType === "fixed" && discountValue > price) {
-      setError({
-        data: { message: "Fixed discount cannot exceed residential unit price" },
+      formErrors.setLocal("Fixed discount cannot exceed residential unit price.", {
+        discount_value: "Fixed discount cannot exceed price",
       });
       return;
     }
     if (discountType === "percentage" && discountValue > 100) {
-      setError({ data: { message: "Percentage discount cannot exceed 100%" } });
+      formErrors.setLocal("Percentage discount cannot exceed 100%.", {
+        discount_value: "Percentage discount cannot exceed 100%",
+      });
       return;
     }
 
@@ -220,8 +203,12 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
       else await createProduct(payload).unwrap();
       router.push(backHref);
     } catch (err) {
-      setError(err);
+      formErrors.apply(err);
     }
+  }
+
+  function clearField(name: string) {
+    formErrors.clearField(name);
   }
 
   return (
@@ -233,17 +220,31 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
         onSubmit={onSubmit}
         submitting={createState.isLoading || updateState.isLoading}
         submitLabel={id ? "Update" : "Create"}
-        error={error}
+        error={formErrors.banner}
+        fieldErrors={formErrors.fields}
         columns={4}
         wide
       >
-        <TextInput label="Name" value={name} required onChange={setName} />
+        <TextInput
+          label="Name"
+          value={name}
+          required
+          error={formErrors.field("name")}
+          onChange={(value) => {
+            setName(value);
+            clearField("name");
+          }}
+        />
         <TextInput
           label="Price"
           type="number"
           value={price}
           required
-          onChange={(value) => setPrice(Number(value) || 0)}
+          error={formErrors.field("price")}
+          onChange={(value) => {
+            setPrice(Number(value) || 0);
+            clearField("price");
+          }}
         />
         <label className="block">
           <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
@@ -251,19 +252,22 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
           </span>
           <select
             value={discountType ?? ""}
+            aria-invalid={Boolean(formErrors.field("discount_type"))}
             onChange={(event) => {
               const nextType = event.target.value;
               setDiscountType(
                 nextType === "fixed" || nextType === "percentage" ? nextType : null,
               );
               if (nextType !== "fixed" && nextType !== "percentage") setDiscountValue(0);
+              clearField("discount_type");
             }}
-            className="h-11 w-full rounded-xl border border-[#dbe3ef] bg-[#f8fafc] px-3 text-[14px] text-[var(--brand-navy)] outline-none focus:border-[var(--brand-blue)] focus:bg-white"
+            className={fieldControlClass(formErrors.field("discount_type"))}
           >
             <option value="">No discount</option>
             <option value="fixed">Fixed amount</option>
             <option value="percentage">Percentage</option>
           </select>
+          <FieldErrorText message={formErrors.field("discount_type")} />
         </label>
         <TextInput
           label={
@@ -275,7 +279,11 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
           }
           type="number"
           value={discountValue}
-          onChange={(value) => setDiscountValue(Number(value) || 0)}
+          error={formErrors.field("discount_value")}
+          onChange={(value) => {
+            setDiscountValue(Number(value) || 0);
+            clearField("discount_value");
+          }}
         />
         <div className="rounded-xl border border-[#e5eaf2] bg-[#f8fafc] px-4 py-3 col-span-full sm:col-span-2 lg:col-span-2">
           <p className="text-[12px] font-semibold uppercase tracking-[0.06em] text-[var(--muted)]">
@@ -296,28 +304,42 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
           label="Position"
           type="number"
           value={position}
-          onChange={(value) => setPosition(Number(value) || 0)}
+          error={formErrors.field("position")}
+          onChange={(value) => {
+            setPosition(Number(value) || 0);
+            clearField("position");
+          }}
         />
         <SelectField
           label="Category"
           value={categoryId}
-          onChange={setCategoryId}
+          error={formErrors.field("category_id")}
+          onChange={(value) => {
+            setCategoryId(value);
+            clearField("category_id");
+          }}
           options={activeCategories}
           required
         />
         <SelectField
           label="Purpose"
           value={purposeId}
-          onChange={setPurposeId}
+          error={formErrors.field("purpose_id")}
+          onChange={(value) => {
+            setPurposeId(value);
+            clearField("purpose_id");
+          }}
           options={activePurposes}
           required
         />
         <SelectField
           label="City"
           value={cityId}
+          error={formErrors.field("city_id")}
           onChange={(nextCityId) => {
             setCityId(nextCityId);
             setRegionId(0);
+            clearField("city_id");
           }}
           options={activeCities}
           required
@@ -329,8 +351,12 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
           <select
             value={regionId || ""}
             disabled={!cityId}
-            onChange={(event) => setRegionId(Number(event.target.value) || 0)}
-            className="h-11 w-full rounded-xl border border-[#dbe3ef] bg-[#f8fafc] px-3 text-[14px] text-[var(--brand-navy)] outline-none focus:border-[var(--brand-blue)] focus:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+            aria-invalid={Boolean(formErrors.field("region_id"))}
+            onChange={(event) => {
+              setRegionId(Number(event.target.value) || 0);
+              clearField("region_id");
+            }}
+            className={`${fieldControlClass(formErrors.field("region_id"))} disabled:cursor-not-allowed disabled:opacity-60`}
           >
             <option value="">All regions / none</option>
             {activeRegions.map((region) => (
@@ -339,9 +365,24 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
               </option>
             ))}
           </select>
+          <FieldErrorText message={formErrors.field("region_id")} />
         </label>
-        <StatusSelect value={status} onChange={setStatus} />
-        <FeaturedSelect value={isFeatured} onChange={setIsFeatured} />
+        <StatusSelect
+          value={status}
+          error={formErrors.field("status")}
+          onChange={(value) => {
+            setStatus(value);
+            clearField("status");
+          }}
+        />
+        <FeaturedSelect
+          value={isFeatured}
+          error={formErrors.field("is_featured")}
+          onChange={(value) => {
+            setIsFeatured(value);
+            clearField("is_featured");
+          }}
+        />
 
         {specFields.length > 0 ? (
           <div className="col-span-full">
@@ -383,9 +424,11 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
                       key={field.key}
                       label={field.label}
                       value={String(specValues[field.key] ?? "")}
-                      onChange={(value) =>
-                        updateSpec(field.key, value.trim() || null)
-                      }
+                      error={formErrors.field(field.key)}
+                      onChange={(value) => {
+                        updateSpec(field.key, value.trim() || null);
+                        clearField(field.key);
+                      }}
                     />
                   );
                 }
@@ -395,6 +438,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
                     key={field.key}
                     label={field.unit ? `${field.label} (${field.unit})` : field.label}
                     type="number"
+                    error={formErrors.field(field.key)}
                     value={
                       specValues[field.key] === null ||
                       specValues[field.key] === undefined
@@ -404,9 +448,10 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
                     onChange={(value) => {
                       if (value.trim() === "") {
                         updateSpec(field.key, null);
-                        return;
+                      } else {
+                        updateSpec(field.key, Number(value));
                       }
-                      updateSpec(field.key, Number(value));
+                      clearField(field.key);
                     }}
                   />
                 );
@@ -425,10 +470,19 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
           </span>
           <textarea
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            aria-invalid={Boolean(formErrors.field("description"))}
+            onChange={(e) => {
+              setDescription(e.target.value);
+              clearField("description");
+            }}
             rows={4}
-            className="w-full rounded-xl border border-[#dbe3ef] bg-[#f8fafc] px-3 py-2.5 text-[14px] text-[var(--brand-navy)] outline-none focus:border-[var(--brand-blue)] focus:bg-white"
+            className={`w-full rounded-xl border bg-[#f8fafc] px-3 py-2.5 text-[14px] text-[var(--brand-navy)] outline-none focus:bg-white ${
+              formErrors.field("description")
+                ? "border-[#fca5a5] bg-[#fef2f2] focus:border-[#b91c1c]"
+                : "border-[#dbe3ef] focus:border-[var(--brand-blue)]"
+            }`}
           />
+          <FieldErrorText message={formErrors.field("description")} />
         </label>
         <label className="block col-span-full sm:col-span-2">
           <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
@@ -437,9 +491,16 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
           <input
             type="file"
             accept="image/png,image/jpeg,image/webp,image/svg+xml"
-            onChange={(event) => setImageFile(event.target.files?.[0] ?? null)}
-            className="block w-full rounded-xl border border-[#dbe3ef] bg-[#f8fafc] px-3 py-2.5 text-[14px] text-[var(--brand-navy)] outline-none file:mr-3 file:rounded-full file:border-0 file:bg-[var(--brand-blue)] file:px-3 file:py-2 file:text-[12px] file:font-semibold file:text-white"
+            aria-invalid={Boolean(formErrors.field("image"))}
+            onChange={(event) => {
+              setImageFile(event.target.files?.[0] ?? null);
+              clearField("image");
+            }}
+            className={`block w-full rounded-xl border bg-[#f8fafc] px-3 py-2.5 text-[14px] text-[var(--brand-navy)] outline-none file:mr-3 file:rounded-full file:border-0 file:bg-[var(--brand-blue)] file:px-3 file:py-2 file:text-[12px] file:font-semibold file:text-white ${
+              formErrors.field("image") ? "border-[#fca5a5] bg-[#fef2f2]" : "border-[#dbe3ef]"
+            }`}
           />
+          <FieldErrorText message={formErrors.field("image")} />
           {previewUrl ? (
             <div className="relative mt-3 h-28 w-40 overflow-hidden rounded-2xl border border-[#e5eaf2] bg-white">
               <SafeImage
@@ -495,8 +556,8 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
             Delete images already attached to this residential unit. Add new ones from the form above, then click Update.
           </p>
           {galleryError ? (
-            <div className="mt-3 rounded-xl border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-[13px] font-medium text-[#b91c1c]">
-              {getApiErrorMessage(galleryError)}
+            <div className="mt-3">
+              <DashboardFormAlert message={getApiErrorMessage(galleryError)} />
             </div>
           ) : null}
           <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
