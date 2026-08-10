@@ -35,4 +35,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 USER nextjs
 EXPOSE 3000
 
+# Persist uploaded images across container restarts (mount this path on your host).
+VOLUME ["/app/storage/uploads"]
+
 CMD ["node", "server.js"]

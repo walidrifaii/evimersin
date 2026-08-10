@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { heroSlideService } from "@/server/services/hero-slide.service";
+import { resolveUploadFile } from "@/server/utils/upload";
 import { toDisplayImageSrc } from "@/lib/image-url";
 
 export type PublicHeroSlide = {
@@ -20,11 +21,25 @@ function toPublicSlide(slide: {
   };
 }
 
+async function slideImageExists(imagePath: string) {
+  const normalized = toDisplayImageSrc(imagePath);
+  if (!normalized) return false;
+  if (!normalized.startsWith("/uploads/")) return true;
+  return (await resolveUploadFile(normalized)) !== null;
+}
+
 export async function getHeroSlides(): Promise<PublicHeroSlide[]> {
   const cached = unstable_cache(
     async () => {
       const slides = await heroSlideService.listActive();
-      return slides.map(toPublicSlide);
+      const available: PublicHeroSlide[] = [];
+
+      for (const slide of slides) {
+        if (!(await slideImageExists(slide.image))) continue;
+        available.push(toPublicSlide(slide));
+      }
+
+      return available;
     },
     ["hero-slides-public"],
     { revalidate: 60, tags: ["hero-slides"] },

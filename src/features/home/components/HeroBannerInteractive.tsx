@@ -1,9 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState, type ReactNode } from "react";
 import type { StaticImageData } from "next/image";
-import { SafeImage } from "@/components/ui/SafeImage";
-import { toDisplayImageSrc } from "@/lib/image-url";
+import { isUploadImageSrc, toDisplayImageSrc } from "@/lib/image-url";
 import type { PublicHeroSlide } from "@/lib/hero-slides";
 
 type HeroBannerInteractiveProps = {
@@ -14,6 +14,53 @@ type HeroBannerInteractiveProps = {
 };
 
 const INTERVAL_MS = 6000;
+
+function HeroSlideImage({
+  src,
+  alt,
+  fallbackImage,
+  priority,
+  className,
+}: {
+  src: string;
+  alt: string;
+  fallbackImage: StaticImageData;
+  priority?: boolean;
+  className?: string;
+}) {
+  const [useFallback, setUseFallback] = useState(false);
+  const normalized = toDisplayImageSrc(src);
+
+  useEffect(() => {
+    setUseFallback(false);
+  }, [normalized]);
+
+  if (!normalized || useFallback) {
+    return (
+      <Image
+        src={fallbackImage}
+        alt={alt || fallbackImage.src}
+        fill
+        priority={priority}
+        sizes="100vw"
+        className={className}
+      />
+    );
+  }
+
+  return (
+    <Image
+      src={normalized}
+      alt={alt}
+      fill
+      priority={priority}
+      sizes="100vw"
+      className={className}
+      unoptimized={isUploadImageSrc(normalized)}
+      onError={() => setUseFallback(true)}
+    />
+  );
+}
 
 export function HeroBannerInteractive({
   slides,
@@ -35,7 +82,7 @@ export function HeroBannerInteractive({
   const displayItems =
     items.length > 0
       ? items
-      : [{ id: 0, src: fallbackImage, alt: fallbackAlt }];
+      : [{ id: 0, src: null as string | null, alt: fallbackAlt, useFallback: true }];
 
   const [activeIndex, setActiveIndex] = useState(0);
   const total = displayItems.length;
@@ -67,14 +114,24 @@ export function HeroBannerInteractive({
               }`}
               aria-hidden={!isActive}
             >
-              <SafeImage
-                src={item.src}
-                alt={item.alt}
-                fill
-                priority={index === 0}
-                sizes="100vw"
-                className="object-cover object-center"
-              />
+              {"useFallback" in item && item.useFallback ? (
+                <Image
+                  src={fallbackImage}
+                  alt={item.alt}
+                  fill
+                  priority={index === 0}
+                  sizes="100vw"
+                  className="object-cover object-center"
+                />
+              ) : (
+                <HeroSlideImage
+                  src={item.src!}
+                  alt={item.alt}
+                  fallbackImage={fallbackImage}
+                  priority={index === 0}
+                  className="object-cover object-center"
+                />
+              )}
             </div>
           );
         })}
