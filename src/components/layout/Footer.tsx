@@ -4,7 +4,7 @@ import { BrandLogo } from "@/components/layout/BrandLogo";
 import { FooterSocialLinks } from "@/components/layout/FooterSocialLinks";
 import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import { useSiteSettings } from "@/components/providers/SiteSettingsProvider";
-import { config, getWhatsAppUrlFromSettings } from "@/constants/config";
+import { getWhatsAppUrlFromSettings, config } from "@/constants/config";
 import { Link } from "@/i18n/navigation";
 import { routes } from "@/constants/routes";
 import { useAppLocale } from "@/components/layout/LocaleAttributes";
@@ -92,9 +92,9 @@ export function Footer() {
             </h3>
             <div className="mt-4 space-y-2.5 text-[14px] text-white/72 sm:mt-5 sm:space-y-3 sm:text-[15px]">
               <p>
-                {config.contact.addressName}
+                {settings.address_name}
                 <br />
-                {config.contact.address}
+                {settings.address}
               </p>
               <a
                 href={`tel:${settings.phone}`}

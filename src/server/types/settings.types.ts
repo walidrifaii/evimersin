@@ -7,6 +7,9 @@ export type SiteSettings = {
   phone_label: string;
   whatsapp_phone: string;
   whatsapp_message: string;
+  address_name: string;
+  address: string;
+  maps_url: string;
   instagram_url: string;
   instagram_handle: string;
   instagram_visible: number;
@@ -33,4 +36,7 @@ export type UpdateSiteSettingsInput = {
   phone: string;
   whatsapp_phone: string;
   whatsapp_message: string;
+  address_name: string;
+  address: string;
+  maps_url: string;
 } & SocialPlatformFields;

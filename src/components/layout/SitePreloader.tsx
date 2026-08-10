@@ -94,7 +94,7 @@ export function SitePreloader() {
         <div className="preloader-underline mt-5 h-px w-0 bg-gradient-to-r from-transparent via-[var(--brand-red)] to-transparent sm:mt-6" />
 
         <p className="preloader-subtitle mt-6 text-[12px] font-medium tracking-[0.06em] text-white/35 sm:mt-7 sm:text-[13px]">
-          Finding your place in Mersin
+          Finding your place 
         </p>
 
         <div className="preloader-bar-wrap mt-8 h-[2px] w-28 overflow-hidden rounded-full bg-white/10 sm:mt-9 sm:w-32">

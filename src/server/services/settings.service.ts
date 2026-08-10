@@ -42,6 +42,9 @@ export const defaultSiteSettings: UpdateSiteSettingsInput = {
   phone: config.contact.phone,
   whatsapp_phone: config.whatsapp.phone,
   whatsapp_message: config.whatsapp.message,
+  address_name: config.contact.addressName,
+  address: config.contact.address,
+  maps_url: config.contact.mapsUrl,
   ...defaultSocialFields,
 };
 
@@ -69,6 +72,9 @@ function toPublicSettings(row: SiteSettings): PublicSiteSettings {
     phone: row.phone,
     whatsapp_phone: row.whatsapp_phone,
     whatsapp_message: row.whatsapp_message,
+    address_name: row.address_name ?? config.contact.addressName,
+    address: row.address ?? config.contact.address,
+    maps_url: row.maps_url ?? config.contact.mapsUrl,
     ...social,
     updated_at: row.updated_at,
   };

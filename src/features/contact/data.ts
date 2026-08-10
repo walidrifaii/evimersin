@@ -1,4 +1,3 @@
-import { config } from "@/constants/config";
 import {
   SOCIAL_PLATFORM_CONFIG,
   SOCIAL_PLATFORMS,
@@ -53,9 +52,9 @@ export function getContactMethods(settings: PublicSiteSettings) {
     {
       id: "address" as const,
       title: "Office",
-      value: config.contact.addressName,
-      href: config.contact.mapsUrl,
-      description: config.contact.address,
+      value: settings.address_name,
+      href: settings.maps_url,
+      description: settings.address,
     },
   ];
 }

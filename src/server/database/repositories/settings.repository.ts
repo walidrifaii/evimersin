@@ -11,6 +11,12 @@ const SOCIAL_SELECT = SOCIAL_PLATFORMS.flatMap((platform) => [
   `${platform}_visible`,
 ]).join(",\n  ");
 
+const ADDRESS_MIGRATIONS = [
+  `ALTER TABLE site_settings ADD COLUMN address_name VARCHAR(100) NOT NULL DEFAULT 'EviMersin' AFTER whatsapp_message`,
+  `ALTER TABLE site_settings ADD COLUMN address VARCHAR(500) NOT NULL DEFAULT 'Palmiye, 2.Cadde, 33110 Yenişehir/Mersin' AFTER address_name`,
+  `ALTER TABLE site_settings ADD COLUMN maps_url VARCHAR(500) NOT NULL DEFAULT 'https://www.google.com/maps?cid=17182616818109508322' AFTER address`,
+];
+
 const SELECT_FIELDS = `
   id,
   email,
@@ -18,6 +24,9 @@ const SELECT_FIELDS = `
   phone_label,
   whatsapp_phone,
   whatsapp_message,
+  address_name,
+  address,
+  maps_url,
   ${SOCIAL_SELECT},
   updated_at
 `;
@@ -50,6 +59,9 @@ async function ensureTable() {
           phone_label VARCHAR(50) NOT NULL,
           whatsapp_phone VARCHAR(30) NOT NULL,
           whatsapp_message VARCHAR(500) NOT NULL,
+          address_name VARCHAR(100) NOT NULL DEFAULT 'EviMersin',
+          address VARCHAR(500) NOT NULL DEFAULT 'Palmiye, 2.Cadde, 33110 Yenişehir/Mersin',
+          maps_url VARCHAR(500) NOT NULL DEFAULT 'https://www.google.com/maps?cid=17182616818109508322',
           instagram_url VARCHAR(500) NOT NULL,
           instagram_handle VARCHAR(100) NOT NULL,
           instagram_visible TINYINT NOT NULL DEFAULT 1,
@@ -76,6 +88,7 @@ async function ensureTable() {
         `ALTER TABLE site_settings ADD COLUMN instagram_visible TINYINT NOT NULL DEFAULT 1 AFTER instagram_handle`,
         `ALTER TABLE site_settings ADD COLUMN facebook_visible TINYINT NOT NULL DEFAULT 1 AFTER facebook_handle`,
         ...NEW_PLATFORM_MIGRATIONS,
+        ...ADDRESS_MIGRATIONS,
       ]) {
         try {
           await execute(statement);
@@ -99,6 +112,9 @@ function toDbPayload(input: UpdateSiteSettingsInput) {
     phone: input.phone,
     whatsapp_phone: input.whatsapp_phone,
     whatsapp_message: input.whatsapp_message,
+    address_name: input.address_name,
+    address: input.address,
+    maps_url: input.maps_url,
   };
 
   for (const platform of SOCIAL_PLATFORMS) {
@@ -149,6 +165,9 @@ export const settingsRepository = {
         phone_label,
         whatsapp_phone,
         whatsapp_message,
+        address_name,
+        address,
+        maps_url,
         ${SOCIAL_INSERT_COLUMNS}
       ) VALUES (
         1,
@@ -157,6 +176,9 @@ export const settingsRepository = {
         :phone,
         :whatsapp_phone,
         :whatsapp_message,
+        :address_name,
+        :address,
+        :maps_url,
         ${SOCIAL_INSERT_VALUES}
       )
       ON DUPLICATE KEY UPDATE
@@ -165,6 +187,9 @@ export const settingsRepository = {
         phone_label = VALUES(phone),
         whatsapp_phone = VALUES(whatsapp_phone),
         whatsapp_message = VALUES(whatsapp_message),
+        address_name = VALUES(address_name),
+        address = VALUES(address),
+        maps_url = VALUES(maps_url),
         ${SOCIAL_UPDATE_SET}`,
       toDbPayload(input),
     );

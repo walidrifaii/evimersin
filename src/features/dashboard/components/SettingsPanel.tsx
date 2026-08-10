@@ -36,6 +36,9 @@ const emptyForm: FormState = {
   phone: "",
   whatsapp_phone: "",
   whatsapp_message: "",
+  address_name: "",
+  address: "",
+  maps_url: "",
   ...emptySocial,
 };
 
@@ -55,6 +58,9 @@ export function SettingsPanel() {
       phone: data.phone,
       whatsapp_phone: data.whatsapp_phone,
       whatsapp_message: data.whatsapp_message,
+      address_name: data.address_name,
+      address: data.address,
+      maps_url: data.maps_url,
       ...socialSettingsFromData(data),
     } as FormState);
   }, [data]);
@@ -88,8 +94,8 @@ export function SettingsPanel() {
           Website Settings
         </h1>
         <p className="mt-2 max-w-2xl text-[14px] text-[var(--muted)]">
-          Update the email, phone number, WhatsApp, and social media links shown
-          across the website.
+          Update the email, phone number, office address, WhatsApp, and social
+          media links shown across the website.
         </p>
       </div>
 
@@ -116,6 +122,38 @@ export function SettingsPanel() {
                 required
                 placeholder="+961 71 959 921"
                 onChange={(value) => updateField("phone", value)}
+              />
+            </div>
+          </section>
+
+          <section>
+            <h2 className="text-[15px] font-semibold text-[var(--brand-navy)]">
+              Office address
+            </h2>
+            <p className="mt-1 text-[12px] text-[var(--muted)]">
+              Shown in the footer and on the contact page.
+            </p>
+            <div className="mt-3 grid grid-cols-1 gap-4">
+              <TextInput
+                label="Office name"
+                value={form.address_name}
+                required
+                placeholder="EviMersin"
+                onChange={(value) => updateField("address_name", value)}
+              />
+              <TextInput
+                label="Street address"
+                value={form.address}
+                required
+                placeholder="Palmiye, 2.Cadde, 33110 Yenişehir/Mersin"
+                onChange={(value) => updateField("address", value)}
+              />
+              <TextInput
+                label="Google Maps URL"
+                value={form.maps_url}
+                required
+                placeholder="https://www.google.com/maps?..."
+                onChange={(value) => updateField("maps_url", value)}
               />
             </div>
           </section>
