@@ -61,27 +61,25 @@ function ContactSocialLinks() {
 
   return (
     <div className="rounded-2xl border border-[#e8edf5] bg-[#f8fafc] px-4 py-5 sm:px-5 sm:py-6">
-      <div className="-mx-1 overflow-x-auto px-1 md:overflow-visible">
-        <div className="flex min-w-min flex-nowrap items-center justify-start gap-4 py-1 md:min-w-0 md:justify-between md:gap-3">
-          {social.map((item) => {
-            const Icon = socialIcons[item.id];
-            const label = t(socialLabelKeys[item.id]);
+      <div className="grid grid-cols-3 place-items-center gap-3 py-1 sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
+        {social.map((item) => {
+          const Icon = socialIcons[item.id];
+          const label = t(socialLabelKeys[item.id]);
 
-            return (
-              <a
-                key={item.id}
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={label}
-                title={label}
-                className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[#e8edf5] bg-white p-3.5 text-[var(--brand-blue)] shadow-sm transition-colors hover:border-[var(--brand-blue)] hover:bg-[#eff6ff] hover:shadow-md sm:h-16 sm:w-16 sm:p-4"
-              >
-                <Icon className="h-6 w-6 shrink-0 sm:h-7 sm:w-7" aria-hidden="true" />
-              </a>
-            );
-          })}
-        </div>
+          return (
+            <a
+              key={item.id}
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={label}
+              title={label}
+              className="inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-[#e8edf5] bg-white p-3.5 text-[var(--brand-blue)] shadow-sm transition-colors hover:border-[var(--brand-blue)] hover:bg-[#eff6ff] hover:shadow-md sm:h-16 sm:w-16 sm:p-4"
+            >
+              <Icon className="h-6 w-6 shrink-0 sm:h-7 sm:w-7" aria-hidden="true" />
+            </a>
+          );
+        })}
       </div>
     </div>
   );

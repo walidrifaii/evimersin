@@ -11,10 +11,10 @@ export type PublicSiteSettings = UpdateSiteSettingsInput & {
 const getCachedSiteSettings = unstable_cache(
   async (): Promise<PublicSiteSettings> => settingsService.get(),
   ["site-settings"],
-  { revalidate: 60, tags: ["site-settings"] },
+  { tags: ["site-settings"] },
 );
 
-/** Per-request dedupe + cross-request ISR cache (60s). */
+/** Per-request dedupe + cache invalidated via `site-settings` tag on dashboard save. */
 export const getSiteSettings = cache(async (): Promise<PublicSiteSettings> => {
   return getCachedSiteSettings();
 });

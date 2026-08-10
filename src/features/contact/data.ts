@@ -3,7 +3,10 @@ import {
   SOCIAL_PLATFORMS,
   type SocialPlatformId,
 } from "@/constants/social-platforms";
-import { deriveSocialHandleFromUrl } from "@/lib/social-settings";
+import {
+  deriveSocialHandleFromUrl,
+  isSocialPlatformActive,
+} from "@/lib/social-settings";
 import type { PublicSiteSettings } from "@/lib/site-settings";
 
 export const contactData = {
@@ -68,16 +71,15 @@ const CONTACT_DESCRIPTIONS: Record<SocialPlatformId, string> = {
 };
 
 export function getContactSocial(settings: PublicSiteSettings) {
-  return SOCIAL_PLATFORM_CONFIG.map((platform) => ({
+  return SOCIAL_PLATFORM_CONFIG.filter((platform) =>
+    isSocialPlatformActive(settings, platform.id),
+  ).map((platform) => ({
     id: platform.id,
     title: platform.label,
     value: deriveSocialHandleFromUrl(settings[`${platform.id}_url`], platform.id),
-    href: settings[`${platform.id}_url`],
+    href: settings[`${platform.id}_url`].trim(),
     description: CONTACT_DESCRIPTIONS[platform.id],
-    visible:
-      settings[`${platform.id}_visible`] ??
-      (platform.id === "instagram" || platform.id === "facebook"),
-  })).filter((item) => item.visible && item.href.trim().length > 0);
+  }));
 }
 
 export type ContactFormState = {

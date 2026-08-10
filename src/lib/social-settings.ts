@@ -10,6 +10,26 @@ const PLATFORM_LABELS: Record<SocialPlatformId, string> = {
   tiktok: "TikTok",
 };
 
+type SocialVisibilitySettings = Pick<
+  UpdateSiteSettingsInput,
+  `${SocialPlatformId}_url` | `${SocialPlatformId}_visible`
+>;
+
+export function isSocialPlatformActive(
+  settings: SocialVisibilitySettings,
+  platform: SocialPlatformId,
+): boolean {
+  const visible = settings[`${platform}_visible`];
+  const url = settings[`${platform}_url`];
+  const isVisible =
+    visible === true ||
+    visible === 1 ||
+    (visible === undefined &&
+      (platform === "instagram" || platform === "facebook"));
+
+  return isVisible && typeof url === "string" && url.trim().length > 0;
+}
+
 export function deriveSocialHandleFromUrl(
   url: string,
   platform: SocialPlatformId,

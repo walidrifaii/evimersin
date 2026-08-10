@@ -13,6 +13,7 @@ export function revalidateListingsCache(productId?: number) {
 export function revalidateSettingsCache() {
   revalidateTag("site-settings", { expire: 0 });
   revalidatePath("/", "layout");
+  revalidatePath("/contact", "page");
 }
 
 export function revalidateHeroSlidesCache() {
