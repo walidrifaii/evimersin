@@ -20,6 +20,7 @@ import {
   SOCIAL_PLATFORM_CONFIG,
   type SocialPlatformId,
 } from "@/constants/social-platforms";
+
 import {
   useSiteSettings,
   useWhatsAppUrl,
@@ -30,13 +31,20 @@ const methodIcons = {
   phone: HiOutlinePhone,
   email: HiOutlineMail,
   address: HiOutlineLocationMarker,
+} as const satisfies Record<string, IconType>;
+
+const socialIcons: Record<SocialPlatformId, IconType> = {
   instagram: FaInstagram,
   facebook: FaFacebook,
   x: FaXTwitter,
   telegram: FaTelegram,
   youtube: FaYoutube,
   tiktok: FaTiktok,
-} as const satisfies Record<string, IconType>;
+};
+
+const socialLabelKeys = Object.fromEntries(
+  SOCIAL_PLATFORM_CONFIG.map((platform) => [platform.id, platform.contactTitleKey]),
+) as Record<SocialPlatformId, (typeof SOCIAL_PLATFORM_CONFIG)[number]["contactTitleKey"]>;
 
 const methodLabelKeys = {
   phone: { title: "methodPhone", description: "methodPhoneDesc" },
@@ -44,18 +52,36 @@ const methodLabelKeys = {
   address: { title: "methodOffice", description: null },
 } as const;
 
-const socialLabelKeys = Object.fromEntries(
-  SOCIAL_PLATFORM_CONFIG.map((platform) => [
-    platform.id,
-    { title: platform.contactTitleKey, description: platform.contactDescKey },
-  ]),
-) as Record<
-  SocialPlatformId,
-  {
-    title: (typeof SOCIAL_PLATFORM_CONFIG)[number]["contactTitleKey"];
-    description: (typeof SOCIAL_PLATFORM_CONFIG)[number]["contactDescKey"];
-  }
->;
+function ContactSocialLinks() {
+  const settings = useSiteSettings();
+  const t = useTranslations("contact");
+  const social = getContactSocial(settings);
+
+  if (social.length === 0) return null;
+
+  return (
+    <div className="flex flex-nowrap items-center gap-3 overflow-x-auto pb-1">
+      {social.map((item) => {
+        const Icon = socialIcons[item.id];
+        const label = t(socialLabelKeys[item.id]);
+
+        return (
+          <a
+            key={item.id}
+            href={item.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={label}
+            title={label}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[#e8edf5] bg-[#f5f7fa] text-[var(--brand-blue)] transition-colors hover:border-[var(--brand-blue)] hover:bg-[#eff6ff]"
+          >
+            <Icon className="h-5 w-5" aria-hidden="true" />
+          </a>
+        );
+      })}
+    </div>
+  );
+}
 
 function ContactCard({
   id,
@@ -115,7 +141,6 @@ export function ContactInfo() {
   const settings = useSiteSettings();
   const whatsappUrl = useWhatsAppUrl();
   const methods = getContactMethods(settings);
-  const social = getContactSocial(settings);
 
   return (
     <div className="flex flex-col gap-6">
@@ -148,23 +173,7 @@ export function ContactInfo() {
         })}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {social.map((item) => {
-          const keys = socialLabelKeys[item.id];
-
-          return (
-            <ContactCard
-              key={item.id}
-              id={item.id}
-              title={t(keys.title)}
-              value={item.value}
-              href={item.href}
-              description={t(keys.description)}
-              external
-            />
-          );
-        })}
-      </div>
+      <ContactSocialLinks />
 
       <a
         href={whatsappUrl}
