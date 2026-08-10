@@ -77,15 +77,15 @@ async function seedDemo() {
   console.log("Resetting products...");
   await resetProducts();
 
-  // Prefer Turkey for EviMersin; keep/create a clean country row.
-  let turkey = (await countryRepository.findAll()).find(
-    (item) => item.name.toLowerCase() === "turkey",
+  // Prefer Lebanon for EviMersin; keep/create a clean country row.
+  let Lebanon = (await countryRepository.findAll()).find(
+    (item) => item.name.toLowerCase() === "Lebanon",
   );
-  if (!turkey) {
-    const id = await countryRepository.create({ name: "Turkey", status: 1 });
-    turkey = { id, name: "Turkey", status: 1 };
-  } else if (turkey.status !== 1) {
-    await countryRepository.update(turkey.id, { status: 1 });
+  if (!Lebanon) {
+    const id = await countryRepository.create({ name: "Lebanon", status: 1 });
+    Lebanon = { id, name: "Lebanon", status: 1 };
+  } else if (Lebanon.status !== 1) {
+    await countryRepository.update(Lebanon.id, { status: 1 });
   }
 
   const cityNames = ["Mersin", "Tarsus", "Erdemli", "Silifke", "Anamur", "Mut"];
@@ -95,7 +95,7 @@ async function seedDemo() {
     cityIds[cityName] = await ensureByName(cities, cityName, () =>
       cityRepository.create({
         name: cityName,
-        country_id: turkey!.id,
+        country_id: Lebanon!.id,
         status: 1,
       }),
     );
@@ -103,7 +103,7 @@ async function seedDemo() {
       `UPDATE cities
        SET country_id = :countryId, status = 1, name = :name
        WHERE id = :id`,
-      { countryId: turkey.id, name: cityName, id: cityIds[cityName] },
+      { countryId: Lebanon.id, name: cityName, id: cityIds[cityName] },
     );
   }
 
@@ -349,7 +349,7 @@ async function seedDemo() {
   );
 
   console.log("Demo seed complete.");
-  console.log(`Country: Turkey`);
+  console.log(`Country: Lebanon`);
   console.log(`Cities: ${cityNames.join(", ")}`);
   console.log(`Purposes: For Sale, For Rent`);
   console.log(`Categories: Villa, Apartment, Land`);

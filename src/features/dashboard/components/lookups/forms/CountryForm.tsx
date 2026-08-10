@@ -67,7 +67,7 @@ function CountryFormFields({ id, initial }: { id?: number; initial?: Country }) 
         label="Name"
         value={name}
         required
-        placeholder="Turkey"
+        placeholder="Lebanon"
         onChange={setName}
       />
       <StatusSelect value={status} onChange={setStatus} />

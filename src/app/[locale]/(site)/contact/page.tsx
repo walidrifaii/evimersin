@@ -6,7 +6,7 @@ import { config } from "@/constants/config";
 export const metadata: Metadata = {
   title: `Contact Us | ${config.appName}`,
   description:
-    "Contact EviMersin for property inquiries, viewings, and expert real estate guidance in Mersin, Turkey.",
+    "Contact EviMersin for property inquiries, viewings, and expert real estate guidance in Mersin, lebanon.",
 };
 
 export default function ContactPage() {

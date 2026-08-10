@@ -45,7 +45,7 @@ function CityFormFields({ id, initial }: { id?: number; initial?: City }) {
   const defaultCountryId =
     initial?.country_id ??
     activeCountries.find((country) =>
-      country.name.toLowerCase().includes("turkey"),
+      country.name.toLowerCase().includes("Lebanon"),
     )?.id ??
     activeCountries[0]?.id ??
     countries[0]?.id ??
