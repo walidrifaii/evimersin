@@ -66,7 +66,10 @@ function FilterDropdown({
   }, [isOpen, onClose]);
 
   return (
-    <div ref={ref} className="relative flex w-full min-w-0 items-stretch">
+    <div
+      ref={ref}
+      className={`relative flex w-full min-w-0 items-stretch ${isOpen ? "z-50" : ""}`}
+    >
       <button
         type="button"
         aria-expanded={isOpen}
@@ -93,7 +96,7 @@ function FilterDropdown({
       {isOpen ? (
         <div
           role="listbox"
-          className="relative z-[100] w-full border-t border-[#e5e7eb] bg-white lg:absolute lg:inset-x-0 lg:top-full lg:mt-2 lg:max-h-64 lg:overflow-y-auto lg:rounded-xl lg:border lg:border-[#e5e7eb] lg:shadow-[0_12px_32px_rgba(0,0,0,0.18)]"
+          className="absolute inset-x-0 top-full z-[100] mt-2 max-h-64 overflow-y-auto rounded-xl border border-[#e5e7eb] bg-white shadow-[0_12px_32px_rgba(0,0,0,0.18)]"
         >
           {options.map((opt) => (
             <button
@@ -179,6 +182,9 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
       document.removeEventListener("pointerdown", handlePointerDown);
   }, [openDropdown]);
 
+  const dropdownLayer = (key: string) =>
+    openDropdown === key ? "z-50" : openDropdown ? "z-0" : "z-[1]";
+
   return (
     <div
       dir={isRtl ? "rtl" : "ltr"}
@@ -186,9 +192,7 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
     >
       <div className="grid min-w-0 flex-1 grid-cols-1 divide-y divide-[#e5e7eb] overflow-visible lg:grid-cols-4 lg:items-stretch lg:divide-y-0">
         <div
-          className={`relative flex w-full min-w-0 items-stretch overflow-visible lg:border-e lg:border-[#e5e7eb] ${
-            openDropdown === "purpose" ? "z-30" : "z-[1]"
-          }`}
+          className={`relative flex w-full min-w-0 items-stretch overflow-visible lg:border-e lg:border-[#e5e7eb] ${dropdownLayer("purpose")}`}
         >
           <FilterDropdown
             label={t("searchPurpose")}
@@ -207,9 +211,7 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
         </div>
 
         <div
-          className={`flex w-full min-w-0 items-stretch lg:border-e lg:border-[#e5e7eb] ${
-            openDropdown === "propertyType" ? "z-30" : ""
-          }`}
+          className={`relative flex w-full min-w-0 items-stretch overflow-visible lg:border-e lg:border-[#e5e7eb] ${dropdownLayer("propertyType")}`}
         >
           <FilterDropdown
             label={t("searchPropertyType")}
@@ -230,9 +232,7 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
         </div>
 
         <div
-          className={`relative flex w-full min-w-0 items-stretch overflow-visible lg:border-e lg:border-[#e5e7eb] ${
-            openDropdown === "city" ? "z-30" : "z-[1]"
-          }`}
+          className={`relative flex w-full min-w-0 items-stretch overflow-visible lg:border-e lg:border-[#e5e7eb] ${dropdownLayer("city")}`}
         >
           <FilterDropdown
             label={t("searchCity")}
@@ -252,9 +252,7 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
 
         <div
           ref={priceRangeRef}
-          className={`relative flex w-full min-w-0 items-stretch ${
-            openDropdown === "priceRange" ? "z-30" : ""
-          }`}
+          className={`relative flex w-full min-w-0 items-stretch overflow-visible ${dropdownLayer("priceRange")}`}
         >
           <button
             type="button"
@@ -280,7 +278,7 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
           </button>
 
           {openDropdown === "priceRange" ? (
-            <div className="relative z-[100] w-full border-t border-[#e5e7eb] bg-white lg:absolute lg:inset-x-0 lg:top-full lg:mt-2 lg:max-h-64 lg:overflow-y-auto lg:rounded-xl lg:border lg:border-[#e5e7eb] lg:shadow-[0_12px_32px_rgba(0,0,0,0.18)]">
+            <div className="absolute inset-x-0 top-full z-[100] mt-2 max-h-64 overflow-y-auto rounded-xl border border-[#e5e7eb] bg-white shadow-[0_12px_32px_rgba(0,0,0,0.18)]">
               {priceKeys.map((key) => (
                 <button
                   key={key}
