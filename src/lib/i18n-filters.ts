@@ -61,8 +61,13 @@ export function translateHomeFilterLabel(
 export function formatTranslatedFilterOption(
   option: FilterOption,
   translateLabel: (label: string) => string,
+  { withCount = true }: { withCount?: boolean } = {},
 ) {
   const translated = translateLabel(option.label);
+
+  // Counts belong in the open list, not on the closed trigger.
+  if (!withCount) return stripCountSuffix(translated).base;
+
   if (typeof option.count === "number") {
     return `${translated} (${option.count})`;
   }

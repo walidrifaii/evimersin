@@ -46,7 +46,9 @@ function FilterSelect({
   const selectedOption =
     findOptionById(value, options) ?? options[0] ?? null;
   const selectedLabel = selectedOption
-    ? formatTranslatedFilterOption(selectedOption, translateLabel)
+    ? formatTranslatedFilterOption(selectedOption, translateLabel, {
+        withCount: false,
+      })
     : translateLabel("");
 
   useEffect(() => {
