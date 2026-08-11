@@ -12,7 +12,11 @@ import { parseProductSpecFieldsFromFormData } from "@/server/utils/product-specs
 import { ok } from "@/server/utils/response";
 import { revalidateListingsCache } from "@/server/utils/revalidate";
 import { saveImageUpload, toRelativeUploadPath } from "@/server/utils/upload";
-import { readFormField, readNullableFormString, readTrimmedFormField } from "@/server/utils/form-data";
+import {
+  readNullableFormString,
+  readTrimmedFormField,
+  readUpdateFormData,
+} from "@/server/utils/form-data";
 import { updateProductSchema } from "@/server/validators/product.validator";
 
 export const runtime = "nodejs";
@@ -48,10 +52,10 @@ export const GET = compose(withAuth, withHandler)(async (_request, context: ApiC
   return ok(await productService.getById(id));
 });
 
-export const PUT = compose(withAuth, withHandler)(async (request, context: ApiContext) => {
+const updateProduct = compose(withAuth, withHandler)(async (request, context: ApiContext) => {
   const id = parseId(await context.params);
   const current = await productService.getById(id);
-  const formData = await request.formData();
+  const formData = await readUpdateFormData(request, "product");
   const imageFile = formData.get("image");
   const nextImage =
     imageFile instanceof File && imageFile.size > 0
@@ -101,6 +105,10 @@ export const PUT = compose(withAuth, withHandler)(async (request, context: ApiCo
   revalidateListingsCache(id);
   return ok(updated);
 });
+
+export const PUT = updateProduct;
+/** Some proxies drop multipart bodies on PUT, so the dashboard posts updates. */
+export const POST = updateProduct;
 
 export const DELETE = compose(withAuth, withHandler)(async (_request, context: ApiContext) => {
   const id = parseId(await context.params);

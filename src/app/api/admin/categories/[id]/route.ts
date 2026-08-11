@@ -8,6 +8,7 @@ import {
   saveImageUpload,
   toRelativeUploadPath,
 } from "@/server/utils/upload";
+import { readUpdateFormData } from "@/server/utils/form-data";
 import { updateCategorySchema } from "@/server/validators/lookup.validator";
 
 export const runtime = "nodejs";
@@ -25,10 +26,10 @@ export const GET = compose(withAuth, withHandler)(async (_request, context: ApiC
   return ok(await categoryService.getById(id));
 });
 
-export const PUT = compose(withAuth, withHandler)(async (request, context: ApiContext) => {
+const updateCategory = compose(withAuth, withHandler)(async (request, context: ApiContext) => {
   const id = parseId(await context.params);
   const current = await categoryService.getById(id);
-  const formData = await request.formData();
+  const formData = await readUpdateFormData(request, "category");
   const iconFile = formData.get("icon");
   const nextIcon =
     iconFile instanceof File && iconFile.size > 0
@@ -51,6 +52,10 @@ export const PUT = compose(withAuth, withHandler)(async (request, context: ApiCo
   revalidateListingsCache();
   return ok(updated);
 });
+
+export const PUT = updateCategory;
+/** Some proxies drop multipart bodies on PUT, so the dashboard posts updates. */
+export const POST = updateCategory;
 
 export const DELETE = compose(withAuth, withHandler)(async (_request, context: ApiContext) => {
   const id = parseId(await context.params);

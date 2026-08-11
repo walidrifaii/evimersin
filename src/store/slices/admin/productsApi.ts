@@ -98,9 +98,10 @@ export const productsApi = api.injectEndpoints({
       ProductDetail,
       { id: number; data: Partial<ProductFormInput> }
     >({
+      // POST, not PUT: proxies in front of the app drop multipart PUT bodies.
       query: ({ id, data }) => ({
         url: `/admin/products/${id}`,
-        method: "PUT",
+        method: "POST",
         body: toProductFormData(data),
       }),
       transformResponse: (response: ApiResponse<ProductDetail>) => response.data,

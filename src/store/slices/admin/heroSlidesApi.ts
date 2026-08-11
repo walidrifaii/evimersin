@@ -59,9 +59,10 @@ export const heroSlidesApi = api.injectEndpoints({
       HeroSlide,
       { id: number; data: Partial<HeroSlideFormInput> }
     >({
+      // POST, not PUT: proxies in front of the app drop multipart PUT bodies.
       query: ({ id, data }) => ({
         url: `/admin/hero-slides/${id}`,
-        method: "PUT",
+        method: "POST",
         body: toHeroSlideFormData(data),
       }),
       transformResponse: (response: ApiResponse<HeroSlide>) => response.data,

@@ -29,3 +29,27 @@ export function readFormField(formData: FormData, key: string): string {
 export function readTrimmedFormField(formData: FormData, key: string): string {
   return readFormField(formData, key).trim();
 }
+
+/**
+ * Read a multipart body for an update route.
+ *
+ * Some reverse proxies forward `multipart/form-data` only for POST, so a PUT
+ * can arrive with every field missing and silently wipe the record. Logging the
+ * empty case makes that visible instead of looking like a broken form.
+ */
+export async function readUpdateFormData(
+  request: Request,
+  label: string,
+): Promise<FormData> {
+  const formData = await request.formData();
+
+  if ([...formData.keys()].length === 0) {
+    console.warn(
+      `[evimersin] Empty ${request.method} form body for ${label} update ` +
+        `(content-type: ${request.headers.get("content-type") ?? "none"}). ` +
+        "The proxy likely dropped the multipart body; existing values were kept.",
+    );
+  }
+
+  return formData;
+}

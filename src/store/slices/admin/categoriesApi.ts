@@ -52,9 +52,10 @@ export const categoriesApi = api.injectEndpoints({
       Category,
       { id: number; data: Partial<CategoryFormInput> }
     >({
+      // POST, not PUT: proxies in front of the app drop multipart PUT bodies.
       query: ({ id, data }) => ({
         url: `/admin/categories/${id}`,
-        method: "PUT",
+        method: "POST",
         body: toCategoryFormData(data),
       }),
       transformResponse: (response: ApiResponse<Category>) => response.data,

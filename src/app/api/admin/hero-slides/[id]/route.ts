@@ -16,6 +16,7 @@ import {
   saveImageUpload,
   toRelativeUploadPath,
 } from "@/server/utils/upload";
+import { readUpdateFormData } from "@/server/utils/form-data";
 import { updateHeroSlideSchema } from "@/server/validators/hero-slide.validator";
 
 export const runtime = "nodejs";
@@ -37,14 +38,14 @@ export const GET = compose(
   return ok(await heroSlideService.getById(id));
 });
 
-export const PUT = compose(
+const updateHeroSlide = compose(
   withAuth,
   withPermission(PERMISSIONS.SETTINGS_UPDATE),
   withHandler,
 )(async (request, context: ApiContext) => {
   const id = parseId(await context.params);
   const current = await heroSlideService.getById(id);
-  const formData = await request.formData();
+  const formData = await readUpdateFormData(request, "hero slide");
   const imageFile = formData.get("image");
   const nextImage =
     imageFile instanceof File && imageFile.size > 0
@@ -67,6 +68,10 @@ export const PUT = compose(
   revalidateHeroSlidesCache();
   return ok(updated);
 });
+
+export const PUT = updateHeroSlide;
+/** Some proxies drop multipart bodies on PUT, so the dashboard posts updates. */
+export const POST = updateHeroSlide;
 
 export const DELETE = compose(
   withAuth,
