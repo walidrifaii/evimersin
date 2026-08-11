@@ -14,7 +14,7 @@ function SectionArrow() {
       viewBox="0 0 24 24"
       fill="none"
       aria-hidden="true"
-      className="h-4 w-4 shrink-0 text-[var(--brand-red)]"
+      className="h-4 w-4 shrink-0 text-[var(--brand-red)] rtl:-scale-x-100"
     >
       <path
         d="M5 12H19M19 12L13 6M19 12L13 18"
