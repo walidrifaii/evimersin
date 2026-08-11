@@ -253,12 +253,6 @@ export function HeroSlidesPanel() {
           <h1 className="text-[1.75rem] font-bold tracking-tight text-[var(--brand-navy)]">
             Hero slides
           </h1>
-          <p className="mt-2 max-w-2xl text-[14px] text-[var(--muted)]">
-            Manage the images shown in the home page hero banner slider. Lower
-            sort order appears first. A slide whose preview shows{" "}
-            <span className="font-semibold text-[#b45309]">Missing file</span> is
-            hidden from the home page until you re-upload its image.
-          </p>
         </div>
         {canUpdate ? (
           <button
