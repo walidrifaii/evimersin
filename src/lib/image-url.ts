@@ -78,6 +78,16 @@ export function toUploadPublicSrc(url: string | null | undefined) {
   return toDisplayImageSrc(url);
 }
 
+/** Try /api/media first, then /uploads — for dashboard and hero slider. */
+export function getUploadSrcCandidates(url: string | null | undefined) {
+  const serve = toUploadServeSrc(url);
+  const publicSrc = toUploadPublicSrc(url);
+
+  if (!serve) return [] as string[];
+  if (serve === publicSrc || !publicSrc) return [serve];
+  return [serve, publicSrc];
+}
+
 /** Absolute URL for API responses (DB still stores relative `/uploads/...`). */
 export function toAbsoluteImageUrl(url: string | null | undefined) {
   if (url == null || url === "") return null;

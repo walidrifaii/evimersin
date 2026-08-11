@@ -1,13 +1,16 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import type { StaticImageData } from "next/image";
-import { isUploadImageSrc, toDisplayImageSrc } from "@/lib/image-url";
+import {
+  getUploadSrcCandidates,
+  toDisplayImageSrc,
+} from "@/lib/image-url";
 import type { PublicHeroSlide } from "@/lib/hero-slides";
+import type { ApiResponse } from "@/store/api/types";
 
 type HeroBannerInteractiveProps = {
-  slides: PublicHeroSlide[];
   fallbackImage: StaticImageData;
   fallbackAlt: string;
   children: ReactNode;
@@ -28,14 +31,17 @@ function HeroSlideImage({
   priority?: boolean;
   className?: string;
 }) {
+  const candidates = useMemo(() => getUploadSrcCandidates(src), [src]);
+  const [candidateIndex, setCandidateIndex] = useState(0);
   const [useFallback, setUseFallback] = useState(false);
-  const normalized = toDisplayImageSrc(src);
+  const activeSrc = candidates[candidateIndex] ?? toDisplayImageSrc(src);
 
   useEffect(() => {
+    setCandidateIndex(0);
     setUseFallback(false);
-  }, [normalized]);
+  }, [src]);
 
-  if (!normalized || useFallback) {
+  if (!activeSrc || useFallback) {
     return (
       <Image
         src={fallbackImage}
@@ -49,38 +55,70 @@ function HeroSlideImage({
   }
 
   return (
-    <Image
-      src={normalized}
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={activeSrc}
       alt={alt}
-      fill
-      priority={priority}
-      sizes="100vw"
-      className={className}
-      unoptimized={isUploadImageSrc(normalized)}
-      onError={() => setUseFallback(true)}
+      className={`absolute inset-0 h-full w-full object-cover object-center ${className ?? ""}`}
+      fetchPriority={priority ? "high" : "auto"}
+      decoding="async"
+      onError={() => {
+        if (candidateIndex + 1 < candidates.length) {
+          setCandidateIndex((current) => current + 1);
+          return;
+        }
+        setUseFallback(true);
+      }}
     />
   );
 }
 
 export function HeroBannerInteractive({
-  slides,
   fallbackImage,
   fallbackAlt,
   children,
 }: HeroBannerInteractiveProps) {
+  const [slides, setSlides] = useState<PublicHeroSlide[]>([]);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadSlides() {
+      try {
+        const response = await fetch("/api/hero-slides", { cache: "no-store" });
+        if (!response.ok) return;
+
+        const json = (await response.json()) as ApiResponse<PublicHeroSlide[]>;
+        if (!cancelled && json.success && Array.isArray(json.data)) {
+          setSlides(json.data);
+        }
+      } catch {
+        // Keep fallback hero when the API is unavailable.
+      } finally {
+        if (!cancelled) setLoaded(true);
+      }
+    }
+
+    void loadSlides();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const items =
     slides.length > 0
       ? slides
           .map((slide) => ({
             id: slide.id,
-            src: toDisplayImageSrc(slide.image),
+            src: slide.image,
             alt: slide.altText,
           }))
           .filter((slide) => slide.src.length > 0)
       : [];
 
   const displayItems =
-    items.length > 0
+    loaded && items.length > 0
       ? items
       : [{ id: 0, src: null as string | null, alt: fallbackAlt, useFallback: true }];
 

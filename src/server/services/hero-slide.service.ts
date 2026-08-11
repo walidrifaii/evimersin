@@ -1,4 +1,4 @@
-import { toDisplayImageSrc } from "@/lib/image-url";
+import { toDisplayImageSrc, toUploadServeSrc } from "@/lib/image-url";
 import { heroSlideRepository } from "@/server/database/repositories/hero-slide.repository";
 import { AppError } from "@/server/utils/errors";
 import type {
@@ -8,9 +8,10 @@ import type {
 } from "@/server/types/hero-slide.types";
 
 function withNormalizedSlideImage(slide: HeroSlide): HeroSlide {
+  const relative = toDisplayImageSrc(slide.image) || slide.image;
   return {
     ...slide,
-    image: toDisplayImageSrc(slide.image) || slide.image,
+    image: toUploadServeSrc(relative) || relative,
   };
 }
 

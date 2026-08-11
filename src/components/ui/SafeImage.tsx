@@ -3,10 +3,9 @@
 import Image, { type ImageProps } from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import {
+  getUploadSrcCandidates,
   isUploadImageSrc,
   toDisplayImageSrc,
-  toUploadPublicSrc,
-  toUploadServeSrc,
 } from "@/lib/image-url";
 
 type SafeImageProps = Omit<ImageProps, "src" | "alt"> & {
@@ -14,15 +13,6 @@ type SafeImageProps = Omit<ImageProps, "src" | "alt"> & {
   alt: string;
   fallbackClassName?: string;
 };
-
-function uploadSrcCandidates(src: string) {
-  const serve = toUploadServeSrc(src);
-  const publicSrc = toUploadPublicSrc(src);
-
-  if (!serve) return [] as string[];
-  if (serve === publicSrc || !publicSrc) return [serve];
-  return [serve, publicSrc];
-}
 
 /**
  * Robust image for dashboard/website uploads:
@@ -61,7 +51,7 @@ export function SafeImage({
   const uploadCandidates = useMemo(
     () =>
       typeof resolvedSrc === "string" && isUploadImageSrc(resolvedSrc)
-        ? uploadSrcCandidates(resolvedSrc)
+        ? getUploadSrcCandidates(resolvedSrc)
         : [],
     [resolvedSrc],
   );

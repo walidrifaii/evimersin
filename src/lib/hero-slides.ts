@@ -1,7 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { heroSlideService } from "@/server/services/hero-slide.service";
 import { resolveUploadFile } from "@/server/utils/upload";
-import { toDisplayImageSrc } from "@/lib/image-url";
+import { toDisplayImageSrc, toUploadServeSrc } from "@/lib/image-url";
 
 export type PublicHeroSlide = {
   id: number;
@@ -14,9 +14,11 @@ function toPublicSlide(slide: {
   image: string;
   alt_text: string;
 }): PublicHeroSlide {
+  const image =
+    toUploadServeSrc(slide.image) || toDisplayImageSrc(slide.image);
   return {
     id: slide.id,
-    image: toDisplayImageSrc(slide.image),
+    image,
     altText: slide.alt_text || "Hero banner",
   };
 }
