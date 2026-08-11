@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { PropertyCard } from "@/features/home/components/PropertyCard";
 import { routes } from "@/constants/routes";
+import { useCarousel } from "@/hooks/useCarousel";
 import type { PropertyListing } from "@/features/products/types";
 
 function SectionArrow() {
@@ -34,83 +34,22 @@ type FeaturedPropertiesProps = {
 export function FeaturedProperties({ listings }: FeaturedPropertiesProps) {
   const t = useTranslations("home");
   const tCommon = useTranslations("common");
-  const scrollerRef = useRef<HTMLDivElement>(null);
-  const [canPrev, setCanPrev] = useState(false);
-  const [canNext, setCanNext] = useState(false);
-  const [activePage, setActivePage] = useState(0);
-  const [pageCount, setPageCount] = useState(1);
-
-  useEffect(() => {
-    const scroller = scrollerRef.current;
-    if (!scroller || listings.length === 0) return;
-
-    function updateControls() {
-      if (!scroller) return;
-      const maxScroll = scroller.scrollWidth - scroller.clientWidth;
-      const scrollLeft = scroller.scrollLeft;
-      setCanPrev(scrollLeft > 8);
-      setCanNext(scrollLeft < maxScroll - 8);
-
-      const firstCard = scroller.querySelector<HTMLElement>("[data-carousel-item]");
-      const cardWidth = firstCard?.offsetWidth ?? scroller.clientWidth;
-      const gap = 24;
-      const visible = Math.max(
-        1,
-        Math.round((scroller.clientWidth + gap) / (cardWidth + gap)),
-      );
-      const pages = Math.max(1, Math.ceil(listings.length / visible));
-      setPageCount(pages);
-      const page = Math.min(
-        pages - 1,
-        Math.round(scrollLeft / Math.max(1, cardWidth + gap) / visible),
-      );
-      setActivePage(page);
-    }
-
-    updateControls();
-    scroller.addEventListener("scroll", updateControls, { passive: true });
-    window.addEventListener("resize", updateControls);
-    return () => {
-      scroller.removeEventListener("scroll", updateControls);
-      window.removeEventListener("resize", updateControls);
-    };
-  }, [listings.length]);
-
-  function scrollByPage(direction: -1 | 1) {
-    const scroller = scrollerRef.current;
-    if (!scroller) return;
-    const firstCard = scroller.querySelector<HTMLElement>("[data-carousel-item]");
-    const cardWidth = firstCard?.offsetWidth ?? scroller.clientWidth;
-    const gap = 24;
-    const visible = Math.max(
-      1,
-      Math.round((scroller.clientWidth + gap) / (cardWidth + gap)),
-    );
-    scroller.scrollBy({
-      left: direction * visible * (cardWidth + gap),
-      behavior: "smooth",
-    });
-  }
-
-  function goToPage(page: number) {
-    const scroller = scrollerRef.current;
-    if (!scroller) return;
-    const firstCard = scroller.querySelector<HTMLElement>("[data-carousel-item]");
-    const cardWidth = firstCard?.offsetWidth ?? scroller.clientWidth;
-    const gap = 24;
-    const visible = Math.max(
-      1,
-      Math.round((scroller.clientWidth + gap) / (cardWidth + gap)),
-    );
-    scroller.scrollTo({
-      left: page * visible * (cardWidth + gap),
-      behavior: "smooth",
-    });
-  }
+  const isRtl = useLocale() === "ar";
+  const {
+    scrollerRef,
+    canPrev,
+    canNext,
+    activePage,
+    pageCount,
+    scrollByPage,
+    goToPage,
+  } = useCarousel({ itemCount: listings.length, gap: 24, isRtl });
 
   if (listings.length === 0) return null;
 
   const showControls = listings.length > 1;
+  const PrevIcon = isRtl ? HiChevronRight : HiChevronLeft;
+  const NextIcon = isRtl ? HiChevronLeft : HiChevronRight;
 
   return (
     <section className="w-full bg-white">
@@ -136,7 +75,7 @@ export function FeaturedProperties({ listings }: FeaturedPropertiesProps) {
                   disabled={!canPrev}
                   className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#e8edf5] bg-white text-[var(--brand-navy)] transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[#e8edf5] disabled:hover:text-[var(--brand-navy)]"
                 >
-                  <HiChevronLeft className="h-5 w-5" aria-hidden="true" />
+                  <PrevIcon className="h-5 w-5" aria-hidden="true" />
                 </button>
                 <button
                   type="button"
@@ -145,7 +84,7 @@ export function FeaturedProperties({ listings }: FeaturedPropertiesProps) {
                   disabled={!canNext}
                   className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#e8edf5] bg-white text-[var(--brand-navy)] transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[#e8edf5] disabled:hover:text-[var(--brand-navy)]"
                 >
-                  <HiChevronRight className="h-5 w-5" aria-hidden="true" />
+                  <NextIcon className="h-5 w-5" aria-hidden="true" />
                 </button>
               </div>
             ) : null}
