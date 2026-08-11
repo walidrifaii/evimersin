@@ -4,6 +4,7 @@ import type { FormEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 import {
   FormLoading,
+  LookupTable,
   TextInput,
 } from "@/features/dashboard/components/lookups/LookupManager";
 import { DashboardFormAlert, FieldErrorText } from "@/features/dashboard/components/DashboardFormAlert";
@@ -221,8 +222,8 @@ export function AnnouncementsPanel() {
         </form>
       ) : null}
 
-      <section className="max-w-3xl rounded-[24px] border border-[#e8eef6] bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)] sm:p-6">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
+      <section className="overflow-hidden rounded-[24px] border border-[#e8eef6] bg-white shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+        <div className="flex flex-wrap items-baseline justify-between gap-2 px-5 py-4 sm:px-6">
           <h2 className="text-[15px] font-semibold text-[var(--brand-navy)]">
             All announcements
           </h2>
@@ -235,40 +236,47 @@ export function AnnouncementsPanel() {
 
         {data?.announcements.length ? (
           <>
-            <ul
-              className={`mt-4 space-y-3 transition-opacity ${
+            <div
+              className={`transition-opacity ${
                 isFetching ? "opacity-60" : "opacity-100"
               }`}
             >
-              {data.announcements.map((item) => (
-                <li
-                  key={item.id}
-                  className="rounded-2xl border border-[#e8eef6] px-4 py-3"
-                >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-[14px] font-semibold text-[var(--brand-navy)]">
+              <LookupTable
+                headers={["Title", "Message", "Status", "Sent at"]}
+                rows={data.announcements.map((item) => (
+                  <tr
+                    key={item.id}
+                    className="border-t border-[#eef2f7] align-top"
+                  >
+                    <td className="px-5 py-3 font-semibold text-[var(--brand-navy)]">
                       {item.title}
-                    </p>
-                    {item.isActive ? (
-                      <span className="rounded-full bg-[#ecfdf3] px-2 py-0.5 text-[11px] font-semibold text-[#15803d]">
-                        Active
-                      </span>
-                    ) : null}
-                  </div>
-                  <p className="mt-1 text-[13px] text-[var(--muted)]">
-                    {item.message}
-                  </p>
-                  <p className="mt-2 text-[11px] text-[#94a3b8]">
-                    {formatDate(item.createdAt)}
-                  </p>
-                </li>
-              ))}
-            </ul>
+                    </td>
+                    <td className="max-w-md px-5 py-3 text-[var(--muted)]">
+                      {item.message}
+                    </td>
+                    <td className="px-5 py-3">
+                      {item.isActive ? (
+                        <span className="rounded-full bg-[#ecfdf3] px-2.5 py-1 text-[12px] font-semibold text-[#15803d]">
+                          Active
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-[#f1f5f9] px-2.5 py-1 text-[12px] font-semibold text-[var(--muted)]">
+                          Sent
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-5 py-3 whitespace-nowrap text-[var(--muted)]">
+                      {formatDate(item.createdAt)}
+                    </td>
+                  </tr>
+                ))}
+              />
+            </div>
 
             {totalPages > 1 ? (
               <nav
                 aria-label="Announcements pages"
-                className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[#eef2f7] pt-4"
+                className="flex flex-wrap items-center justify-between gap-3 border-t border-[#eef2f7] px-5 py-4 sm:px-6"
               >
                 <button
                   type="button"
@@ -310,7 +318,7 @@ export function AnnouncementsPanel() {
             ) : null}
           </>
         ) : (
-          <p className="mt-3 text-[13px] text-[var(--muted)]">
+          <p className="px-5 pb-6 text-[13px] text-[var(--muted)] sm:px-6">
             No announcements sent yet.
           </p>
         )}
