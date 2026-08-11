@@ -52,6 +52,14 @@ export type PublicSiteSettings = UpdateSiteSettingsInput & {
   updated_at: Date | string;
 };
 
+export function buildDefaultPublicSettings(): PublicSiteSettings {
+  return {
+    id: 1,
+    ...defaultSiteSettings,
+    updated_at: new Date().toISOString(),
+  };
+}
+
 function toPublicSettings(row: SiteSettings): PublicSiteSettings {
   const social = SOCIAL_PLATFORMS.reduce((fields, platform) => {
     const urlKey = `${platform}_url` as const;
@@ -78,30 +86,51 @@ function toPublicSettings(row: SiteSettings): PublicSiteSettings {
   };
 }
 
+function isTransientDbError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+
+  const code = "code" in error ? String(error.code) : "";
+  return (
+    code === "ECONNREFUSED" ||
+    code === "ECONNRESET" ||
+    code === "ETIMEDOUT" ||
+    code === "PROTOCOL_CONNECTION_LOST" ||
+    code === "ER_CON_COUNT_ERROR"
+  );
+}
+
+async function withDbRetry<T>(operation: () => Promise<T>, attempts = 3): Promise<T> {
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      const shouldRetry = attempt < attempts - 1 && isTransientDbError(error);
+      if (!shouldRetry) break;
+      await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+    }
+  }
+
+  throw lastError;
+}
+
+async function loadSettingsFromDatabase(): Promise<PublicSiteSettings> {
+  const existing = await settingsRepository.find();
+  if (existing) return toPublicSettings(existing);
+
+  await settingsRepository.upsert(defaultSiteSettings);
+  const created = await settingsRepository.find();
+  if (!created) {
+    throw new AppError("Settings row could not be created", 500);
+  }
+  return toPublicSettings(created);
+}
+
 export const settingsService = {
   async get() {
-    try {
-      const existing = await settingsRepository.find();
-      if (existing) return toPublicSettings(existing);
-
-      await settingsRepository.upsert(defaultSiteSettings);
-      const created = await settingsRepository.find();
-      if (!created) {
-        return {
-          id: 1,
-          ...defaultSiteSettings,
-          updated_at: new Date().toISOString(),
-        };
-      }
-      return toPublicSettings(created);
-    } catch (error) {
-      console.error("[settings] Falling back to defaults:", error);
-      return {
-        id: 1,
-        ...defaultSiteSettings,
-        updated_at: new Date().toISOString(),
-      };
-    }
+    return withDbRetry(loadSettingsFromDatabase);
   },
 
   async update(input: UpdateSiteSettingsInput) {

@@ -1,6 +1,9 @@
 import { unstable_cache } from "next/cache";
 import { cache } from "react";
-import { settingsService } from "@/server/services/settings.service";
+import {
+  buildDefaultPublicSettings,
+  settingsService,
+} from "@/server/services/settings.service";
 import type { UpdateSiteSettingsInput } from "@/server/types/settings.types";
 
 export type PublicSiteSettings = UpdateSiteSettingsInput & {
@@ -11,10 +14,15 @@ export type PublicSiteSettings = UpdateSiteSettingsInput & {
 const getCachedSiteSettings = unstable_cache(
   async (): Promise<PublicSiteSettings> => settingsService.get(),
   ["site-settings"],
-  { tags: ["site-settings"] },
+  { tags: ["site-settings"], revalidate: 30 },
 );
 
-/** Per-request dedupe + cache invalidated via `site-settings` tag on dashboard save. */
+/** Per-request dedupe + short-lived cache. DB failures are not cached. */
 export const getSiteSettings = cache(async (): Promise<PublicSiteSettings> => {
-  return getCachedSiteSettings();
+  try {
+    return await getCachedSiteSettings();
+  } catch (error) {
+    console.error("[site-settings] Database unavailable, using defaults:", error);
+    return buildDefaultPublicSettings();
+  }
 });

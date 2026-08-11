@@ -46,7 +46,14 @@ const emptyForm: FormState = {
 export function SettingsPanel() {
   const { can } = usePermissions();
   const canUpdate = can("settings:update");
-  const { data, isLoading, error } = useGetSiteSettingsQuery();
+  const { data, isLoading, error, refetch, isFetching } = useGetSiteSettingsQuery(
+    undefined,
+    {
+      refetchOnMountOrArgChange: true,
+      refetchOnFocus: true,
+      refetchOnReconnect: true,
+    },
+  );
   const [updateSettings, updateState] = useUpdateSiteSettingsMutation();
   const [form, setForm] = useState<FormState>(emptyForm);
   const formErrors = useDashboardFormErrors();
@@ -86,6 +93,33 @@ export function SettingsPanel() {
   }
 
   if (isLoading && !data) return <FormLoading />;
+
+  if (error && !data) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <h1 className="text-[1.75rem] font-bold tracking-tight text-[var(--brand-navy)]">
+            Website Settings
+          </h1>
+          <p className="mt-2 max-w-2xl text-[14px] text-[var(--muted)]">
+            Could not load settings from the database.
+          </p>
+        </div>
+        <DashboardFormAlert
+          message={getApiErrorMessage(error)}
+          showFieldList={false}
+        />
+        <button
+          type="button"
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className="inline-flex h-11 cursor-pointer items-center justify-center rounded-full bg-[var(--brand-red)] px-5 text-[13px] font-semibold text-white transition-colors hover:bg-[#c9181e] disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {isFetching ? "Retrying..." : "Retry"}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
