@@ -1,5 +1,7 @@
+import { MAX_PRODUCT_GALLERY_IMAGES } from "@/constants/config";
 import { productService } from "@/server/services/product.service";
 import { compose, validateBody, withAuth, withHandler } from "@/server/middleware";
+import { AppError } from "@/server/utils/errors";
 import { ok } from "@/server/utils/response";
 import { revalidateListingsCache } from "@/server/utils/revalidate";
 import { saveImageUpload } from "@/server/utils/upload";
@@ -33,15 +35,21 @@ function parseOptionalRegionId(value: FormDataEntryValue | null) {
 
 export const POST = compose(withAuth, withHandler)(async (request) => {
   const formData = await request.formData();
+  const galleryFiles = getImageFiles(formData, "images");
+  if (galleryFiles.length > MAX_PRODUCT_GALLERY_IMAGES) {
+    throw new AppError(
+      `A residential unit can have at most ${MAX_PRODUCT_GALLERY_IMAGES} extra images.`,
+      400,
+    );
+  }
+
   const imageFile = formData.get("image");
   const image =
     imageFile instanceof File && imageFile.size > 0
       ? await saveImageUpload(imageFile, "uploads/products")
       : null;
   const galleryImages = await Promise.all(
-    getImageFiles(formData, "images").map((file) =>
-      saveImageUpload(file, "uploads/products/gallery"),
-    ),
+    galleryFiles.map((file) => saveImageUpload(file, "uploads/products/gallery")),
   );
 
   const specs = parseProductSpecFieldsFromFormData(formData);

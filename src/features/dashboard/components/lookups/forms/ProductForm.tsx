@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import type { FormEvent } from "react";
+import type { ChangeEvent, FormEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { SafeImage } from "@/components/ui/SafeImage";
 import {
@@ -10,6 +10,7 @@ import {
   getSpecFieldsForCategory,
   type PropertySpecFieldKey,
 } from "@/constants/property-specs";
+import { MAX_PRODUCT_GALLERY_IMAGES } from "@/constants/config";
 import { routes } from "@/constants/routes";
 import {
   FormLoading,
@@ -84,6 +85,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const formErrors = useDashboardFormErrors();
   const [galleryError, setGalleryError] = useState<unknown>(null);
+  const [galleryNotice, setGalleryNotice] = useState<string | null>(null);
   const [coverFileMissing, setCoverFileMissing] = useState(false);
   const storedCoverSrc = initial?.image ?? "";
   const [previewUrl, setPreviewUrl] = useState(toDisplayImageSrc(storedCoverSrc));
@@ -148,6 +150,39 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
     setGalleryPreviewUrls(objectUrls);
     return () => objectUrls.forEach((objectUrl) => URL.revokeObjectURL(objectUrl));
   }, [galleryFiles]);
+
+  const savedGalleryCount = initial?.images.length ?? 0;
+  const remainingGallerySlots = Math.max(
+    0,
+    MAX_PRODUCT_GALLERY_IMAGES - savedGalleryCount - galleryFiles.length,
+  );
+
+  function handleGallerySelect(event: ChangeEvent<HTMLInputElement>) {
+    const selected = Array.from(event.target.files ?? []);
+    // Clearing the input lets the same file be picked again after removing it.
+    event.target.value = "";
+    if (selected.length === 0) return;
+
+    const accepted = selected.slice(0, remainingGallerySlots);
+    const skipped = selected.length - accepted.length;
+
+    setGalleryNotice(
+      skipped > 0
+        ? `Only ${MAX_PRODUCT_GALLERY_IMAGES} images are allowed, so ${skipped} ${
+            skipped === 1 ? "file was" : "files were"
+          } skipped.`
+        : null,
+    );
+
+    if (accepted.length > 0) {
+      setGalleryFiles((previous) => [...previous, ...accepted]);
+    }
+  }
+
+  function removeGalleryFile(index: number) {
+    setGalleryFiles((previous) => previous.filter((_, position) => position !== index));
+    setGalleryNotice(null);
+  }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -532,19 +567,30 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
             </div>
           ) : null}
         </label>
-        <label className="block col-span-full sm:col-span-2">
-          <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
-            Other residential unit images
-          </span>
-          <input
-            type="file"
-            multiple
-            accept="image/png,image/jpeg,image/webp,image/svg+xml"
-            onChange={(event) =>
-              setGalleryFiles(Array.from(event.target.files ?? []))
-            }
-            className="block w-full rounded-xl border border-[#dbe3ef] bg-[#f8fafc] px-3 py-2.5 text-[14px] text-[var(--brand-navy)] outline-none file:mr-3 file:rounded-full file:border-0 file:bg-[var(--brand-blue)] file:px-3 file:py-2 file:text-[12px] file:font-semibold file:text-white"
-          />
+        <div className="col-span-full sm:col-span-2">
+          <label className="block">
+            <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
+              Other residential unit images
+            </span>
+            <input
+              type="file"
+              multiple
+              accept="image/png,image/jpeg,image/webp,image/svg+xml"
+              disabled={remainingGallerySlots === 0}
+              onChange={handleGallerySelect}
+              className="block w-full rounded-xl border border-[#dbe3ef] bg-[#f8fafc] px-3 py-2.5 text-[14px] text-[var(--brand-navy)] outline-none file:mr-3 file:rounded-full file:border-0 file:bg-[var(--brand-blue)] file:px-3 file:py-2 file:text-[12px] file:font-semibold file:text-white disabled:cursor-not-allowed disabled:opacity-60"
+            />
+          </label>
+          <p className="mt-2 text-[12px] text-[var(--muted)]">
+            {remainingGallerySlots > 0
+              ? `Up to ${MAX_PRODUCT_GALLERY_IMAGES} images${
+                  savedGalleryCount > 0 ? ` (${savedGalleryCount} already saved)` : ""
+                } — you can still add ${remainingGallerySlots}.`
+              : `Maximum of ${MAX_PRODUCT_GALLERY_IMAGES} images reached. Remove one to add another.`}
+          </p>
+          {galleryNotice ? (
+            <p className="mt-1 text-[12px] font-medium text-[#b45309]">{galleryNotice}</p>
+          ) : null}
           {galleryPreviewUrls.length > 0 ? (
             <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {galleryPreviewUrls.map((url, index) => (
@@ -559,11 +605,20 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
                     className="object-cover"
                     sizes="160px"
                   />
+                  <button
+                    type="button"
+                    onClick={() => removeGalleryFile(index)}
+                    aria-label={`Remove selected image ${index + 1}`}
+                    title="Remove"
+                    className="absolute end-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-[16px] leading-none font-bold text-[var(--brand-red)] shadow-[0_2px_8px_rgba(15,23,42,0.18)] hover:bg-white"
+                  >
+                    &times;
+                  </button>
                 </div>
               ))}
             </div>
           ) : null}
-        </label>
+        </div>
       </LookupFormLayout>
 
       {id && initial ? (

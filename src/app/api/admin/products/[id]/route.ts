@@ -1,3 +1,4 @@
+import { MAX_PRODUCT_GALLERY_IMAGES } from "@/constants/config";
 import { ALL_PROPERTY_SPEC_KEYS } from "@/constants/property-specs";
 import { productService } from "@/server/services/product.service";
 import {
@@ -56,15 +57,22 @@ const updateProduct = compose(withAuth, withHandler)(async (request, context: Ap
   const id = parseId(await context.params);
   const current = await productService.getById(id);
   const formData = await readUpdateFormData(request, "product");
+  const galleryFiles = getImageFiles(formData, "images");
+  if (current.images.length + galleryFiles.length > MAX_PRODUCT_GALLERY_IMAGES) {
+    throw new AppError(
+      `A residential unit can have at most ${MAX_PRODUCT_GALLERY_IMAGES} extra images. ` +
+        `Delete a saved image before adding a new one.`,
+      400,
+    );
+  }
+
   const imageFile = formData.get("image");
   const nextImage =
     imageFile instanceof File && imageFile.size > 0
       ? await saveImageUpload(imageFile, "uploads/products")
       : toRelativeUploadPath(current.image);
   const galleryImages = await Promise.all(
-    getImageFiles(formData, "images").map((file) =>
-      saveImageUpload(file, "uploads/products/gallery"),
-    ),
+    galleryFiles.map((file) => saveImageUpload(file, "uploads/products/gallery")),
   );
 
   const parsedSpecs = parseProductSpecFieldsFromFormData(formData);

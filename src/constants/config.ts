@@ -20,6 +20,9 @@ export const config = {
   },
 } as const;
 
+/** Extra residential unit images allowed on top of the single cover image. */
+export const MAX_PRODUCT_GALLERY_IMAGES = 3;
+
 export type WhatsAppSettings = {
   phone: string;
   message: string;
