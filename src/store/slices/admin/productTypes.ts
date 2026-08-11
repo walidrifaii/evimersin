@@ -81,5 +81,4 @@ export type ProductFormInput = Partial<
   status?: Status;
   is_featured?: Status;
   image?: File | null;
-  images?: File[];
 };

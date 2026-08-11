@@ -55,9 +55,6 @@ function toProductFormData(body: Partial<ProductFormInput>) {
   if (body.image instanceof File) {
     formData.set("image", body.image);
   }
-  body.images?.forEach((image) => {
-    formData.append("images", image);
-  });
   return formData;
 }
 

@@ -22,6 +22,7 @@ import { removeUploadedFile, toRelativeUploadPath } from "@/server/utils/upload"
 import { hasActiveDiscount } from "@/lib/product-pricing";
 import { toAbsoluteImageUrl, toDisplayImageSrc, toUploadServeSrc } from "@/lib/image-url";
 import { clearUnusedSpecValues } from "@/constants/property-specs";
+import { MAX_PRODUCT_GALLERY_IMAGES } from "@/constants/config";
 
 function normalizeStoredImagePath(image: string | null | undefined) {
   if (image === undefined) return undefined;
@@ -246,7 +247,14 @@ export const productService = {
   },
 
   async addImage(input: CreateProductImageInput) {
-    await this.getById(input.product_id);
+    const product = await this.getById(input.product_id);
+    if (product.images.length >= MAX_PRODUCT_GALLERY_IMAGES) {
+      throw new AppError(
+        `A residential unit can have at most ${MAX_PRODUCT_GALLERY_IMAGES} extra images.`,
+        400,
+      );
+    }
+
     const imageId = await productImageRepository.create({
       ...input,
       image: normalizeStoredImagePath(input.image) ?? input.image,

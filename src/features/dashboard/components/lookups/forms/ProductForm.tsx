@@ -38,6 +38,7 @@ import {
 } from "@/lib/product-pricing";
 import { getApiErrorMessage } from "@/store/api/errors";
 import {
+  useAddProductImageMutation,
   useCreateProductMutation,
   useDeleteProductImageMutation,
   useGetCategoriesQuery,
@@ -67,6 +68,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
   const [createProduct, createState] = useCreateProductMutation();
   const [updateProduct, updateState] = useUpdateProductMutation();
   const [deleteProductImage, deleteImageState] = useDeleteProductImageMutation();
+  const [addProductImage, addImageState] = useAddProductImageMutation();
 
   const [name, setName] = useState(initial?.name ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
@@ -253,17 +255,51 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
       status,
       is_featured: isFeatured,
       image: imageFile,
-      images: galleryFiles,
       ...specValues,
     };
 
     try {
-      if (id) await updateProduct({ id, data: payload }).unwrap();
-      else await createProduct(payload).unwrap();
+      const saved = id
+        ? await updateProduct({ id, data: payload }).unwrap()
+        : await createProduct(payload).unwrap();
+
+      const productId = id ?? saved.id;
+      const failedUploads = await uploadGalleryImages(productId);
+
+      if (failedUploads.length > 0) {
+        setGalleryFiles(failedUploads);
+        formErrors.setLocal(
+          `The residential unit was saved, but ${failedUploads.length} image${
+            failedUploads.length === 1 ? "" : "s"
+          } could not be uploaded. Try adding them again.`,
+        );
+        // Retrying from the edit page updates the unit instead of creating another.
+        if (!id) router.replace(routes.lookupEdit("products", productId));
+        return;
+      }
+
       router.push(backHref);
     } catch (err) {
       formErrors.apply(err);
     }
+  }
+
+  /**
+   * One request per image. Sending several files under a single field name in
+   * one multipart body loses all but the first behind the hosting proxy.
+   */
+  async function uploadGalleryImages(productId: number) {
+    const failed: File[] = [];
+
+    for (const file of galleryFiles) {
+      try {
+        await addProductImage({ productId, image: file }).unwrap();
+      } catch {
+        failed.push(file);
+      }
+    }
+
+    return failed;
   }
 
   function clearField(name: string) {
@@ -277,7 +313,9 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
         description="Create residential units linked to category, purpose, and city."
         backHref={backHref}
         onSubmit={onSubmit}
-        submitting={createState.isLoading || updateState.isLoading}
+        submitting={
+          createState.isLoading || updateState.isLoading || addImageState.isLoading
+        }
         submitLabel={id ? "Update" : "Create"}
         error={formErrors.banner}
         fieldErrors={formErrors.fields}
