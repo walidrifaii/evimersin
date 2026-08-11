@@ -1,6 +1,6 @@
 export const routes = {
   home: "/",
-  properties: "/products",
+  properties: "/properties",
   about: "/about",
   howItWorks: "/how-it-works",
   contact: "/contact",
@@ -8,7 +8,7 @@ export const routes = {
   login: "/login",
   forgotPassword: "/login/forgot-password",
   apiDocs: "/api-docs",
-  property: (id: string) => `/products/${id}`,
+  property: (id: string) => `/properties/${id}`,
   dashboardTab: (tab: string) => `/dashboard?tab=${tab}`,
   dashboardUserPermissionsNew: "/dashboard/users/new/permissions",
   dashboardUserPermissions: (id: number) => `/dashboard/users/${id}/permissions`,

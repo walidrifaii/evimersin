@@ -10,7 +10,8 @@ export const config = {
   },
   whatsapp: {
     phone: "96171959921",
-    message: "Hello EviMersin, I would like to know more about your properties.",
+    message:
+      "Hello EviMersin, I would like to know more about your properties. https://evimersin.co/properties",
   },
   social: {
     instagram: "https://instagram.com/evimersin",

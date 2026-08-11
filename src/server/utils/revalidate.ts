@@ -4,9 +4,9 @@ import { revalidatePath, revalidateTag } from "next/cache";
 export function revalidateListingsCache(productId?: number) {
   revalidateTag("property-listings", { expire: 0 });
   revalidatePath("/");
-  revalidatePath("/products");
+  revalidatePath("/properties");
   if (productId) {
-    revalidatePath(`/products/${productId}`);
+    revalidatePath(`/properties/${productId}`);
   }
 }
 

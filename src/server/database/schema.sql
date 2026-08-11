@@ -292,7 +292,7 @@ INSERT IGNORE INTO site_settings (
   '+90 555 123 45 67',
   '+90 555 123 45 67',
   '905551234567',
-  'Hello EviMersin, I would like to know more about your properties.',
+  'Hello EviMersin, I would like to know more about your properties. https://evimersin.co/properties',
   'https://instagram.com/evimersin',
   '@evimersin',
   'https://facebook.com/evimersin',
