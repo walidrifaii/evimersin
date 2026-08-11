@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { routes } from "@/constants/routes";
-import { SafeImage } from "@/components/ui/SafeImage";
 import {
   LookupListLayout,
   LookupTable,
@@ -57,23 +56,12 @@ export function CategoriesPanel() {
         </div>
       ) : (
         <LookupTable
-          headers={["ID", "Name", "Position", "Icon", "Status", "Actions"]}
+          headers={["ID", "Name", "Position", "Status", "Actions"]}
           rows={filtered.map((item) => (
             <tr key={item.id} className="border-t border-[#eef2f7]">
               <td className="px-5 py-3 text-[var(--muted)]">{item.id}</td>
               <td className="px-5 py-3 font-semibold text-[var(--brand-navy)]">{item.name}</td>
               <td className="px-5 py-3 text-[var(--brand-navy)]">{item.position}</td>
-              <td className="px-5 py-3">
-                <div className="relative h-11 w-11 overflow-hidden rounded-xl border border-[#e5eaf2] bg-white">
-                  <SafeImage
-                    src={item.icon}
-                    alt={`${item.name} icon`}
-                    fill
-                    className="object-cover"
-                    sizes="44px"
-                  />
-                </div>
-              </td>
               <td className="px-5 py-3">
                 <StatusBadge status={item.status} />
               </td>
