@@ -4,7 +4,7 @@ import { ok } from "@/server/utils/response";
 import { revalidateListingsCache } from "@/server/utils/revalidate";
 import { saveImageUpload } from "@/server/utils/upload";
 import { parseProductSpecFieldsFromFormData } from "@/server/utils/product-specs";
-import { readFormString, readNullableFormString } from "@/server/utils/form-data";
+import { readFormField, readNullableFormString, readTrimmedFormField } from "@/server/utils/form-data";
 import { createProductSchema } from "@/server/validators/product.validator";
 
 export const runtime = "nodejs";
@@ -48,7 +48,7 @@ export const POST = compose(withAuth, withHandler)(async (request) => {
 
   const input = validateBody(createProductSchema, {
     ...specs,
-    name: readFormString(formData.get("name")),
+    name: readTrimmedFormField(formData, "name"),
     position: Number(formData.get("position") ?? 0),
     description: readNullableFormString(formData.get("description")),
     price: Number(formData.get("price") ?? 0),

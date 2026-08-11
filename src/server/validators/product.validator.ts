@@ -12,8 +12,12 @@ const formRequiredString = (max: number) =>
 
 const formOptionalString = (max: number) =>
   z.preprocess(
-    (value) => (value == null ? undefined : value),
-    z.coerce.string().trim().min(1).max(max).optional(),
+    (value) => {
+      if (value == null) return undefined;
+      const trimmed = String(value).trim();
+      return trimmed === "" ? undefined : trimmed;
+    },
+    z.string().min(1, "Name is required").max(max).optional(),
   );
 
 const formNullableString = (max: number) =>

@@ -12,7 +12,7 @@ import { parseProductSpecFieldsFromFormData } from "@/server/utils/product-specs
 import { ok } from "@/server/utils/response";
 import { revalidateListingsCache } from "@/server/utils/revalidate";
 import { saveImageUpload, toRelativeUploadPath } from "@/server/utils/upload";
-import { readFormString, readNullableFormString } from "@/server/utils/form-data";
+import { readFormField, readNullableFormString, readTrimmedFormField } from "@/server/utils/form-data";
 import { updateProductSchema } from "@/server/validators/product.validator";
 
 export const runtime = "nodejs";
@@ -71,9 +71,12 @@ export const PUT = compose(withAuth, withHandler)(async (request, context: ApiCo
     ]),
   );
 
+  const submittedName = readTrimmedFormField(formData, "name");
+  const name = submittedName || current.name;
+
   const input = validateBody(updateProductSchema, {
     ...specs,
-    name: readFormString(formData.get("name")),
+    name,
     position: Number(formData.get("position") ?? current.position),
     description: readNullableFormString(formData.get("description")),
     price: Number(formData.get("price") ?? current.price),
