@@ -22,7 +22,7 @@ export function Footer() {
   const settings = useSiteSettings();
   const locale = useAppLocale();
   const isRtl = locale === "ar";
-  const whatsappUrl = getWhatsAppUrlFromSettings(settings);
+  const whatsappUrl = settings ? getWhatsAppUrlFromSettings(settings) : null;
   const t = useTranslations("footer");
   const tNav = useTranslations("nav");
   const tCommon = useTranslations("common");
@@ -91,34 +91,40 @@ export function Footer() {
               {t("contact")}
             </h3>
             <div className="mt-4 space-y-2.5 text-[14px] text-white/72 sm:mt-5 sm:space-y-3 sm:text-[15px]">
-              <p>
-                {settings.address_name}
-                <br />
-                {settings.address}
-              </p>
-              <a
-                href={`tel:${settings.phone}`}
-                className="block transition-colors hover:text-white"
-              >
-                {settings.phone}
-              </a>
-              <a
-                href={`mailto:${settings.email}`}
-                className="block transition-colors hover:text-white"
-              >
-                {settings.email}
-              </a>
+              {settings ? (
+                <>
+                  <p>
+                    {settings.address_name}
+                    <br />
+                    {settings.address}
+                  </p>
+                  <a
+                    href={`tel:${settings.phone}`}
+                    className="block transition-colors hover:text-white"
+                  >
+                    {settings.phone}
+                  </a>
+                  <a
+                    href={`mailto:${settings.email}`}
+                    className="block transition-colors hover:text-white"
+                  >
+                    {settings.email}
+                  </a>
+                </>
+              ) : null}
             </div>
 
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-5 inline-flex items-center gap-2 rounded-full bg-[var(--brand-red)] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#c9181e] sm:mt-6"
-            >
-              <WhatsAppIcon className="h-4 w-4" />
-              {tCommon("chatOnWhatsapp")}
-            </a>
+            {whatsappUrl ? (
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 inline-flex items-center gap-2 rounded-full bg-[var(--brand-red)] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#c9181e] sm:mt-6"
+              >
+                <WhatsAppIcon className="h-4 w-4" />
+                {tCommon("chatOnWhatsapp")}
+              </a>
+            ) : null}
           </div>
         </div>
 

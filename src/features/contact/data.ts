@@ -35,7 +35,9 @@ export const contactData = {
   },
 } as const;
 
-export function getContactMethods(settings: PublicSiteSettings) {
+export function getContactMethods(settings: PublicSiteSettings | null) {
+  if (!settings) return [];
+
   return [
     {
       id: "phone" as const,
@@ -70,7 +72,9 @@ const CONTACT_DESCRIPTIONS: Record<SocialPlatformId, string> = {
   tiktok: "Follow us on TikTok for short property videos",
 };
 
-export function getContactSocial(settings: PublicSiteSettings) {
+export function getContactSocial(settings: PublicSiteSettings | null) {
+  if (!settings) return [];
+
   return SOCIAL_PLATFORM_CONFIG.filter((platform) =>
     isSocialPlatformActive(settings, platform.id),
   ).map((platform) => ({

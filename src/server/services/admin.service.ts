@@ -100,21 +100,33 @@ async function verifyInviteEmailOtp(email: string, otp: string) {
 async function issueTokenPair(admin: AdminRow) {
   const payload = toTokenPayload(admin);
   const accessToken = await signAccessToken(payload);
-  const refreshToken = await signRefreshJwt(payload);
 
-  await refreshTokenRepository.create(
-    admin.id,
-    refreshToken,
-    getRefreshExpiryDate(),
-  );
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const refreshToken = await signRefreshJwt(payload);
+    try {
+      await refreshTokenRepository.create(
+        admin.id,
+        refreshToken,
+        getRefreshExpiryDate(),
+      );
+      return {
+        accessToken,
+        refreshToken,
+        tokenType: "Bearer" as const,
+        expiresIn: process.env.JWT_ACCESS_EXPIRES ?? "15m",
+        admin: toPublicAdmin(admin),
+      };
+    } catch (error) {
+      const isDuplicate =
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        error.code === "ER_DUP_ENTRY";
+      if (!isDuplicate || attempt === 2) throw error;
+    }
+  }
 
-  return {
-    accessToken,
-    refreshToken,
-    tokenType: "Bearer" as const,
-    expiresIn: process.env.JWT_ACCESS_EXPIRES ?? "15m",
-    admin: toPublicAdmin(admin),
-  };
+  throw new AppError("Could not issue refresh token", 500);
 }
 
   function assertCanManageUsers(actor?: AuthTokenPayload) {

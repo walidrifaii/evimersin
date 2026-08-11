@@ -177,15 +177,17 @@ export function ContactInfo() {
 
       <ContactSocialLinks />
 
-      <a
-        href={whatsappUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--brand-red)] px-5 py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-[#c9181e]"
-      >
-        <FaWhatsapp className="h-4 w-4" aria-hidden="true" />
-        {tCommon("chatOnWhatsapp")}
-      </a>
+      {whatsappUrl ? (
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--brand-red)] px-5 py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-[#c9181e]"
+        >
+          <FaWhatsapp className="h-4 w-4" aria-hidden="true" />
+          {tCommon("chatOnWhatsapp")}
+        </a>
+      ) : null}
     </div>
   );
 }

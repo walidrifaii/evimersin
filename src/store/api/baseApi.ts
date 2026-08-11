@@ -13,6 +13,36 @@ import {
 import type { AuthSession } from "@/store/slices/auth/authTypes";
 import type { ApiResponse } from "@/store/api/types";
 
+let refreshInFlight: Promise<AuthSession | null> | null = null;
+
+async function refreshSession(
+  refreshToken: string,
+  apiContext: Parameters<typeof baseQuery>[1],
+  extraOptions: Parameters<typeof baseQuery>[2],
+): Promise<AuthSession | null> {
+  if (!refreshInFlight) {
+    refreshInFlight = (async () => {
+      const refreshResult = await baseQuery(
+        {
+          url: "/admin/auth/refresh",
+          method: "POST",
+          body: { refreshToken },
+        },
+        apiContext,
+        extraOptions,
+      );
+
+      return (
+        (refreshResult.data as ApiResponse<AuthSession> | undefined)?.data ?? null
+      );
+    })().finally(() => {
+      refreshInFlight = null;
+    });
+  }
+
+  return refreshInFlight;
+}
+
 const baseQuery = fetchBaseQuery({
   baseUrl: "/api",
   prepareHeaders(headers, { getState }) {
@@ -38,18 +68,7 @@ const baseQueryWithRefresh: BaseQueryFn<
     url !== "/admin/auth/login" &&
     url !== "/admin/auth/refresh"
   ) {
-    const refreshResult = await baseQuery(
-      {
-        url: "/admin/auth/refresh",
-        method: "POST",
-        body: { refreshToken },
-      },
-      apiContext,
-      extraOptions,
-    );
-
-    const session = (refreshResult.data as ApiResponse<AuthSession> | undefined)
-      ?.data;
+    const session = await refreshSession(refreshToken, apiContext, extraOptions);
 
     if (session) {
       apiContext.dispatch(setCredentials(session));

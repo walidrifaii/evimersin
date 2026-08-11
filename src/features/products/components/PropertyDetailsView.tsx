@@ -28,10 +28,12 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
     "",
   );
   const propertyUrl = `${appUrl}${property.href}`;
-  const whatsappUrl = getWhatsAppUrlFromSettings(
-    settings,
-    t("whatsappMessage", { title: property.title, url: propertyUrl }),
-  );
+  const whatsappUrl = settings
+    ? getWhatsAppUrlFromSettings(
+        settings,
+        t("whatsappMessage", { title: property.title, url: propertyUrl }),
+      )
+    : null;
   const specRows = getSpecFieldsForCategory(property.propertyType)
     .map((field) => {
       const formatted = formatSpecValue(field, property.specs?.[field.key]);
@@ -160,29 +162,33 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
                 </p>
               </div>
 
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-8 hidden h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-5 text-[15px] font-semibold text-white transition-colors hover:bg-[#1ebe57] lg:inline-flex"
-              >
-                <FaWhatsapp className="h-5 w-5" aria-hidden="true" />
-                {tCommon("contactOnWhatsapp")}
-              </a>
+              {whatsappUrl ? (
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-8 hidden h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-5 text-[15px] font-semibold text-white transition-colors hover:bg-[#1ebe57] lg:inline-flex"
+                >
+                  <FaWhatsapp className="h-5 w-5" aria-hidden="true" />
+                  {tCommon("contactOnWhatsapp")}
+                </a>
+              ) : null}
             </div>
           </div>
         </div>
       </div>
 
-      <a
-        href={whatsappUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label={tCommon("contactOnWhatsapp")}
-        className="fixed bottom-5 right-5 z-40 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_10px_28px_rgba(37,211,102,0.45)] transition-transform hover:scale-105 active:scale-95 lg:hidden"
-      >
-        <FaWhatsapp className="h-7 w-7" aria-hidden="true" />
-      </a>
+      {whatsappUrl ? (
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={tCommon("contactOnWhatsapp")}
+          className="fixed bottom-5 right-5 z-40 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_10px_28px_rgba(37,211,102,0.45)] transition-transform hover:scale-105 active:scale-95 lg:hidden"
+        >
+          <FaWhatsapp className="h-7 w-7" aria-hidden="true" />
+        </a>
+      ) : null}
     </section>
   );
 }

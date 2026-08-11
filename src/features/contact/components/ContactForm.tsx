@@ -113,15 +113,17 @@ export function ContactForm() {
         <p className="mt-3 text-[15px] leading-relaxed text-[var(--muted)]">
           {t("successDescription")}
         </p>
-        <a
-          href={whatsappUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[var(--brand-red)] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#c9181e]"
-        >
-          <FaWhatsapp className="h-4 w-4" aria-hidden="true" />
-          {tCommon("chatOnWhatsapp")}
-        </a>
+        {whatsappUrl ? (
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[var(--brand-red)] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#c9181e]"
+          >
+            <FaWhatsapp className="h-4 w-4" aria-hidden="true" />
+            {tCommon("chatOnWhatsapp")}
+          </a>
+        ) : null}
       </div>
     );
   }

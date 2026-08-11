@@ -8,7 +8,7 @@ import { getSiteSettings } from "@/lib/site-settings";
 
 export async function HowItWorksCta() {
   const settings = await getSiteSettings();
-  const whatsappUrl = getWhatsAppUrlFromSettings(settings);
+  const whatsappUrl = settings ? getWhatsAppUrlFromSettings(settings) : null;
   const t = await getTranslations("howItWorks");
   const tCommon = await getTranslations("common");
 
@@ -54,15 +54,17 @@ export async function HowItWorksCta() {
                 />
               </Link>
 
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-[#e8edf5] bg-white px-6 text-[15px] font-semibold text-[var(--brand-navy)] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] hover:shadow-md"
-              >
-                <FaWhatsapp className="h-4 w-4 text-[var(--brand-red)]" aria-hidden="true" />
-                {tCommon("whatsappUs")}
-              </a>
+              {whatsappUrl ? (
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-[#e8edf5] bg-white px-6 text-[15px] font-semibold text-[var(--brand-navy)] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] hover:shadow-md"
+                >
+                  <FaWhatsapp className="h-4 w-4 text-[var(--brand-red)]" aria-hidden="true" />
+                  {tCommon("whatsappUs")}
+                </a>
+              ) : null}
             </div>
           </div>
         </div>

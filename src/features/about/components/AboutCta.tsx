@@ -7,7 +7,7 @@ import { getSiteSettings } from "@/lib/site-settings";
 
 export async function AboutCta() {
   const settings = await getSiteSettings();
-  const whatsappUrl = getWhatsAppUrlFromSettings(settings);
+  const whatsappUrl = settings ? getWhatsAppUrlFromSettings(settings) : null;
   const t = await getTranslations("about");
   const tCommon = await getTranslations("common");
 
@@ -29,15 +29,17 @@ export async function AboutCta() {
             >
               {tCommon("browseProperties")}
             </Link>
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[var(--brand-red)] px-6 text-[15px] font-semibold text-white transition-colors hover:bg-[#c9181e] sm:w-auto"
-            >
-              <WhatsAppIcon className="h-4 w-4" />
-              {tCommon("whatsappUs")}
-            </a>
+            {whatsappUrl ? (
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[var(--brand-red)] px-6 text-[15px] font-semibold text-white transition-colors hover:bg-[#c9181e] sm:w-auto"
+              >
+                <WhatsAppIcon className="h-4 w-4" />
+                {tCommon("whatsappUs")}
+              </a>
+            ) : null}
           </div>
         </div>
       </div>

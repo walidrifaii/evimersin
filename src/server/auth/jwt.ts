@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify } from "jose";
+import { randomBytes } from "crypto";
 import type { AuthTokenPayload } from "@/server/types/admin.types";
 import { AppError } from "@/server/utils/errors";
 
@@ -64,6 +65,7 @@ export async function signRefreshJwt(payload: AuthTokenPayload): Promise<string>
     username: payload.username,
     name: payload.name,
     type: "refresh",
+    jti: randomBytes(16).toString("hex"),
   })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(String(payload.sub))

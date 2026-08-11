@@ -52,7 +52,7 @@ export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [propertiesOpen, setPropertiesOpen] = useState(false);
   const settings = useSiteSettings();
-  const callHref = `tel:${settings.phone}`;
+  const callHref = settings?.phone ? `tel:${settings.phone}` : null;
   const propertiesActive = isNavActive(pathname, routes.properties);
   const t = useTranslations("nav");
   const tCommon = useTranslations("common");
@@ -181,13 +181,15 @@ export function Navbar() {
 
           <div className="hidden shrink-0 items-center gap-3 lg:flex">
             <LanguageSwitcher />
-            <a
-              href={callHref}
-              className="inline-flex items-center gap-2 rounded-full bg-[var(--brand-red)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#c9181e]"
-            >
-              <PhoneIcon className="h-4 w-4" />
-              {tCommon("callUs")}
-            </a>
+            {callHref ? (
+              <a
+                href={callHref}
+                className="inline-flex items-center gap-2 rounded-full bg-[var(--brand-red)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#c9181e]"
+              >
+                <PhoneIcon className="h-4 w-4" />
+                {tCommon("callUs")}
+              </a>
+            ) : null}
           </div>
 
           <div className="flex items-center gap-2 lg:hidden">
@@ -315,13 +317,15 @@ export function Navbar() {
                 })}
               </ul>
 
-              <a
-                href={callHref}
-                className="mt-6 flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[var(--brand-red)] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#c9181e]"
-              >
-                <PhoneIcon className="h-4 w-4" />
-                {tCommon("callUs")}
-              </a>
+              {callHref ? (
+                <a
+                  href={callHref}
+                  className="mt-6 flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[var(--brand-red)] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#c9181e]"
+                >
+                  <PhoneIcon className="h-4 w-4" />
+                  {tCommon("callUs")}
+                </a>
+              ) : null}
             </div>
           </div>
         </div>

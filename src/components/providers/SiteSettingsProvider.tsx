@@ -10,7 +10,7 @@ export function SiteSettingsProvider({
   settings,
   children,
 }: {
-  settings: PublicSiteSettings;
+  settings: PublicSiteSettings | null;
   children: ReactNode;
 }) {
   return (
@@ -20,15 +20,12 @@ export function SiteSettingsProvider({
   );
 }
 
-export function useSiteSettings() {
-  const settings = useContext(SiteSettingsContext);
-  if (!settings) {
-    throw new Error("useSiteSettings must be used within SiteSettingsProvider");
-  }
-  return settings;
+export function useSiteSettings(): PublicSiteSettings | null {
+  return useContext(SiteSettingsContext);
 }
 
-export function useWhatsAppUrl(customMessage?: string) {
+export function useWhatsAppUrl(customMessage?: string): string | null {
   const settings = useSiteSettings();
+  if (!settings?.whatsapp_phone?.trim()) return null;
   return getWhatsAppUrlFromSettings(settings, customMessage);
 }
