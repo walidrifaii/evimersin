@@ -1,33 +1,45 @@
+import { toAbsoluteImageUrl } from "@/lib/image-url";
 import { heroSlideRepository } from "@/server/database/repositories/hero-slide.repository";
 import { AppError } from "@/server/utils/errors";
 import type {
   CreateHeroSlideInput,
+  HeroSlide,
   UpdateHeroSlideInput,
 } from "@/server/types/hero-slide.types";
 
+function withAbsoluteSlideImage(slide: HeroSlide): HeroSlide {
+  return {
+    ...slide,
+    image: toAbsoluteImageUrl(slide.image) ?? slide.image,
+  };
+}
+
 export const heroSlideService = {
-  list() {
-    return heroSlideRepository.findAll();
+  async list() {
+    const slides = await heroSlideRepository.findAll();
+    return slides.map(withAbsoluteSlideImage);
   },
 
-  listActive() {
-    return heroSlideRepository.findActive();
+  async listActive() {
+    const slides = await heroSlideRepository.findActive();
+    return slides.map(withAbsoluteSlideImage);
   },
 
   async getById(id: number) {
     const slide = await heroSlideRepository.findById(id);
     if (!slide) throw new AppError("Hero slide not found", 404);
-    return slide;
+    return withAbsoluteSlideImage(slide);
   },
 
-  create(input: CreateHeroSlideInput) {
-    return heroSlideRepository.create(input);
+  async create(input: CreateHeroSlideInput) {
+    const slide = await heroSlideRepository.create(input);
+    return withAbsoluteSlideImage(slide);
   },
 
   async update(id: number, input: UpdateHeroSlideInput) {
     const updated = await heroSlideRepository.update(id, input);
     if (!updated) throw new AppError("Hero slide not found", 404);
-    return updated;
+    return withAbsoluteSlideImage(updated);
   },
 
   async remove(id: number) {

@@ -61,7 +61,7 @@ function ContactSocialLinks() {
 
   return (
     <div className="rounded-2xl border border-[#e8edf5] bg-[#f8fafc] px-4 py-5 sm:px-5 sm:py-6">
-      <div className="grid grid-cols-3 place-items-center gap-3 py-1 sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
+      <div className="flex flex-wrap items-center justify-start gap-3 py-1 sm:gap-4">
         {social.map((item) => {
           const Icon = socialIcons[item.id];
           const label = t(socialLabelKeys[item.id]);

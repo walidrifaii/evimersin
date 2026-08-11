@@ -8,7 +8,6 @@ import {
   StatusBadge,
   TextInput,
 } from "@/features/dashboard/components/lookups/LookupManager";
-import { toDisplayImageSrc } from "@/lib/image-url";
 import { getApiErrorMessage } from "@/store/api/errors";
 import {
   useCreateHeroSlideMutation,
@@ -62,7 +61,7 @@ function SlideModal({
         status: initial.status === 1 ? 1 : 0,
         imageFile: null,
       });
-      setPreviewUrl(toDisplayImageSrc(initial.image));
+      setPreviewUrl(initial.image);
     } else {
       setForm(emptyForm);
       setPreviewUrl("");
@@ -156,6 +155,7 @@ function SlideModal({
                   src={previewUrl}
                   alt="Slide preview"
                   fill
+                  sizes="(max-width: 512px) 100vw, 512px"
                   className="object-cover"
                 />
               </div>
@@ -309,9 +309,10 @@ export function HeroSlidesPanel() {
                     <td className="px-4 py-3">
                       <div className="relative h-14 w-24 overflow-hidden rounded-lg border border-[#e5eaf2] bg-[#f8fafc]">
                         <SafeImage
-                          src={toDisplayImageSrc(slide.image)}
+                          src={slide.image}
                           alt={slide.alt_text || "Hero slide"}
                           fill
+                          sizes="96px"
                           className="object-cover"
                         />
                       </div>

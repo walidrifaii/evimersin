@@ -73,6 +73,31 @@ export function SafeImage({
         resolvedSrc.startsWith("data:") ||
         resolvedSrc.endsWith(".svg")));
 
+  // Uploaded assets are served from /uploads (rewritten to /api/media). A native
+  // <img> avoids Next/Image edge cases in dashboard tables and modals.
+  if (typeof resolvedSrc === "string" && shouldSkipOptimize) {
+    const { fill, width, height, sizes: _sizes, ...imgProps } = props;
+    const imgClassName = fill
+      ? `absolute inset-0 h-full w-full ${className ?? ""}`
+      : className;
+
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        {...imgProps}
+        src={resolvedSrc}
+        alt={alt}
+        width={fill ? undefined : width}
+        height={fill ? undefined : height}
+        className={imgClassName}
+        onError={(event) => {
+          setFailed(true);
+          onError?.(event as Parameters<NonNullable<ImageProps["onError"]>>[0]);
+        }}
+      />
+    );
+  }
+
   return (
     <Image
       {...props}
