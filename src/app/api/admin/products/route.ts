@@ -12,7 +12,7 @@ export const runtime = "nodejs";
 export const GET = compose(withAuth, withHandler)(async () =>
   ok(await productService.list()),
 );
-
+//test
 function getImageFiles(formData: FormData, key: string) {
   return formData
     .getAll(key)
