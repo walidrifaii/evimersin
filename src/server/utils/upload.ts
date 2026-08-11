@@ -48,19 +48,32 @@ function toUploadsRelativeDir(folder: string) {
   return normalized;
 }
 
+/**
+ * Canonical storage path (`/uploads/...`) for a value that may arrive as an
+ * absolute URL or as the `/api/media/...` form used in API responses.
+ */
 export function toRelativeUploadPath(filePath: string | null | undefined) {
   if (!filePath) return null;
 
-  if (filePath.startsWith("http://") || filePath.startsWith("https://")) {
+  let value = filePath;
+
+  if (value.startsWith("http://") || value.startsWith("https://")) {
     try {
-      const pathname = new URL(filePath).pathname;
-      return pathname.startsWith("/") ? pathname : `/${pathname}`;
+      value = new URL(value).pathname;
     } catch {
       return null;
     }
   }
 
-  return filePath.startsWith("/") ? filePath : `/${filePath}`;
+  if (!value.startsWith("/")) {
+    value = `/${value}`;
+  }
+
+  if (value.startsWith("/api/media/")) {
+    value = `/uploads/${value.slice("/api/media/".length)}`;
+  }
+
+  return value;
 }
 
 export async function saveImageUpload(file: File, folder: string) {

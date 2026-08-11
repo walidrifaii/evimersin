@@ -7,7 +7,6 @@ import {
   getUploadSrcCandidates,
   toDisplayImageSrc,
 } from "@/lib/image-url";
-import { getHeroSlides } from "@/lib/hero-slides";
 import type { PublicHeroSlide } from "@/lib/hero-slides";
 import type { ApiResponse } from "@/store/api/types";
 
