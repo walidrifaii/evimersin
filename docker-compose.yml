@@ -1,0 +1,26 @@
+# Local / VPS reference — uploads survive restarts when the volume is mounted.
+services:
+  app:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      UPLOAD_DIR: /app/storage/uploads
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      DB_HOST: ${DB_HOST:-host.docker.internal}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_USER: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-}
+      DB_NAME: ${DB_NAME:-evimersin}
+      JWT_SECRET: ${JWT_SECRET:-change-me}
+    volumes:
+      # Required: without this, every redeploy deletes hero slides & product photos.
+      - evimersin_uploads:/app/storage/uploads
+    restart: unless-stopped
+
+volumes:
+  evimersin_uploads:

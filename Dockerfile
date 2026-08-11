@@ -22,6 +22,8 @@ FROM base AS runner
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
+# All runtime uploads go here — mount a persistent volume on this path in Easypanel.
+ENV UPLOAD_DIR=/app/storage/uploads
 
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 --ingroup nodejs nextjs && \

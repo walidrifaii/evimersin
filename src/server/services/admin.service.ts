@@ -104,7 +104,7 @@ async function issueTokenPair(admin: AdminRow) {
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const refreshToken = await signRefreshJwt(payload);
     try {
-      await refreshTokenRepository.create(
+      await refreshTokenRepository.replaceForAdmin(
         admin.id,
         refreshToken,
         getRefreshExpiryDate(),
@@ -350,7 +350,6 @@ export const adminService = {
       throw new AppError("Account is inactive", 403);
     }
 
-    await refreshTokenRepository.revokeByToken(refreshToken);
     return issueTokenPair(admin);
   },
 

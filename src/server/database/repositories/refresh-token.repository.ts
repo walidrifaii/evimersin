@@ -1,5 +1,6 @@
+import type { ResultSetHeader } from "mysql2/promise";
 import { createHash, randomBytes } from "crypto";
-import { execute, query } from "@/server/database/connection";
+import { execute, getPool, query } from "@/server/database/connection";
 
 export type RefreshTokenRecord = {
   id: number;
@@ -33,6 +34,36 @@ export const refreshTokenRepository = {
     return result.insertId;
   },
 
+  /** One active refresh token per admin — removes previous rows, then inserts. */
+  async replaceForAdmin(
+    adminId: number,
+    token: string,
+    expiresAt: Date,
+  ): Promise<number> {
+    const pool = getPool();
+    const connection = await pool.getConnection();
+
+    try {
+      await connection.beginTransaction();
+      await connection.execute(
+        "DELETE FROM refresh_tokens WHERE admin_id = ?",
+        [adminId],
+      );
+      const [result] = await connection.execute(
+        `INSERT INTO refresh_tokens (admin_id, token_hash, expires_at)
+         VALUES (?, ?, ?)`,
+        [adminId, hashToken(token), expiresAt],
+      );
+      await connection.commit();
+      return (result as ResultSetHeader).insertId;
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  },
+
   async findValidByToken(token: string): Promise<RefreshTokenRecord | null> {
     const rows = await query<RefreshTokenRecord[]>(
       `SELECT id, admin_id, token_hash, expires_at, revoked_at, created_at
@@ -49,10 +80,8 @@ export const refreshTokenRepository = {
 
   async revokeByToken(token: string): Promise<boolean> {
     const result = await execute(
-      `UPDATE refresh_tokens
-       SET revoked_at = NOW()
-       WHERE token_hash = :token_hash
-         AND revoked_at IS NULL`,
+      `DELETE FROM refresh_tokens
+       WHERE token_hash = :token_hash`,
       { token_hash: hashToken(token) },
     );
 
@@ -60,12 +89,8 @@ export const refreshTokenRepository = {
   },
 
   async revokeAllForAdmin(adminId: number): Promise<void> {
-    await execute(
-      `UPDATE refresh_tokens
-       SET revoked_at = NOW()
-       WHERE admin_id = :admin_id
-         AND revoked_at IS NULL`,
-      { admin_id: adminId },
-    );
+    await execute(`DELETE FROM refresh_tokens WHERE admin_id = :admin_id`, {
+      admin_id: adminId,
+    });
   },
 };

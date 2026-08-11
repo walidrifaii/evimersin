@@ -53,6 +53,31 @@ export function toDisplayImageSrc(url: string | null | undefined) {
   return value;
 }
 
+/** Serve uploaded files via the API route (reliable in standalone / dashboard). */
+export function toUploadServeSrc(url: string | null | undefined) {
+  const relative = toDisplayImageSrc(url);
+  if (!relative) return "";
+
+  if (
+    relative.startsWith("blob:") ||
+    relative.startsWith("data:") ||
+    relative.startsWith("/api/media/")
+  ) {
+    return relative;
+  }
+
+  if (relative.startsWith("/uploads/")) {
+    return `/api/media/${relative.slice("/uploads/".length)}`;
+  }
+
+  return relative;
+}
+
+/** Alternate public path when /api/media fails (direct upload rewrite). */
+export function toUploadPublicSrc(url: string | null | undefined) {
+  return toDisplayImageSrc(url);
+}
+
 /** Absolute URL for API responses (DB still stores relative `/uploads/...`). */
 export function toAbsoluteImageUrl(url: string | null | undefined) {
   if (url == null || url === "") return null;
@@ -75,5 +100,10 @@ export function toAbsoluteImageUrl(url: string | null | undefined) {
 }
 
 export function isUploadImageSrc(src: string) {
-  return src.startsWith("/uploads/") || src.includes("/uploads/");
+  return (
+    src.startsWith("/uploads/") ||
+    src.startsWith("/api/media/") ||
+    src.includes("/uploads/") ||
+    src.includes("/api/media/")
+  );
 }

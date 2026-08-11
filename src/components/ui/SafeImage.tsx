@@ -1,8 +1,13 @@
 "use client";
 
 import Image, { type ImageProps } from "next/image";
-import { useEffect, useState } from "react";
-import { isUploadImageSrc, toDisplayImageSrc } from "@/lib/image-url";
+import { useEffect, useMemo, useState } from "react";
+import {
+  isUploadImageSrc,
+  toDisplayImageSrc,
+  toUploadPublicSrc,
+  toUploadServeSrc,
+} from "@/lib/image-url";
 
 type SafeImageProps = Omit<ImageProps, "src" | "alt"> & {
   src: ImageProps["src"] | null | undefined;
@@ -10,10 +15,19 @@ type SafeImageProps = Omit<ImageProps, "src" | "alt"> & {
   fallbackClassName?: string;
 };
 
+function uploadSrcCandidates(src: string) {
+  const serve = toUploadServeSrc(src);
+  const publicSrc = toUploadPublicSrc(src);
+
+  if (!serve) return [] as string[];
+  if (serve === publicSrc || !publicSrc) return [serve];
+  return [serve, publicSrc];
+}
+
 /**
  * Robust image for dashboard/website uploads:
- * - normalizes absolute/localhost DB paths
- * - uses unoptimized for /uploads (avoids optimizer 404 noise)
+ * - serves via /api/media (works in standalone dashboard)
+ * - falls back to /uploads if needed
  * - shows a placeholder if the file is missing
  */
 export function SafeImage({
@@ -28,6 +42,7 @@ export function SafeImage({
   const normalized =
     typeof src === "string" ? toDisplayImageSrc(src) : src ?? "";
   const [failed, setFailed] = useState(false);
+  const [candidateIndex, setCandidateIndex] = useState(0);
 
   const resolvedSrc =
     typeof normalized === "string"
@@ -43,8 +58,20 @@ export function SafeImage({
         ? String(resolvedSrc.src)
         : "";
 
+  const uploadCandidates = useMemo(
+    () =>
+      typeof resolvedSrc === "string" && isUploadImageSrc(resolvedSrc)
+        ? uploadSrcCandidates(resolvedSrc)
+        : [],
+    [resolvedSrc],
+  );
+
+  const activeUploadSrc =
+    uploadCandidates[candidateIndex] ?? uploadCandidates[0] ?? "";
+
   useEffect(() => {
     setFailed(false);
+    setCandidateIndex(0);
   }, [srcKey]);
 
   const hasSrc =
@@ -65,17 +92,21 @@ export function SafeImage({
     );
   }
 
+  const displaySrc =
+    typeof resolvedSrc === "string" && uploadCandidates.length > 0
+      ? activeUploadSrc
+      : resolvedSrc;
+
   const shouldSkipOptimize =
     unoptimized ??
-    (typeof resolvedSrc === "string" &&
-      (isUploadImageSrc(resolvedSrc) ||
-        resolvedSrc.startsWith("blob:") ||
-        resolvedSrc.startsWith("data:") ||
-        resolvedSrc.endsWith(".svg")));
+    (typeof displaySrc === "string" &&
+      (isUploadImageSrc(displaySrc) ||
+        displaySrc.startsWith("blob:") ||
+        displaySrc.startsWith("data:") ||
+        displaySrc.endsWith(".svg")));
 
-  // Uploaded assets are served from /uploads (rewritten to /api/media). A native
-  // <img> avoids Next/Image edge cases in dashboard tables and modals.
-  if (typeof resolvedSrc === "string" && shouldSkipOptimize) {
+  // Uploaded assets: native <img> via /api/media (and /uploads fallback).
+  if (typeof displaySrc === "string" && shouldSkipOptimize) {
     const { fill, width, height, sizes: _sizes, ...imgProps } = props;
     const imgClassName = fill
       ? `absolute inset-0 h-full w-full ${className ?? ""}`
@@ -85,12 +116,16 @@ export function SafeImage({
       // eslint-disable-next-line @next/next/no-img-element
       <img
         {...imgProps}
-        src={resolvedSrc}
+        src={displaySrc}
         alt={alt}
         width={fill ? undefined : width}
         height={fill ? undefined : height}
         className={imgClassName}
         onError={(event) => {
+          if (candidateIndex + 1 < uploadCandidates.length) {
+            setCandidateIndex((current) => current + 1);
+            return;
+          }
           setFailed(true);
           onError?.(event as Parameters<NonNullable<ImageProps["onError"]>>[0]);
         }}
@@ -101,7 +136,7 @@ export function SafeImage({
   return (
     <Image
       {...props}
-      src={resolvedSrc}
+      src={displaySrc}
       alt={alt}
       className={className}
       unoptimized={shouldSkipOptimize}

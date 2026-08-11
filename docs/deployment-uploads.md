@@ -1,53 +1,81 @@
 # Upload storage on production
 
-Hero slider images, product photos, and category images are saved on the **server disk**, not inside the database.
+Hero slider images, product photos, and category icons are saved on **server disk**, not in the database.
 
-## Why slider images disappear after deploy
+## Why images disappear after deploy
 
-1. You upload a slide in the dashboard → file is saved to `storage/uploads/hero-slides/`
+1. You upload in the dashboard → file is saved to `storage/uploads/…`
 2. The site shows the image immediately
-3. You **redeploy** or the server **restarts** → the container filesystem is wiped
-4. The database still has the slide row, but the **file is gone** → the site shows gray **"No image"** or falls back to the default hero
+3. You **redeploy** or the container **restarts** → container disk is wiped
+4. The database still has the row/path, but the **file is gone** → "No image" or hero fallback
 
-This is expected if uploads are not stored on a **persistent volume**.
+This is normal Docker behavior unless you attach **persistent storage**.
 
-## Fix (required for production)
+---
 
-### Docker / Easypanel
+## Fix on Easypanel (evimersin.co)
 
-Mount a persistent volume to the upload directory:
+### 1. Use the Dockerfile deploy
+
+Build from the repo `Dockerfile` (not a plain `npm start` / Nixpacks start that runs `next start`).
+
+Start command must be:
+
+```text
+node server.js
+```
+
+(the Dockerfile already sets this)
+
+### 2. Add a persistent volume
+
+In your Easypanel app → **Volumes** (or Storage):
+
+| Setting | Value |
+|---------|--------|
+| **Mount path (in container)** | `/app/storage/uploads` |
+| **Volume** | Create a new persistent volume |
+
+### 3. Environment variables
+
+| Variable | Example | Required |
+|----------|---------|----------|
+| `UPLOAD_DIR` | `/app/storage/uploads` | Recommended (set in Dockerfile too) |
+| `NEXT_PUBLIC_APP_URL` | `https://evimersin.co` | Yes — at **build** time |
+
+### 4. Redeploy, then re-upload once
+
+Files uploaded **before** the volume existed are already lost. After the volume is mounted:
+
+1. Redeploy
+2. Re-upload hero slides and any missing product/category images
+3. Redeploy again — images should **stay**
+
+### 5. Verify
+
+Open in the browser (replace with your file name):
+
+```text
+https://evimersin.co/uploads/hero-slides/your-file.png
+https://evimersin.co/api/media/hero-slides/your-file.png
+```
+
+- **200 + image** → storage works
+- **404** → file missing; re-upload or check volume mount
+
+---
+
+## Docker Compose (local / VPS)
+
+See `docker-compose.yml` in the repo root — the named volume `evimersin_uploads` keeps uploads across restarts.
+
+---
+
+## Technical details
 
 | Path in container | Purpose |
 |-------------------|---------|
-| `/app/storage/uploads` | All runtime uploads |
+| `/app/storage/uploads` | All runtime uploads (hero-slides, products, categories) |
+| `public/uploads` | Built-in seed/demo assets only (inside the image) |
 
-Or set environment variable:
-
-```env
-UPLOAD_DIR=/data/uploads
-```
-
-…and mount `/data/uploads` as a persistent volume.
-
-### After mounting storage
-
-1. **Re-upload** hero slides (and any other images uploaded before the volume existed)
-2. Redeploy — images should survive restarts
-
-## Verify
-
-Open an uploaded image directly in the browser:
-
-```text
-https://your-domain.com/uploads/hero-slides/your-file.jpg
-```
-
-- **200 + image shows** → file exists, slider should work
-- **404** → file missing; re-upload or fix volume mount
-
-## Environment variables
-
-| Variable | Example | Notes |
-|----------|---------|-------|
-| `NEXT_PUBLIC_APP_URL` | `https://evimersin.com` | Must match live domain at **build time** |
-| `UPLOAD_DIR` | `/data/uploads` | Optional; default is `./storage/uploads` |
+Upload code: `src/server/utils/upload.ts` → `getUploadRoot()` uses `UPLOAD_DIR` or `./storage/uploads`.
