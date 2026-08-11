@@ -1,17 +1,16 @@
 import { mkdir, unlink, writeFile, access, readFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import {
+  ALLOWED_UPLOAD_IMAGE_TYPES,
+  MAX_UPLOAD_IMAGE_BYTES,
+} from "@/constants/config";
 import { AppError } from "@/server/utils/errors";
 import { mediaRepository } from "@/server/database/repositories/media.repository";
 
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const MAX_IMAGE_SIZE = MAX_UPLOAD_IMAGE_BYTES;
 
-const ALLOWED_IMAGE_TYPES = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/svg+xml",
-]);
+const ALLOWED_IMAGE_TYPES = new Set<string>(ALLOWED_UPLOAD_IMAGE_TYPES);
 
 function getFileExtension(file: File) {
   const byType: Record<string, string> = {

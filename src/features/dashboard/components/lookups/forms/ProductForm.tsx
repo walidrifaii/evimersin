@@ -10,7 +10,10 @@ import {
   getSpecFieldsForCategory,
   type PropertySpecFieldKey,
 } from "@/constants/property-specs";
-import { MAX_PRODUCT_GALLERY_IMAGES } from "@/constants/config";
+import {
+  getImageUploadRejection,
+  MAX_PRODUCT_GALLERY_IMAGES,
+} from "@/constants/config";
 import { routes } from "@/constants/routes";
 import {
   FormLoading,
@@ -67,14 +70,17 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
 
   const [name, setName] = useState(initial?.name ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
-  const [price, setPrice] = useState<number>(initial?.price ?? 0);
+  // Numeric fields keep raw text so the box can be emptied while typing.
+  const [price, setPrice] = useState(initial ? String(initial.price ?? "") : "");
   const [discountType, setDiscountType] = useState<DiscountType>(
     initial?.discount_type ?? null,
   );
-  const [discountValue, setDiscountValue] = useState<number>(
-    initial?.discount_value ?? 0,
+  const [discountValue, setDiscountValue] = useState(
+    initial ? String(initial.discount_value ?? "") : "",
   );
-  const [position, setPosition] = useState<number>(initial?.position ?? 0);
+  const [position, setPosition] = useState(
+    initial ? String(initial.position ?? "") : "",
+  );
   const [categoryId, setCategoryId] = useState(initial?.category_id ?? 0);
   const [purposeId, setPurposeId] = useState(initial?.purpose_id ?? 0);
   const [cityId, setCityId] = useState(initial?.city_id ?? 0);
@@ -99,7 +105,10 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
     return next;
   });
 
-  const finalPrice = calculateFinalPrice(price, discountType, discountValue);
+  const priceValue = Number(price) || 0;
+  const discountAmount = Number(discountValue) || 0;
+  const positionValue = Number(position) || 0;
+  const finalPrice = calculateFinalPrice(priceValue, discountType, discountAmount);
   const activeCategories = categories.filter(
     (item) => Number(item.status) === 1 || item.id === categoryId,
   );
@@ -163,16 +172,25 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
     event.target.value = "";
     if (selected.length === 0) return;
 
-    const accepted = selected.slice(0, remainingGallerySlots);
-    const skipped = selected.length - accepted.length;
+    // One bad file makes the server reject the whole save, so filter here first.
+    const reasons: string[] = [];
+    const usable = selected.filter((file) => {
+      const rejection = getImageUploadRejection(file);
+      if (rejection) reasons.push(rejection);
+      return !rejection;
+    });
 
-    setGalleryNotice(
-      skipped > 0
-        ? `Only ${MAX_PRODUCT_GALLERY_IMAGES} images are allowed, so ${skipped} ${
-            skipped === 1 ? "file was" : "files were"
-          } skipped.`
-        : null,
-    );
+    const accepted = usable.slice(0, remainingGallerySlots);
+    const overLimit = usable.length - accepted.length;
+    if (overLimit > 0) {
+      reasons.push(
+        `only ${MAX_PRODUCT_GALLERY_IMAGES} images are allowed, so ${overLimit} more ${
+          overLimit === 1 ? "was" : "were"
+        } skipped`,
+      );
+    }
+
+    setGalleryNotice(reasons.length > 0 ? `Not added: ${reasons.join("; ")}.` : null);
 
     if (accepted.length > 0) {
       setGalleryFiles((previous) => [...previous, ...accepted]);
@@ -180,7 +198,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
   }
 
   function removeGalleryFile(index: number) {
-    setGalleryFiles((previous) => previous.filter((_, position) => position !== index));
+    setGalleryFiles((previous) => previous.filter((_, slot) => slot !== index));
     setGalleryNotice(null);
   }
 
@@ -202,19 +220,19 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
       return;
     }
 
-    if (discountType && discountValue <= 0) {
+    if (discountType && discountAmount <= 0) {
       formErrors.setLocal("Discount value must be greater than 0.", {
         discount_value: "Discount value must be greater than 0",
       });
       return;
     }
-    if (discountType === "fixed" && discountValue > price) {
+    if (discountType === "fixed" && discountAmount > priceValue) {
       formErrors.setLocal("Fixed discount cannot exceed residential unit price.", {
         discount_value: "Fixed discount cannot exceed price",
       });
       return;
     }
-    if (discountType === "percentage" && discountValue > 100) {
+    if (discountType === "percentage" && discountAmount > 100) {
       formErrors.setLocal("Percentage discount cannot exceed 100%.", {
         discount_value: "Percentage discount cannot exceed 100%",
       });
@@ -224,10 +242,10 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
     const payload: ProductFormInput = {
       name: trimmedName,
       description: description.trim() || null,
-      price: Number(price) || 0,
+      price: priceValue,
       discount_type: discountType,
-      discount_value: discountType ? Number(discountValue) || 0 : 0,
-      position: Number(position) || 0,
+      discount_value: discountType ? discountAmount : 0,
+      position: positionValue,
       category_id: categoryId,
       purpose_id: purposeId,
       city_id: cityId,
@@ -280,10 +298,11 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
           label="Price"
           type="number"
           value={price}
+          placeholder="0"
           required
           error={formErrors.field("price")}
           onChange={(value) => {
-            setPrice(Number(value) || 0);
+            setPrice(value);
             clearField("price");
           }}
         />
@@ -299,7 +318,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
               setDiscountType(
                 nextType === "fixed" || nextType === "percentage" ? nextType : null,
               );
-              if (nextType !== "fixed" && nextType !== "percentage") setDiscountValue(0);
+              if (nextType !== "fixed" && nextType !== "percentage") setDiscountValue("");
               clearField("discount_type");
             }}
             className={fieldControlClass(formErrors.field("discount_type"))}
@@ -320,9 +339,10 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
           }
           type="number"
           value={discountValue}
+          placeholder="0"
           error={formErrors.field("discount_value")}
           onChange={(value) => {
-            setDiscountValue(Number(value) || 0);
+            setDiscountValue(value);
             clearField("discount_value");
           }}
         />
@@ -334,9 +354,9 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
             <span className="text-[18px] font-bold text-[var(--brand-navy)]">
               {formatProductPrice(finalPrice)}
             </span>
-            {hasActiveDiscount(discountType, discountValue) ? (
+            {hasActiveDiscount(discountType, discountAmount) ? (
               <span className="text-[14px] text-[var(--muted)] line-through">
-                {formatProductPrice(price)}
+                {formatProductPrice(priceValue)}
               </span>
             ) : null}
           </div>
@@ -345,9 +365,10 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
           label="Position"
           type="number"
           value={position}
+          placeholder="0"
           error={formErrors.field("position")}
           onChange={(value) => {
-            setPosition(Number(value) || 0);
+            setPosition(value);
             clearField("position");
           }}
         />
@@ -534,7 +555,17 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
             accept="image/png,image/jpeg,image/webp,image/svg+xml"
             aria-invalid={Boolean(formErrors.field("image"))}
             onChange={(event) => {
-              setImageFile(event.target.files?.[0] ?? null);
+              const file = event.target.files?.[0] ?? null;
+              const rejection = file ? getImageUploadRejection(file) : null;
+              if (rejection) {
+                event.target.value = "";
+                setImageFile(null);
+                formErrors.setLocal("The cover image was not accepted.", {
+                  image: rejection,
+                });
+                return;
+              }
+              setImageFile(file);
               clearField("image");
             }}
             className={`block w-full rounded-xl border bg-[#f8fafc] px-3 py-2.5 text-[14px] text-[var(--brand-navy)] outline-none file:mr-3 file:rounded-full file:border-0 file:bg-[var(--brand-blue)] file:px-3 file:py-2 file:text-[12px] file:font-semibold file:text-white ${

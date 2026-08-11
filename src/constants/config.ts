@@ -23,6 +23,28 @@ export const config = {
 /** Extra residential unit images allowed on top of the single cover image. */
 export const MAX_PRODUCT_GALLERY_IMAGES = 3;
 
+/** Upload limits shared by the dashboard forms and the server upload handler. */
+export const MAX_UPLOAD_IMAGE_BYTES = 5 * 1024 * 1024;
+
+export const ALLOWED_UPLOAD_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/svg+xml",
+] as const;
+
+/** Reason the file cannot be uploaded, or null when it is fine. */
+export function getImageUploadRejection(file: File) {
+  if (!ALLOWED_UPLOAD_IMAGE_TYPES.includes(file.type as never)) {
+    return `${file.name} is not a JPG, PNG, WEBP, or SVG image`;
+  }
+  if (file.size > MAX_UPLOAD_IMAGE_BYTES) {
+    const megabytes = (file.size / (1024 * 1024)).toFixed(1);
+    return `${file.name} is ${megabytes}MB, over the 5MB limit`;
+  }
+  return null;
+}
+
 export type WhatsAppSettings = {
   phone: string;
   message: string;
