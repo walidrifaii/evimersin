@@ -18,13 +18,20 @@ import { createAnnouncementSchema } from "@/server/validators/announcement.valid
 
 export const runtime = "nodejs";
 
+const DEFAULT_PAGE_SIZE = 10;
+
 export const GET = compose(
   withAuth,
   withPermission(PERMISSIONS.ANNOUNCEMENTS_READ),
   withHandler,
-)(async () => {
-  const [announcements, activeGuestCount, reachableGuestCount] = await Promise.all([
-    announcementService.listRecent(),
+)(async (request) => {
+  const { searchParams } = new URL(request.url);
+
+  const [page, activeGuestCount, reachableGuestCount] = await Promise.all([
+    announcementService.listPage(
+      Number(searchParams.get("page") ?? 1),
+      Number(searchParams.get("pageSize") ?? DEFAULT_PAGE_SIZE),
+    ),
     announcementService.getActiveGuestCount(),
     announcementService.getReachableGuestCount(),
   ]);
@@ -34,13 +41,19 @@ export const GET = compose(
     reachableGuestCount,
     firebaseEnabled: isFirebaseClientConfigured() && isFirebaseAdminConfigured(),
     firebaseVapidError: getFirebaseVapidKey().error,
-    announcements: announcements.map((item) => ({
+    announcements: page.items.map((item) => ({
       id: item.id,
       title: item.title,
       message: item.message,
       isActive: item.is_active === 1,
       createdAt: item.created_at,
     })),
+    pagination: {
+      page: page.page,
+      pageSize: page.pageSize,
+      total: page.total,
+      totalPages: page.totalPages,
+    },
   });
 });
 

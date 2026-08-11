@@ -9,12 +9,25 @@ export type AnnouncementItem = {
   createdAt: string;
 };
 
+export type AnnouncementsPagination = {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+};
+
 export type AnnouncementsOverview = {
   activeGuestCount: number;
   reachableGuestCount: number;
   firebaseEnabled: boolean;
   firebaseVapidError?: string | null;
   announcements: AnnouncementItem[];
+  pagination: AnnouncementsPagination;
+};
+
+export type AnnouncementsOverviewArgs = {
+  page?: number;
+  pageSize?: number;
 };
 
 export type SendAnnouncementInput = {
@@ -33,8 +46,17 @@ export type SendAnnouncementResult = {
 
 export const announcementsApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getAnnouncementsOverview: builder.query<AnnouncementsOverview, void>({
-      query: () => "/admin/announcements",
+    getAnnouncementsOverview: builder.query<
+      AnnouncementsOverview,
+      AnnouncementsOverviewArgs | void
+    >({
+      query: (args) => ({
+        url: "/admin/announcements",
+        params: {
+          page: args?.page ?? 1,
+          pageSize: args?.pageSize ?? 10,
+        },
+      }),
       transformResponse: (response: ApiResponse<AnnouncementsOverview>) =>
         response.data,
       providesTags: [{ type: "Announcement", id: "OVERVIEW" }],

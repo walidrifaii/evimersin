@@ -14,7 +14,19 @@ guestPresenceHub.configure(async () => ({
 }));
 
 export const announcementService = {
-  listRecent: (limit = 20) => announcementRepository.findRecent(limit),
+  async listPage(page: number, pageSize: number) {
+    const safePageSize = Math.max(1, Math.min(100, Math.floor(pageSize) || 10));
+    const total = await announcementRepository.countAll();
+    const totalPages = Math.max(1, Math.ceil(total / safePageSize));
+    const safePage = Math.min(Math.max(1, Math.floor(page) || 1), totalPages);
+
+    const items = await announcementRepository.findPage(
+      safePageSize,
+      (safePage - 1) * safePageSize,
+    );
+
+    return { items, total, page: safePage, pageSize: safePageSize, totalPages };
+  },
 
   getLiveCounts: async () => ({
     activeGuestCount: await guestSessionRepository.countActive(),

@@ -1,7 +1,7 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   FormLoading,
   TextInput,
@@ -16,6 +16,8 @@ import {
 import { useGuestPresenceStream } from "@/features/dashboard/hooks/useGuestPresenceStream";
 import { usePermissions } from "@/hooks/usePermissions";
 
+const PAGE_SIZE = 10;
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat(undefined, {
     dateStyle: "medium",
@@ -26,7 +28,9 @@ function formatDate(value: string) {
 export function AnnouncementsPanel() {
   const { can } = usePermissions();
   const canCreate = can("announcements:create");
-  const { data, isLoading, error, refetch } = useGetAnnouncementsOverviewQuery();
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isFetching, error, refetch } =
+    useGetAnnouncementsOverviewQuery({ page, pageSize: PAGE_SIZE });
   useGuestPresenceStream(true);
   const [sendAnnouncement, sendState] = useSendAnnouncementMutation();
   const [title, setTitle] = useState("");
@@ -40,6 +44,24 @@ export function AnnouncementsPanel() {
     return () => window.clearTimeout(timer);
   }, [sentMessage]);
 
+  const pagination = data?.pagination;
+  const total = pagination?.total ?? 0;
+  const pageSize = pagination?.pageSize ?? PAGE_SIZE;
+  const totalPages = Math.max(1, pagination?.totalPages ?? 1);
+  const currentPage = Math.min(pagination?.page ?? page, totalPages);
+  const rangeStart = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const rangeEnd = Math.min(currentPage * pageSize, total);
+
+  const pageNumbers = useMemo(() => {
+    const maxButtons = 5;
+    const start = Math.max(
+      1,
+      Math.min(currentPage - 2, totalPages - maxButtons + 1),
+    );
+    const end = Math.min(totalPages, start + maxButtons - 1);
+    return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+  }, [currentPage, totalPages]);
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     formErrors.clear();
@@ -50,6 +72,7 @@ export function AnnouncementsPanel() {
       setTitle("");
       setMessage("");
       setSentMessage(result.message);
+      setPage(1);
     } catch (err) {
       formErrors.apply(err);
     }
@@ -199,36 +222,93 @@ export function AnnouncementsPanel() {
       ) : null}
 
       <section className="max-w-3xl rounded-[24px] border border-[#e8eef6] bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)] sm:p-6">
-        <h2 className="text-[15px] font-semibold text-[var(--brand-navy)]">
-          Recent announcements
-        </h2>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="text-[15px] font-semibold text-[var(--brand-navy)]">
+            All announcements
+          </h2>
+          {total > 0 ? (
+            <p className="text-[12px] text-[var(--muted)]">
+              {rangeStart}–{rangeEnd} of {total}
+            </p>
+          ) : null}
+        </div>
 
         {data?.announcements.length ? (
-          <ul className="mt-4 space-y-3">
-            {data.announcements.map((item) => (
-              <li
-                key={item.id}
-                className="rounded-2xl border border-[#e8eef6] px-4 py-3"
-              >
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-[14px] font-semibold text-[var(--brand-navy)]">
-                    {item.title}
+          <>
+            <ul
+              className={`mt-4 space-y-3 transition-opacity ${
+                isFetching ? "opacity-60" : "opacity-100"
+              }`}
+            >
+              {data.announcements.map((item) => (
+                <li
+                  key={item.id}
+                  className="rounded-2xl border border-[#e8eef6] px-4 py-3"
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-[14px] font-semibold text-[var(--brand-navy)]">
+                      {item.title}
+                    </p>
+                    {item.isActive ? (
+                      <span className="rounded-full bg-[#ecfdf3] px-2 py-0.5 text-[11px] font-semibold text-[#15803d]">
+                        Active
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="mt-1 text-[13px] text-[var(--muted)]">
+                    {item.message}
                   </p>
-                  {item.isActive ? (
-                    <span className="rounded-full bg-[#ecfdf3] px-2 py-0.5 text-[11px] font-semibold text-[#15803d]">
-                      Active
-                    </span>
-                  ) : null}
+                  <p className="mt-2 text-[11px] text-[#94a3b8]">
+                    {formatDate(item.createdAt)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+
+            {totalPages > 1 ? (
+              <nav
+                aria-label="Announcements pages"
+                className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[#eef2f7] pt-4"
+              >
+                <button
+                  type="button"
+                  disabled={currentPage <= 1 || isFetching}
+                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                  className="inline-flex h-10 items-center justify-center rounded-full border border-[#dbe4f0] px-4 text-[13px] font-semibold text-[var(--brand-navy)] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Previous
+                </button>
+
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {pageNumbers.map((pageNumber) => (
+                    <button
+                      key={pageNumber}
+                      type="button"
+                      aria-current={pageNumber === currentPage ? "page" : undefined}
+                      disabled={isFetching}
+                      onClick={() => setPage(pageNumber)}
+                      className={`inline-flex h-9 min-w-9 items-center justify-center rounded-full px-3 text-[13px] font-semibold transition-colors disabled:cursor-not-allowed ${
+                        pageNumber === currentPage
+                          ? "bg-[var(--brand-navy)] text-white"
+                          : "border border-[#dbe4f0] text-[var(--brand-navy)] hover:bg-[#f8fafc]"
+                      }`}
+                    >
+                      {pageNumber}
+                    </button>
+                  ))}
                 </div>
-                <p className="mt-1 text-[13px] text-[var(--muted)]">
-                  {item.message}
-                </p>
-                <p className="mt-2 text-[11px] text-[#94a3b8]">
-                  {formatDate(item.createdAt)}
-                </p>
-              </li>
-            ))}
-          </ul>
+
+                <button
+                  type="button"
+                  disabled={currentPage >= totalPages || isFetching}
+                  onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                  className="inline-flex h-10 items-center justify-center rounded-full border border-[#dbe4f0] px-4 text-[13px] font-semibold text-[var(--brand-navy)] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </nav>
+            ) : null}
+          </>
         ) : (
           <p className="mt-3 text-[13px] text-[var(--muted)]">
             No announcements sent yet.

@@ -20,13 +20,22 @@ export const announcementRepository = {
        LIMIT 1`,
     ),
 
-  findRecent: (limit = 20) =>
+  // LIMIT/OFFSET are inlined because the pool runs with namedPlaceholders.
+  findPage: (limit: number, offset: number) =>
     query<SiteAnnouncement[]>(
       `SELECT id, title, message, is_active, created_by, created_at
        FROM site_announcements
        ORDER BY created_at DESC
-       LIMIT ${Math.max(1, Math.min(50, Math.floor(limit)))}`,
+       LIMIT ${Math.max(1, Math.min(100, Math.floor(limit)))}
+       OFFSET ${Math.max(0, Math.floor(offset))}`,
     ),
+
+  async countAll() {
+    const rows = await query<Array<{ total: number }>>(
+      `SELECT COUNT(*) AS total FROM site_announcements`,
+    );
+    return Number(rows[0]?.total ?? 0);
+  },
 
   async create(input: CreateAnnouncementInput) {
     await execute(`UPDATE site_announcements SET is_active = 0 WHERE is_active = 1`);
