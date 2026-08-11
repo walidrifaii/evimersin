@@ -53,7 +53,28 @@ Files uploaded **before** the volume existed are already lost. After the volume 
 
 ### 5. Verify
 
-Open in the browser (replace with your file name):
+While logged in to the dashboard, open:
+
+```text
+https://evimersin.co/api/admin/storage
+```
+
+Check the response:
+
+| Field | Expected |
+|-------|----------|
+| `uploadRoot` | `/app/storage/uploads` |
+| `writable` | `true` |
+| `storageCounts` | grows after each upload |
+
+If `writable` is `false`, the mounted volume is root-owned but the app runs as uid `1001`.
+Fix it from the container shell:
+
+```bash
+chown -R 1001:1001 /app/storage/uploads
+```
+
+You can also check a single file directly:
 
 ```text
 https://evimersin.co/uploads/hero-slides/your-file.png
@@ -62,6 +83,9 @@ https://evimersin.co/api/media/hero-slides/your-file.png
 
 - **200 + image** → storage works
 - **404** → file missing; re-upload or check volume mount
+
+> Seed images in `public/uploads/` always return 200 because they ship inside the image.
+> Only files under `storage/uploads/` depend on the volume, so test with a file you uploaded.
 
 ---
 

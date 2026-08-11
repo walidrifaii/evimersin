@@ -84,7 +84,9 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const formErrors = useDashboardFormErrors();
   const [galleryError, setGalleryError] = useState<unknown>(null);
-  const [previewUrl, setPreviewUrl] = useState(toDisplayImageSrc(initial?.image));
+  const [coverFileMissing, setCoverFileMissing] = useState(false);
+  const storedCoverSrc = initial?.image ?? "";
+  const [previewUrl, setPreviewUrl] = useState(toDisplayImageSrc(storedCoverSrc));
   const [galleryPreviewUrls, setGalleryPreviewUrls] = useState<string[]>([]);
   const [specValues, setSpecValues] = useState(() => {
     const next = emptySpecValues();
@@ -133,6 +135,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
   useEffect(() => {
     if (!imageFile) {
       setPreviewUrl(toDisplayImageSrc(initial?.image));
+      setCoverFileMissing(false);
       return;
     }
     const objectUrl = URL.createObjectURL(imageFile);
@@ -504,15 +507,28 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
             }`}
           />
           <FieldErrorText message={formErrors.field("image")} />
-          {previewUrl ? (
-            <div className="relative mt-3 h-28 w-40 overflow-hidden rounded-2xl border border-[#e5eaf2] bg-white">
-              <SafeImage
-                src={previewUrl}
-                alt={name || "Residential unit"}
-                fill
-                className="object-cover"
-                sizes="160px"
-              />
+          {previewUrl || storedCoverSrc ? (
+            <div className="mt-3">
+              <div className="relative h-28 w-40 overflow-hidden rounded-2xl border border-[#e5eaf2] bg-white">
+                <SafeImage
+                  src={previewUrl || storedCoverSrc}
+                  alt={name || "Residential unit"}
+                  fill
+                  className="object-cover"
+                  sizes="160px"
+                  onError={() => setCoverFileMissing(true)}
+                />
+              </div>
+              {coverFileMissing && storedCoverSrc && !imageFile ? (
+                <p className="mt-2 max-w-md text-[12px] leading-relaxed text-[#b45309]">
+                  The saved file is missing on the server (common after redeploy). Choose a
+                  new cover image and click Update. Mount persistent storage at{" "}
+                  <code className="rounded bg-[#fff7ed] px-1 py-0.5 text-[11px]">
+                    /app/storage/uploads
+                  </code>{" "}
+                  so uploads are kept.
+                </p>
+              ) : null}
             </div>
           ) : null}
         </label>

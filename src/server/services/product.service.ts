@@ -20,7 +20,7 @@ import { PRODUCT_SPEC_COLUMN_KEYS, pickWritableProductInput } from "@/server/typ
 import { AppError } from "@/server/utils/errors";
 import { removeUploadedFile, toRelativeUploadPath } from "@/server/utils/upload";
 import { hasActiveDiscount } from "@/lib/product-pricing";
-import { toAbsoluteImageUrl } from "@/lib/image-url";
+import { toAbsoluteImageUrl, toDisplayImageSrc, toUploadServeSrc } from "@/lib/image-url";
 import { clearUnusedSpecValues } from "@/constants/property-specs";
 
 function normalizeStoredImagePath(image: string | null | undefined) {
@@ -29,11 +29,16 @@ function normalizeStoredImagePath(image: string | null | undefined) {
   return toRelativeUploadPath(image) ?? image;
 }
 
-function withAbsoluteProductImage(product: Product): Product {
+function withServeProductImage(product: Product): Product {
+  const relative = toDisplayImageSrc(product.image);
   return {
     ...product,
-    image: toAbsoluteImageUrl(product.image),
+    image: relative ? toUploadServeSrc(relative) : toAbsoluteImageUrl(product.image),
   };
+}
+
+function withAbsoluteProductImage(product: Product): Product {
+  return withServeProductImage(product);
 }
 
 function withAbsoluteProductDetail(product: ProductDetail): ProductDetail {
@@ -44,9 +49,12 @@ function withAbsoluteProductDetail(product: ProductDetail): ProductDetail {
 }
 
 function withAbsoluteGalleryImage(image: ProductImage): ProductImage {
+  const relative = toDisplayImageSrc(image.image);
   return {
     ...image,
-    image: toAbsoluteImageUrl(image.image) ?? image.image,
+    image: relative
+      ? toUploadServeSrc(relative)
+      : (toAbsoluteImageUrl(image.image) ?? image.image),
   };
 }
 

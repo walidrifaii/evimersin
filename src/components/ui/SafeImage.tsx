@@ -69,15 +69,22 @@ export function SafeImage({
     (typeof resolvedSrc === "object" && resolvedSrc !== null);
 
   if (!hasSrc || failed) {
+    const isUpload =
+      typeof resolvedSrc === "string" && isUploadImageSrc(resolvedSrc);
     return (
       <div
         className={
           fallbackClassName ??
-          `flex h-full w-full items-center justify-center bg-[#eef2f7] text-[10px] font-semibold uppercase tracking-[0.08em] text-[#94a3b8] ${className ?? ""}`
+          `flex h-full w-full flex-col items-center justify-center gap-1 bg-[#eef2f7] px-2 text-center text-[10px] font-semibold uppercase tracking-[0.08em] text-[#94a3b8] ${className ?? ""}`
         }
         aria-label={alt || "No image"}
       >
-        No image
+        <span>{isUpload && failed ? "Missing file" : "No image"}</span>
+        {isUpload && failed ? (
+          <span className="text-[9px] font-medium normal-case tracking-normal text-[#b45309]">
+            Re-upload image
+          </span>
+        ) : null}
       </div>
     );
   }

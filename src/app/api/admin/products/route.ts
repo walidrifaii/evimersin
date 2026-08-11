@@ -4,7 +4,7 @@ import { ok } from "@/server/utils/response";
 import { revalidateListingsCache } from "@/server/utils/revalidate";
 import { saveImageUpload } from "@/server/utils/upload";
 import { parseProductSpecFieldsFromFormData } from "@/server/utils/product-specs";
-import { readFormField, readNullableFormString, readTrimmedFormField } from "@/server/utils/form-data";
+import { readNullableFormString, readTrimmedFormField } from "@/server/utils/form-data";
 import { createProductSchema } from "@/server/validators/product.validator";
 
 export const runtime = "nodejs";
