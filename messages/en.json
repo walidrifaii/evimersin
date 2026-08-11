@@ -43,7 +43,7 @@
     "moreSubtitle": "Browse More"
   },
   "footer": {
-    "description": "Premium real estate guidance in Mersin, with verified listings, trusted advice, and a smooth buying experience from first contact to handover.",
+    "description": "Premium real estate guidance , with verified listings, trusted advice, and a smooth buying experience from first contact to handover.",
     "navigation": "Navigation",
     "quickLinks": "Quick Links",
     "featuredListings": "Featured Listings",
@@ -96,7 +96,7 @@
       "badge": "Stay Updated",
       "title": "Get the latest properties",
       "titleAccent": "in your inbox",
-      "description": "Subscribe for new listings, hot deals, and market updates across Mersin and the Mediterranean coast.",
+      "description": "Subscribe for new listings, hot deals, and market updates across  the Mediterranean coast.",
       "benefit1": "New verified listings as soon as they go live",
       "benefit2": "Exclusive hot deals and price drops",
       "benefit3": "No spam — unsubscribe anytime",
@@ -117,12 +117,12 @@
   "about": {
     "eyebrow": "About Us",
     "heroTitle": "About EviMersin",
-    "heroSubtitle": "Your trusted partner for finding premium properties across Mersin and the Mediterranean coast.",
+    "heroSubtitle": "Your trusted partner for finding premium properties across lebanon and the Mediterranean coast.",
     "storyEyebrow": "Our Story",
     "storyTitle": "Helping you find the right home with confidence",
-    "storyParagraph1": "EviMersin was built with a simple goal: make property buying in Mersin transparent, personal, and stress-free. From coastal villas to city apartments and investment land, we guide every client with local expertise and honest advice.",
+    "storyParagraph1": "EviMersin was built with a simple goal: make property buying in Lebanon transparent, personal, and stress-free. From coastal villas to city apartments and investment land, we guide every client with local expertise and honest advice.",
     "storyParagraph2": "We combine verified listings, market insight, and responsive support so you can explore options clearly, visit properties with confidence, and move forward at your own pace.",
-    "storyImageAlt": "Modern apartment building in Mersin",
+    "storyImageAlt": "Modern apartment building in Lebanon",
     "statListings": "Verified Listings",
     "statClients": "Happy Clients",
     "statExperience": "Years Experience",
@@ -135,13 +135,13 @@
     "valueTrustTitle": "Built on Trust",
     "valueTrustDesc": "Every listing is reviewed so you can search with confidence.",
     "valueLocalTitle": "Local Expertise",
-    "valueLocalDesc": "Our team knows Mersin neighborhoods, trends, and opportunities.",
+    "valueLocalDesc": "Our team knows Lebanon neighborhoods, trends, and opportunities.",
     "valueServiceTitle": "End-to-End Support",
     "valueServiceDesc": "From shortlisting to viewing and paperwork, we stay with you.",
     "valuesTitle": "What We Stand For",
     "valuesSubtitle": "The principles behind every property search, viewing, and purchase we support.",
     "ctaTitle": "Ready to find your next property?",
-    "ctaSubtitle": "Browse verified listings or reach out to our team for personalized guidance in Mersin."
+    "ctaSubtitle": "Browse verified listings or reach out to our team for personalized guidance in Lebanon."
   },
   "contact": {
     "heroTitle": "Contact Us",
@@ -162,7 +162,7 @@
     "successTitle": "Message sent successfully",
     "successDescription": "Thank you for contacting us. Our team will reply to your email as soon as possible.",
     "infoTitle": "Get in Touch",
-    "infoDescription": "Reach out directly by phone, email, or WhatsApp. We are happy to assist with listings, viewings, and property advice in Mersin.",
+    "infoDescription": "Reach out directly by phone, email, or WhatsApp. We are happy to assist with listings, viewings, and property advice in Lebanon.",
     "methodPhone": "Phone",
     "methodPhoneDesc": "Speak with our team",
     "methodEmail": "Email",
@@ -191,7 +191,7 @@
   },
   "howItWorks": {
     "heroTitle": "How It Works",
-    "heroSubtitle": "Finding your property in Mersin is simple. Browse listings, connect with our team, and move forward with expert support at every step.",
+    "heroSubtitle": "Finding your property in Lebanon is simple. Browse listings, connect with our team, and move forward with expert support at every step.",
     "stepsTitle": "Your Property Journey in 4 Steps",
     "stepsDescription": "From your first search to final handover, we make the process clear, guided, and stress-free.",
     "faqTitle": "Frequently Asked Questions",
@@ -208,14 +208,14 @@
     "faq1Answer": "Browsing listings and contacting our team is free. Any service or agency fees will be explained clearly before you proceed.",
     "faq2Question": "How do I schedule a property viewing?",
     "faq2Answer": "Contact us through WhatsApp, phone, or the contact form. Share the property you are interested in and we will arrange a visit.",
-    "faq3Question": "Which areas in Mersin do you cover?",
-    "faq3Answer": "We cover Mersin and surrounding areas including Yenişehir, Mezitli, Tarsus, Erdemli, and other popular neighborhoods.",
+    "faq3Question": "Which areas in Lebanon do you cover?",
+    "faq3Answer": "We cover Lebanon and surrounding areas including Tripoli, Beirut, Sidon , and other popular neighborhoods.",
     "faq4Question": "Do you help with paperwork and negotiations?",
     "faq4Answer": "Yes. Our team supports you through viewings, negotiations, and the closing process for a smooth buying experience.",
     "ctaBadge": "Start today",
     "ctaTitle": "Ready to find your",
     "ctaTitleAccent": "dream property?",
-    "ctaDescription": "Browse verified listings or message our team for personalized help across Mersin and the Mediterranean coast."
+    "ctaDescription": "Browse verified listings or message our team for personalized help across lebanon and the Mediterranean coast."
   },
   "products": {
     "title": "Properties",
