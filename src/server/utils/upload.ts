@@ -1,7 +1,8 @@
-import { mkdir, unlink, writeFile, access } from "node:fs/promises";
+import { mkdir, unlink, writeFile, access, readFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { AppError } from "@/server/utils/errors";
+import { mediaRepository } from "@/server/database/repositories/media.repository";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
@@ -23,7 +24,7 @@ function getFileExtension(file: File) {
   return byType[file.type] ?? path.extname(file.name) ?? ".bin";
 }
 
-/** Durable upload root (mount this on Easypanel). Falls back to ./storage/uploads */
+/** Local disk cache for uploads. Durability comes from the media_files table. */
 export function getUploadRoot() {
   const configured = process.env.UPLOAD_DIR?.trim();
   if (configured) return path.resolve(configured);
@@ -72,45 +73,48 @@ export async function saveImageUpload(file: File, folder: string) {
   }
 
   const relativeDir = toUploadsRelativeDir(folder);
-  const uploadDir = path.join(getUploadRoot(), relativeDir);
-
-  try {
-    await mkdir(uploadDir, { recursive: true });
-  } catch (error) {
-    console.error(`[evimersin] Cannot create upload dir ${uploadDir}:`, error);
-    throw new AppError(
-      "Upload storage is not writable on the server. Check the mounted volume.",
-      500,
-    );
-  }
-
   const fileName = `${randomUUID()}${getFileExtension(file)}`;
-  const filePath = path.join(uploadDir, fileName);
+  const relativeUrl = `/uploads/${relativeDir}/${fileName}`.replace(
+    /\/{2,}/g,
+    "/",
+  );
   const buffer = Buffer.from(await file.arrayBuffer());
 
+  // The database is the source of truth: container disks are wiped on redeploy.
   try {
-    await writeFile(filePath, buffer);
+    await mediaRepository.save({
+      path: relativeUrl,
+      contentType: file.type || getUploadContentType(fileName),
+      data: buffer,
+    });
   } catch (error) {
-    console.error(`[evimersin] Failed to write upload ${filePath}:`, error);
-    throw new AppError(
-      "Upload storage is not writable on the server. Check the mounted volume.",
-      500,
-    );
+    console.error(`[evimersin] Failed to store upload ${relativeUrl}:`, error);
+    throw new AppError("Could not save the uploaded image. Please try again.", 500);
   }
 
-  // Fail loudly instead of saving a DB path that points at a file nobody can read.
-  if (!(await fileExists(filePath))) {
-    console.error(`[evimersin] Upload vanished right after write: ${filePath}`);
-    throw new AppError(
-      "Upload could not be persisted on the server. Check the mounted volume.",
-      500,
-    );
-  }
-
-  console.log(`[evimersin] Saved upload: ${filePath}`);
+  await writeDiskCopy(relativeDir, fileName, buffer);
 
   // Always store relative paths so localhost/prod URLs never break images.
-  return `/uploads/${relativeDir}/${fileName}`.replace(/\/{2,}/g, "/");
+  return relativeUrl;
+}
+
+/** Best effort local copy so repeat reads skip the database. Never fatal. */
+async function writeDiskCopy(
+  relativeDir: string,
+  fileName: string,
+  buffer: Buffer,
+) {
+  try {
+    const uploadDir = path.join(getUploadRoot(), relativeDir);
+    await mkdir(uploadDir, { recursive: true });
+    await writeFile(path.join(uploadDir, fileName), buffer);
+  } catch (error) {
+    console.warn(
+      `[evimersin] Upload stored in database but not on disk (${
+        error instanceof Error ? error.message : String(error)
+      }). Serving will still work.`,
+    );
+  }
 }
 
 function resolveSafeUploadPath(relativeUrlPath: string, root: string) {
@@ -157,8 +161,69 @@ export async function resolveUploadFile(relativeUrlPath: string) {
   return null;
 }
 
+export type UploadContent = {
+  buffer: Buffer;
+  contentType: string;
+};
+
+/**
+ * Read an uploaded file: database first (survives redeploys), then the local
+ * disk cache, then the seed assets shipped in `public/uploads`.
+ */
+export async function readUploadContent(
+  relativeUrlPath: string,
+): Promise<UploadContent | null> {
+  const relative = toRelativeUploadPath(relativeUrlPath);
+  if (!relative?.startsWith("/uploads/")) return null;
+
+  try {
+    const stored = await mediaRepository.findByPath(relative);
+    if (stored) {
+      return {
+        buffer: Buffer.isBuffer(stored.data)
+          ? stored.data
+          : Buffer.from(stored.data),
+        contentType: stored.content_type || getUploadContentType(relative),
+      };
+    }
+  } catch (error) {
+    console.error(`[evimersin] Media lookup failed for ${relative}:`, error);
+  }
+
+  const absolutePath = await resolveUploadFile(relative);
+  if (!absolutePath) return null;
+
+  return {
+    buffer: await readFile(absolutePath),
+    contentType: getUploadContentType(absolutePath),
+  };
+}
+
+/** True when the upload is readable from the database or from disk. */
+export async function uploadExists(relativeUrlPath: string) {
+  const relative = toRelativeUploadPath(relativeUrlPath);
+  if (!relative?.startsWith("/uploads/")) return false;
+
+  try {
+    if (await mediaRepository.exists(relative)) return true;
+  } catch (error) {
+    console.error(`[evimersin] Media check failed for ${relative}:`, error);
+  }
+
+  return (await resolveUploadFile(relative)) !== null;
+}
+
 export async function removeUploadedFile(filePath: string | null | undefined) {
   if (!filePath) return;
+
+  const relative = toRelativeUploadPath(filePath);
+  if (relative?.startsWith("/uploads/")) {
+    try {
+      await mediaRepository.remove(relative);
+    } catch (error) {
+      console.error(`[evimersin] Could not delete media ${relative}:`, error);
+    }
+  }
 
   const absolutePath = await resolveUploadFile(filePath);
   if (!absolutePath) return;

@@ -1,7 +1,7 @@
 import mysql, { type ResultSetHeader } from "mysql2/promise";
 
 type QueryParams =
-  | Record<string, string | number | boolean | null | Date>
+  | Record<string, string | number | boolean | null | Date | Buffer>
   | unknown[];
 
 type Pool = mysql.Pool;

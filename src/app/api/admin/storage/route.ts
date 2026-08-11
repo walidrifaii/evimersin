@@ -1,6 +1,7 @@
 import { mkdir, readdir, stat, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { compose, withAuth, withHandler } from "@/server/middleware";
+import { mediaRepository } from "@/server/database/repositories/media.repository";
 import { ok } from "@/server/utils/response";
 import { getPublicUploadRoot, getUploadRoot } from "@/server/utils/upload";
 
@@ -68,16 +69,28 @@ export const GET = compose(withAuth, withHandler)(async () => {
 
   const totalStored = Object.values(storageCounts).reduce((sum, n) => sum + n, 0);
 
+  let databaseCount: number | null = null;
+  let databaseError: string | null = null;
+  try {
+    databaseCount = (await mediaRepository.listPaths()).length;
+  } catch (dbError) {
+    databaseError =
+      dbError instanceof Error ? dbError.message : "Unknown database error";
+  }
+
   return ok({
+    // Uploads live in MySQL, so a missing volume no longer loses images.
+    durableStore: "database",
+    databaseCount,
+    databaseError,
     uploadRoot,
     uploadDirEnv: process.env.UPLOAD_DIR ?? null,
     cwd: process.cwd(),
-    exists: rootStat !== null,
-    writable,
-    writeError: error,
+    diskCacheExists: rootStat !== null,
+    diskCacheWritable: writable,
+    diskCacheError: error,
     storageCounts,
     seedCounts,
     totalStored,
-    persistent: writable && process.env.UPLOAD_DIR ? "likely" : "unverified",
   });
 });

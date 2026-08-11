@@ -1,5 +1,5 @@
 import { heroSlideRepository } from "@/server/database/repositories/hero-slide.repository";
-import { resolveUploadFile } from "@/server/utils/upload";
+import { uploadExists } from "@/server/utils/upload";
 import {
   toDisplayImageSrc,
   toUploadServeSrc,
@@ -29,10 +29,10 @@ function toPublicSlide(slide: {
 async function slideImageExists(imagePath: string) {
   const uploadPath = toUploadStoragePath(imagePath);
   if (!uploadPath.startsWith("/uploads/")) return false;
-  return (await resolveUploadFile(uploadPath)) !== null;
+  return uploadExists(uploadPath);
 }
 
-/** Active hero slides whose image file exists on disk. */
+/** Active hero slides whose image is still readable. */
 export async function getHeroSlides(): Promise<PublicHeroSlide[]> {
   const slides = await heroSlideRepository.findActive();
   const available: PublicHeroSlide[] = [];

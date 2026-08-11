@@ -1,57 +1,66 @@
 # Upload storage on production
 
-Hero slider images, product photos, and category icons are saved on **server disk**, not in the database.
+Hero slider images, product photos, and category icons are stored in **MySQL**
+(the `media_files` table), not on the container disk.
 
-## Why images disappear after deploy
+## Why this design
 
-1. You upload in the dashboard → file is saved to `storage/uploads/…`
-2. The site shows the image immediately
-3. You **redeploy** or the container **restarts** → container disk is wiped
-4. The database still has the row/path, but the **file is gone** → "No image" or hero fallback
+Container disks are wiped on every redeploy. Previously an upload was written to
+`storage/uploads/…`, the database kept only the path, and after a redeploy the
+row still pointed at a file that no longer existed — producing "No image"
+placeholders and a hero slider that fell back to the default banner.
 
-This is normal Docker behavior unless you attach **persistent storage**.
+Since the database already persists, storing the bytes there removes the problem
+entirely. **No volume mount is required.**
 
 ---
 
-## Fix on Easypanel (evimersin.co)
+## How it works
 
-### 1. Use the Dockerfile deploy
+| Step | What happens |
+|------|--------------|
+| Upload | Bytes are written to `media_files`, keyed by `/uploads/products/<uuid>.jpg` |
+| Disk copy | The same bytes are also written to `storage/uploads/…` as a cache. Failure here is logged, not fatal |
+| Serving | `/uploads/...` and `/api/media/...` read the database first, then the disk cache, then the seed assets in `public/uploads` |
+| Delete | Removing a product or replacing an image deletes both the row and the cached file |
 
-Build from the repo `Dockerfile` (not a plain `npm start` / Nixpacks start that runs `next start`).
+The `media_files` table is created automatically on first use, so there is no
+migration step.
 
-Start command must be:
+Code: `src/server/utils/upload.ts`, `src/server/database/repositories/media.repository.ts`
 
-```text
-node server.js
-```
+---
 
-(the Dockerfile already sets this)
+## Deploying
 
-### 2. Add a persistent volume
-
-In your Easypanel app → **Volumes** (or Storage):
-
-| Setting | Value |
-|---------|--------|
-| **Mount path (in container)** | `/app/storage/uploads` |
-| **Volume** | Create a new persistent volume |
-
-### 3. Environment variables
+Nothing special is needed beyond the usual database environment variables.
 
 | Variable | Example | Required |
 |----------|---------|----------|
-| `UPLOAD_DIR` | `/app/storage/uploads` | Recommended (set in Dockerfile too) |
+| `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` | — | Yes |
 | `NEXT_PUBLIC_APP_URL` | `https://evimersin.co` | Yes — at **build** time |
+| `UPLOAD_DIR` | `/app/storage/uploads` | Optional — only sets the cache location |
 
-### 4. Redeploy, then re-upload once
+A mounted volume is now optional. It only makes repeat reads skip the database.
 
-Files uploaded **before** the volume existed are already lost. After the volume is mounted:
+---
 
-1. Redeploy
-2. Re-upload hero slides and any missing product/category images
-3. Redeploy again — images should **stay**
+## Importing files that already exist on disk
 
-### 5. Verify
+To copy files from `storage/uploads/` and `public/uploads/` into the database:
+
+```bash
+npm run media:backfill
+```
+
+The script is idempotent — it skips anything already stored. Run it against the
+production database to make the seeded images durable.
+
+> Files deleted by an earlier redeploy are gone for good and must be re-uploaded.
+
+---
+
+## Verify
 
 While logged in to the dashboard, open:
 
@@ -59,47 +68,28 @@ While logged in to the dashboard, open:
 https://evimersin.co/api/admin/storage
 ```
 
-Check the response:
+| Field | Meaning |
+|-------|---------|
+| `databaseCount` | Number of images stored durably. Should grow with each upload |
+| `databaseError` | Should be `null`. Anything else means the table is unreachable |
+| `diskCacheWritable` | `false` is acceptable — serving still works from the database |
 
-| Field | Expected |
-|-------|----------|
-| `uploadRoot` | `/app/storage/uploads` |
-| `writable` | `true` |
-| `storageCounts` | grows after each upload |
-
-If `writable` is `false`, the mounted volume is root-owned but the app runs as uid `1001`.
-Fix it from the container shell:
-
-```bash
-chown -R 1001:1001 /app/storage/uploads
-```
-
-You can also check a single file directly:
+You can also request a file directly:
 
 ```text
-https://evimersin.co/uploads/hero-slides/your-file.png
-https://evimersin.co/api/media/hero-slides/your-file.png
+https://evimersin.co/uploads/products/<uuid>.jpg
+https://evimersin.co/api/media/products/<uuid>.jpg
 ```
 
-- **200 + image** → storage works
-- **404** → file missing; re-upload or check volume mount
-
-> Seed images in `public/uploads/` always return 200 because they ship inside the image.
-> Only files under `storage/uploads/` depend on the volume, so test with a file you uploaded.
+- **200 + image** → stored and served correctly
+- **404** → the file was never imported; re-upload it
 
 ---
 
-## Docker Compose (local / VPS)
+## Notes
 
-See `docker-compose.yml` in the repo root — the named volume `evimersin_uploads` keeps uploads across restarts.
-
----
-
-## Technical details
-
-| Path in container | Purpose |
-|-------------------|---------|
-| `/app/storage/uploads` | All runtime uploads (hero-slides, products, categories) |
-| `public/uploads` | Built-in seed/demo assets only (inside the image) |
-
-Upload code: `src/server/utils/upload.ts` → `getUploadRoot()` uses `UPLOAD_DIR` or `./storage/uploads`.
+- Max upload size is 5 MB (`MAX_IMAGE_SIZE` in `src/server/utils/upload.ts`).
+  MySQL's `max_allowed_packet` must exceed this; the MySQL 8 default of 64 MB is
+  plenty.
+- Responses are sent with `Cache-Control: immutable`, and filenames are UUIDs,
+  so the database is hit rarely in practice.
