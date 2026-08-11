@@ -8,6 +8,7 @@ import {
 } from "@/features/home/data";
 import { resolveCategoryIdBySlug } from "@/features/products/data";
 import type { PropertyFilterOptions } from "@/features/products/types";
+import { getHeroSlides } from "@/lib/hero-slides";
 import { getLocale, getTranslations } from "next-intl/server";
 
 type HeroBannerProps = {
@@ -19,6 +20,7 @@ export async function HeroBanner({ filterOptions }: HeroBannerProps) {
   const isRtl = locale === "ar";
   const t = await getTranslations("home");
   const tTypes = await getTranslations("propertyTypes");
+  const initialHeroSlides = await getHeroSlides();
 
   const cards = withCategoryIdHrefs(propertyTypeCards, (slug) =>
     resolveCategoryIdBySlug(slug, filterOptions),
@@ -58,6 +60,7 @@ export async function HeroBanner({ filterOptions }: HeroBannerProps) {
     <section className="relative w-full bg-white">
       <div className="relative min-h-[78vh] w-full lg:min-h-[820px]">
         <HeroBannerInteractive
+          initialSlides={initialHeroSlides}
           fallbackImage={heroImage}
           fallbackAlt={t("heroImageAlt")}
         >

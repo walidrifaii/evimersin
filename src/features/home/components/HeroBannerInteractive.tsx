@@ -7,10 +7,12 @@ import {
   getUploadSrcCandidates,
   toDisplayImageSrc,
 } from "@/lib/image-url";
+import { getHeroSlides } from "@/lib/hero-slides";
 import type { PublicHeroSlide } from "@/lib/hero-slides";
 import type { ApiResponse } from "@/store/api/types";
 
 type HeroBannerInteractiveProps = {
+  initialSlides?: PublicHeroSlide[];
   fallbackImage: StaticImageData;
   fallbackAlt: string;
   children: ReactNode;
@@ -74,12 +76,12 @@ function HeroSlideImage({
 }
 
 export function HeroBannerInteractive({
+  initialSlides = [],
   fallbackImage,
   fallbackAlt,
   children,
 }: HeroBannerInteractiveProps) {
-  const [slides, setSlides] = useState<PublicHeroSlide[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  const [slides, setSlides] = useState<PublicHeroSlide[]>(initialSlides);
 
   useEffect(() => {
     let cancelled = false;
@@ -94,9 +96,7 @@ export function HeroBannerInteractive({
           setSlides(json.data);
         }
       } catch {
-        // Keep fallback hero when the API is unavailable.
-      } finally {
-        if (!cancelled) setLoaded(true);
+        // Keep SSR / fallback hero when the API is unavailable.
       }
     }
 
@@ -118,7 +118,7 @@ export function HeroBannerInteractive({
       : [];
 
   const displayItems =
-    loaded && items.length > 0
+    items.length > 0
       ? items
       : [{ id: 0, src: null as string | null, alt: fallbackAlt, useFallback: true }];
 

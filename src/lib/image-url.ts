@@ -73,19 +73,33 @@ export function toUploadServeSrc(url: string | null | undefined) {
   return relative;
 }
 
-/** Alternate public path when /api/media fails (direct upload rewrite). */
-export function toUploadPublicSrc(url: string | null | undefined) {
-  return toDisplayImageSrc(url);
+/** Disk path under `/uploads/...` (from DB, `/uploads/`, or `/api/media/` URLs). */
+export function toUploadStoragePath(url: string | null | undefined) {
+  const relative = toDisplayImageSrc(url);
+  if (!relative) return "";
+
+  if (relative.startsWith("/api/media/")) {
+    return `/uploads/${relative.slice("/api/media/".length)}`;
+  }
+
+  return relative;
 }
 
-/** Try /api/media first, then /uploads — for dashboard and hero slider. */
-export function getUploadSrcCandidates(url: string | null | undefined) {
-  const serve = toUploadServeSrc(url);
-  const publicSrc = toUploadPublicSrc(url);
+/** Alternate public path when /api/media fails (direct upload rewrite). */
+export function toUploadPublicSrc(url: string | null | undefined) {
+  return toUploadStoragePath(url);
+}
 
-  if (!serve) return [] as string[];
-  if (serve === publicSrc || !publicSrc) return [serve];
-  return [serve, publicSrc];
+/** Try /uploads first, then /api/media — for dashboard and hero slider. */
+export function getUploadSrcCandidates(url: string | null | undefined) {
+  const storage = toUploadStoragePath(url);
+  const serve = toUploadServeSrc(url);
+
+  const candidates: string[] = [];
+  if (storage.startsWith("/uploads/")) candidates.push(storage);
+  if (serve && !candidates.includes(serve)) candidates.push(serve);
+
+  return candidates;
 }
 
 /** Absolute URL for API responses (DB still stores relative `/uploads/...`). */

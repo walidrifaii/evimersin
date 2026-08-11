@@ -1,7 +1,10 @@
-import { unstable_cache } from "next/cache";
-import { heroSlideService } from "@/server/services/hero-slide.service";
+import { heroSlideRepository } from "@/server/database/repositories/hero-slide.repository";
 import { resolveUploadFile } from "@/server/utils/upload";
-import { toDisplayImageSrc, toUploadServeSrc } from "@/lib/image-url";
+import {
+  toDisplayImageSrc,
+  toUploadServeSrc,
+  toUploadStoragePath,
+} from "@/lib/image-url";
 
 export type PublicHeroSlide = {
   id: number;
@@ -24,28 +27,20 @@ function toPublicSlide(slide: {
 }
 
 async function slideImageExists(imagePath: string) {
-  const normalized = toDisplayImageSrc(imagePath);
-  if (!normalized) return false;
-  if (!normalized.startsWith("/uploads/")) return true;
-  return (await resolveUploadFile(normalized)) !== null;
+  const uploadPath = toUploadStoragePath(imagePath);
+  if (!uploadPath.startsWith("/uploads/")) return false;
+  return (await resolveUploadFile(uploadPath)) !== null;
 }
 
+/** Active hero slides whose image file exists on disk. */
 export async function getHeroSlides(): Promise<PublicHeroSlide[]> {
-  const cached = unstable_cache(
-    async () => {
-      const slides = await heroSlideService.listActive();
-      const available: PublicHeroSlide[] = [];
+  const slides = await heroSlideRepository.findActive();
+  const available: PublicHeroSlide[] = [];
 
-      for (const slide of slides) {
-        if (!(await slideImageExists(slide.image))) continue;
-        available.push(toPublicSlide(slide));
-      }
+  for (const slide of slides) {
+    if (!(await slideImageExists(slide.image))) continue;
+    available.push(toPublicSlide(slide));
+  }
 
-      return available;
-    },
-    ["hero-slides-public"],
-    { revalidate: 60, tags: ["hero-slides"] },
-  );
-
-  return cached();
+  return available;
 }
