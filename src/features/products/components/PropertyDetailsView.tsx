@@ -5,7 +5,7 @@ import { HiChevronLeft } from "react-icons/hi";
 import { BathIcon } from "@/components/icons/BathIcon";
 import { BedIcon } from "@/components/icons/BedIcon";
 import { SquareMeterIcon } from "@/components/icons/SquareMeterIcon";
-import { getWhatsAppUrlFromSettings } from "@/constants/config";
+import { getShareUrl, getWhatsAppUrlFromSettings } from "@/constants/config";
 import {
   formatSpecValue,
   getSpecFieldsForCategory,
@@ -23,11 +23,7 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
   const t = await getTranslations("products");
   const tCommon = await getTranslations("common");
   const settings = await getSiteSettings();
-  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(
-    /\/$/,
-    "",
-  );
-  const propertyUrl = `${appUrl}${property.href}`;
+  const propertyUrl = getShareUrl(property.href);
   const whatsappUrl = settings
     ? getWhatsAppUrlFromSettings(
         settings,

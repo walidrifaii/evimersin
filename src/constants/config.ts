@@ -1,7 +1,21 @@
+import { routes } from "@/constants/routes";
+
+/**
+ * Canonical public origin. Links that leave the site (WhatsApp, email) must be
+ * reachable by the recipient, so they never use the local or preview host.
+ */
+const SITE_URL = "https://evimersin.co";
+
+/** Absolute URL for a path that will be opened outside the site. */
+export function getShareUrl(path: string) {
+  return `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
 export const config = {
   appName: "EviMersin",
   tagline: "Property & Co",
   defaultLocale: "en",
+  siteUrl: SITE_URL,
   contact: {
     addressName: "EviMersin",
     address: "Palmiye, 2.Cadde, 33110 Yenişehir/Mersin",
@@ -10,8 +24,9 @@ export const config = {
   },
   whatsapp: {
     phone: "96171959921",
-    message:
-      "Hello EviMersin, I would like to know more about your properties. https://evimersin.co/properties",
+    message: `Hello EviMersin, I would like to know more about your properties. ${getShareUrl(
+      routes.properties,
+    )}`,
   },
   social: {
     instagram: "https://instagram.com/evimersin",
