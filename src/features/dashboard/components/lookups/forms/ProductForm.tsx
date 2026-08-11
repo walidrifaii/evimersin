@@ -156,8 +156,11 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
     if (!purposeId) nextFieldErrors.purpose_id = "Purpose is required";
     if (!cityId) nextFieldErrors.city_id = "City is required";
 
+    const trimmedName = name.trim();
+    if (!trimmedName) nextFieldErrors.name = "Name is required";
+
     if (Object.keys(nextFieldErrors).length > 0) {
-      formErrors.setLocal("Please select category, purpose, and city.", nextFieldErrors);
+      formErrors.setLocal("Please fix the highlighted fields below.", nextFieldErrors);
       return;
     }
 
@@ -181,7 +184,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
     }
 
     const payload: ProductFormInput = {
-      name,
+      name: trimmedName,
       description: description.trim() || null,
       price: Number(price) || 0,
       discount_type: discountType,

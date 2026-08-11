@@ -3,7 +3,30 @@ import { ALL_PROPERTY_SPEC_KEYS } from "@/constants/property-specs";
 
 const statusSchema = z.union([z.literal(0), z.literal(1)]);
 const nullableStatusSchema = z.union([z.literal(0), z.literal(1)]).nullable();
-const nameSchema = z.string().trim().min(1).max(200);
+
+const formRequiredString = (max: number) =>
+  z.preprocess(
+    (value) => (value == null ? "" : value),
+    z.coerce.string().trim().min(1, "Name is required").max(max),
+  );
+
+const formOptionalString = (max: number) =>
+  z.preprocess(
+    (value) => (value == null ? undefined : value),
+    z.coerce.string().trim().min(1).max(max).optional(),
+  );
+
+const formNullableString = (max: number) =>
+  z.preprocess(
+    (value) => {
+      if (value == null) return null;
+      const trimmed = String(value).trim();
+      return trimmed === "" ? null : trimmed;
+    },
+    z.string().max(max).nullable(),
+  );
+
+const nameSchema = formRequiredString(200);
 const discountTypeSchema = z.enum(["fixed", "percentage"]).nullable();
 const nullableNumberSchema = z.coerce.number().nullable().optional();
 const nullableIntSchema = z.coerce.number().int().nullable().optional();
@@ -94,7 +117,7 @@ export const createProductSchema = z
     name: nameSchema,
     image: z.string().trim().max(500).nullable().optional().default(null),
     position: z.coerce.number().int().min(0).optional().default(0),
-    description: z.string().trim().max(5000).nullable().optional().default(null),
+    description: formNullableString(5000).optional().default(null),
     price: z.coerce.number().min(0),
     discount_type: discountTypeSchema.optional().default(null),
     discount_value: z.coerce.number().min(0).optional().default(0),
@@ -109,10 +132,10 @@ export const createProductSchema = z
   .superRefine(validateDiscount);
 
 export const updateProductSchema = requireOneField({
-  name: nameSchema.optional(),
+  name: formOptionalString(200),
   image: z.string().trim().max(500).nullable().optional(),
   position: z.coerce.number().int().min(0).optional(),
-  description: z.string().trim().max(5000).nullable().optional(),
+  description: formNullableString(5000).optional(),
   price: z.coerce.number().min(0).optional(),
   discount_type: discountTypeSchema.optional(),
   discount_value: z.coerce.number().min(0).optional(),

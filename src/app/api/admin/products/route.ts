@@ -4,6 +4,7 @@ import { ok } from "@/server/utils/response";
 import { revalidateListingsCache } from "@/server/utils/revalidate";
 import { saveImageUpload } from "@/server/utils/upload";
 import { parseProductSpecFieldsFromFormData } from "@/server/utils/product-specs";
+import { readFormString, readNullableFormString } from "@/server/utils/form-data";
 import { createProductSchema } from "@/server/validators/product.validator";
 
 export const runtime = "nodejs";
@@ -43,10 +44,13 @@ export const POST = compose(withAuth, withHandler)(async (request) => {
     ),
   );
 
+  const specs = parseProductSpecFieldsFromFormData(formData);
+
   const input = validateBody(createProductSchema, {
-    name: formData.get("name"),
+    ...specs,
+    name: readFormString(formData.get("name")),
     position: Number(formData.get("position") ?? 0),
-    description: formData.get("description"),
+    description: readNullableFormString(formData.get("description")),
     price: Number(formData.get("price") ?? 0),
     discount_type: parseDiscountType(formData.get("discount_type")),
     discount_value: Number(formData.get("discount_value") ?? 0),
@@ -57,7 +61,6 @@ export const POST = compose(withAuth, withHandler)(async (request) => {
     status: Number(formData.get("status") ?? 1),
     is_featured: Number(formData.get("is_featured") ?? 0),
     image,
-    ...parseProductSpecFieldsFromFormData(formData),
   });
 
   const created = await productService.create(input, galleryImages);

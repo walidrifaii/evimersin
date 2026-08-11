@@ -12,6 +12,7 @@ import { parseProductSpecFieldsFromFormData } from "@/server/utils/product-specs
 import { ok } from "@/server/utils/response";
 import { revalidateListingsCache } from "@/server/utils/revalidate";
 import { saveImageUpload, toRelativeUploadPath } from "@/server/utils/upload";
+import { readFormString, readNullableFormString } from "@/server/utils/form-data";
 import { updateProductSchema } from "@/server/validators/product.validator";
 
 export const runtime = "nodejs";
@@ -71,9 +72,10 @@ export const PUT = compose(withAuth, withHandler)(async (request, context: ApiCo
   );
 
   const input = validateBody(updateProductSchema, {
-    name: formData.get("name"),
+    ...specs,
+    name: readFormString(formData.get("name")),
     position: Number(formData.get("position") ?? current.position),
-    description: formData.get("description"),
+    description: readNullableFormString(formData.get("description")),
     price: Number(formData.get("price") ?? current.price),
     discount_type: formData.has("discount_type")
       ? parseDiscountType(formData.get("discount_type"))
@@ -90,7 +92,6 @@ export const PUT = compose(withAuth, withHandler)(async (request, context: ApiCo
     status: Number(formData.get("status") ?? current.status),
     is_featured: Number(formData.get("is_featured") ?? current.is_featured),
     image: nextImage,
-    ...specs,
   });
 
   const updated = await productService.update(id, input, galleryImages);

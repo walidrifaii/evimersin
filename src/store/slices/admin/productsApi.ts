@@ -10,7 +10,7 @@ import type {
 
 function toProductFormData(body: Partial<ProductFormInput>) {
   const formData = new FormData();
-  if (body.name !== undefined) formData.set("name", body.name);
+  formData.set("name", String(body.name ?? "").trim());
   if (body.description !== undefined) {
     formData.set("description", body.description ?? "");
   }
