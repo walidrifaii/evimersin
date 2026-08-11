@@ -24,12 +24,6 @@ export const logoutSchema = z.object({
   refreshToken: z.string().trim().min(20).optional(),
 });
 
-export const requestUserEmailVerificationSchema = z.object({
-  email: z.string().trim().email().max(255),
-  firstName: z.string().trim().min(1).max(100),
-  lastName: z.string().trim().min(1).max(100),
-});
-
 export const createAdminSchema = z.object({
   username: z.string().trim().min(3).max(100),
   password: z.string().min(6).max(128),
@@ -37,7 +31,6 @@ export const createAdminSchema = z.object({
   lastName: z.string().trim().min(1).max(100),
   email: z.string().trim().email().max(255),
   permissions: permissionsSchema,
-  emailOtp: z.string().trim().regex(/^\d{6}$/, "Verification code must be 6 digits"),
   status: z.union([z.literal(0), z.literal(1)]).optional().default(1),
 });
 
@@ -49,7 +42,6 @@ export const updateAdminSchema = z
     lastName: z.string().trim().min(1).max(100).optional(),
     email: z.string().trim().email().max(255).optional(),
     permissions: permissionsSchema.optional(),
-    emailOtp: z.string().trim().regex(/^\d{6}$/, "Verification code must be 6 digits").optional(),
     status: z.union([z.literal(0), z.literal(1)]).optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
@@ -113,6 +105,3 @@ export type ChangePasswordConfirmSchema = z.infer<typeof changePasswordConfirmSc
 export type LoginSchema = z.infer<typeof loginSchema>;
 export type CreateAdminSchema = z.infer<typeof createAdminSchema>;
 export type UpdateAdminSchema = z.infer<typeof updateAdminSchema>;
-export type RequestUserEmailVerificationSchema = z.infer<
-  typeof requestUserEmailVerificationSchema
->;

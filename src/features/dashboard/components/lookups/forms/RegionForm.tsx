@@ -97,7 +97,7 @@ function RegionFormFields({ id, initial }: { id?: number; initial?: Region }) {
         label="Name"
         value={name}
         required
-        placeholder="Yenişehir"
+        placeholder="region name"
         error={formErrors.field("name")}
         onChange={(value) => {
           setName(value);

@@ -40,7 +40,6 @@ const FIELD_LABELS: Record<string, string> = {
   sort_order: "Sort order",
   title: "Title",
   message: "Message",
-  emailOtp: "Verification code",
   permissions: "Permissions",
 };
 

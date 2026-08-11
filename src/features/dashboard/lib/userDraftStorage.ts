@@ -6,7 +6,6 @@ export type UserDraftForm = {
   username: string;
   email: string;
   password: string;
-  emailOtp: string;
   permissions: string[];
   status: 0 | 1;
 };

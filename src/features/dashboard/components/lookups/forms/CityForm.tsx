@@ -104,7 +104,7 @@ function CityFormFields({ id, initial }: { id?: number; initial?: City }) {
         label="Name"
         value={name}
         required
-        placeholder="Mersin"
+        placeholder="city name"
         error={formErrors.field("name")}
         onChange={(value) => {
           setName(value);

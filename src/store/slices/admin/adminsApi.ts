@@ -24,7 +24,6 @@ export type CreateDashboardUserInput = {
   lastName: string;
   email: string;
   permissions: string[];
-  emailOtp: string;
   status?: 0 | 1;
 };
 
@@ -35,19 +34,7 @@ export type UpdateDashboardUserInput = {
   lastName?: string;
   email?: string;
   permissions?: string[];
-  emailOtp?: string;
   status?: 0 | 1;
-};
-
-export type RequestEmailVerificationInput = {
-  email: string;
-  firstName: string;
-  lastName: string;
-};
-
-export type EmailVerificationResult = {
-  message: string;
-  emailMasked: string;
 };
 
 export const adminsApi = api.injectEndpoints({
@@ -56,18 +43,6 @@ export const adminsApi = api.injectEndpoints({
       query: () => "/admin",
       transformResponse: (response: ApiResponse<DashboardUser[]>) => response.data,
       providesTags: [{ type: "Admin", id: "LIST" }],
-    }),
-
-    requestUserEmailVerification: builder.mutation<
-      EmailVerificationResult,
-      RequestEmailVerificationInput
-    >({
-      query: (body) => ({
-        url: "/admin/email-verification",
-        method: "POST",
-        body,
-      }),
-      transformResponse: (response: ApiResponse<EmailVerificationResult>) => response.data,
     }),
 
     createDashboardUser: builder.mutation<DashboardUser, CreateDashboardUserInput>({
@@ -107,7 +82,6 @@ export const adminsApi = api.injectEndpoints({
 
 export const {
   useGetDashboardUsersQuery,
-  useRequestUserEmailVerificationMutation,
   useCreateDashboardUserMutation,
   useUpdateDashboardUserMutation,
   useDeleteDashboardUserMutation,

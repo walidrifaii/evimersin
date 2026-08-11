@@ -36,7 +36,6 @@ export type CreateAdminInput = {
   lastName: string;
   email: string;
   permissions: string[];
-  emailOtp: string;
   status?: number;
 };
 
@@ -47,14 +46,7 @@ export type UpdateAdminInput = {
   lastName?: string;
   email?: string;
   permissions?: string[];
-  emailOtp?: string;
   status?: number;
-};
-
-export type RequestUserEmailVerificationInput = {
-  email: string;
-  firstName: string;
-  lastName: string;
 };
 
 export type LoginInput = {

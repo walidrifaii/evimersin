@@ -289,7 +289,6 @@ Use `StatusBadge` and `RowActions` from `LookupManager.tsx` for consistency.
 | Side drawer | `SideDrawer.tsx` | `max-w-lg` |
 | Search drawer | `DashboardSearchDrawer.tsx` | `max-w-md` |
 | Delete confirm | `ConfirmDeleteDrawer` in LookupManager | `max-w-md` |
-| Email OTP modal | `EmailVerificationModal.tsx` | `max-w-md` |
 
 **Overlay:** `bg-black/40` (or `/35`–`/45`)
 

@@ -4,10 +4,6 @@ import {
   type AdminRow,
 } from "@/server/database/repositories/admin.repository";
 import {
-  emailVerificationRepository,
-  verifyEmailOtpHash,
-} from "@/server/database/repositories/email-verification.repository";
-import {
   generateOtpCode,
   passwordResetRepository,
   verifyOtpHash,
@@ -37,7 +33,6 @@ import type {
   CreateAdminInput,
   ForgotPasswordInput,
   LoginInput,
-  RequestUserEmailVerificationInput,
   ResetPasswordInput,
   UpdateAdminInput,
   VerifyOtpInput,
@@ -87,14 +82,6 @@ function toTokenPayload(admin: AdminRow): AuthTokenPayload {
     roleName: admin.role_name,
     permissions: getEffectivePermissions(admin),
   };
-}
-
-async function verifyInviteEmailOtp(email: string, otp: string) {
-  const record = await emailVerificationRepository.findLatestValid(email, "user-invite");
-  if (!record || !verifyEmailOtpHash(otp, record.otp_hash)) {
-    throw new AppError("Invalid or expired email verification code.", 400);
-  }
-  await emailVerificationRepository.markUsed(record.id);
 }
 
 async function issueTokenPair(admin: AdminRow) {
@@ -191,42 +178,6 @@ export const adminService = {
     return toPublicAdmin(admin);
   },
 
-  async requestUserEmailVerification(
-    input: RequestUserEmailVerificationInput,
-    actor?: AuthTokenPayload,
-  ) {
-    assertCanManageUsers(actor);
-
-    const email = input.email.trim().toLowerCase();
-    const existing = await adminRepository.findByEmail(email);
-    if (existing) {
-      throw new AppError("This email is already used by another dashboard user.", 409);
-    }
-
-    const otp = generateOtpCode();
-    const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
-
-    await emailVerificationRepository.create({
-      email,
-      otp,
-      expiresAt,
-      purpose: "user-invite",
-      createdBy: actor?.sub,
-    });
-
-    await mailService.sendUserEmailVerificationOtp({
-      to: email,
-      firstName: input.firstName.trim(),
-      lastName: input.lastName.trim(),
-      otp,
-    });
-
-    return {
-      message: `Verification code sent to ${maskEmail(email)}.`,
-      emailMasked: maskEmail(email),
-    };
-  },
-
   async create(input: CreateAdminInput, actor?: AuthTokenPayload): Promise<AdminPublic> {
     assertCanManageUsers(actor);
 
@@ -241,8 +192,6 @@ export const adminService = {
     if (permissions.length === 0) {
       throw new AppError("Select at least one permission for this user.", 400);
     }
-
-    await verifyInviteEmailOtp(email, input.emailOtp);
 
     const passwordHash = await hashPassword(input.password);
     const id = await adminRepository.create({
@@ -282,14 +231,10 @@ export const adminService = {
     const emailChanged = !!nextEmail && nextEmail !== admin.email.trim().toLowerCase();
 
     if (emailChanged) {
-      if (!input.emailOtp) {
-        throw new AppError("Email verification code is required when changing email.", 400);
-      }
       const taken = await adminRepository.findByEmail(nextEmail);
       if (taken && taken.id !== id) {
         throw new AppError("This email is already used by another dashboard user.", 409);
       }
-      await verifyInviteEmailOtp(nextEmail, input.emailOtp);
     }
 
     if (input.permissions !== undefined) {

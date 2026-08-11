@@ -120,56 +120,6 @@ export const mailService = {
     }
   },
 
-  async sendUserEmailVerificationOtp(input: {
-    to: string;
-    firstName: string;
-    lastName: string;
-    otp: string;
-  }) {
-    const config = getMailConfig();
-    const transporter = getTransporter();
-    const fullName = `${input.firstName} ${input.lastName}`.trim();
-
-    const text = [
-      "Dashboard account email verification",
-      "",
-      `Hello ${fullName || "there"},`,
-      "",
-      `Your verification code: ${input.otp}`,
-      "",
-      "An administrator is creating or updating a dashboard account with this email.",
-      "Enter this code in the dashboard to confirm the email address.",
-      "This code expires in 10 minutes.",
-      "If you did not expect this, you can ignore this email.",
-    ].join("\n");
-
-    const html = `
-      <h2>Verify your dashboard email</h2>
-      <p>Hello ${escapeHtml(fullName || "there")},</p>
-      <p>An administrator is setting up dashboard access for this email address.</p>
-      <p style="margin:24px 0;font-size:28px;font-weight:700;letter-spacing:0.2em">${escapeHtml(input.otp)}</p>
-      <p>Enter this code in the dashboard to confirm your email.</p>
-      <p>This code expires in <strong>10 minutes</strong>.</p>
-      <p>If you did not expect this, you can ignore this email.</p>
-    `;
-
-    try {
-      await transporter.sendMail({
-        from: `"${config.fromName}" <${config.fromAddress}>`,
-        to: input.to,
-        subject: "[EviMersin Admin] Verify dashboard email",
-        text,
-        html,
-      });
-    } catch (error) {
-      console.error("[mail] Failed to send user email verification OTP:", error);
-      throw new AppError(
-        "Unable to send verification email right now. Please try again later.",
-        502,
-      );
-    }
-  },
-
   async sendChangePasswordOtp(input: {
     to: string;
     username: string;

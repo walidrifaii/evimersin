@@ -3,7 +3,6 @@
 import type { FormEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { EmailVerificationModal } from "@/features/dashboard/components/EmailVerificationModal";
 import {
   FormLoading,
   TextInput,
@@ -37,7 +36,6 @@ const emptyForm: UserFormState = {
   username: "",
   email: "",
   password: "",
-  emailOtp: "",
   permissions: ["overview:read", "security:read"],
   status: 1,
 };
@@ -60,17 +58,11 @@ function UserModal({
   const router = useRouter();
   const [form, setForm] = useState<UserFormState>(emptyForm);
   const formErrors = useDashboardFormErrors();
-  const [verifyModalOpen, setVerifyModalOpen] = useState(false);
 
   const [createUser, createState] = useCreateDashboardUserMutation();
   const [updateUser, updateState] = useUpdateDashboardUserMutation();
 
   const isSuperAdmin = initialUser?.roleName === "super_admin";
-  const originalEmail = initialUser?.email.trim().toLowerCase() ?? "";
-  const emailChanged =
-    mode === "edit" &&
-    form.email.trim().toLowerCase() !== originalEmail &&
-    form.email.trim().length > 0;
 
   useEffect(() => {
     if (!open) return;
@@ -84,7 +76,6 @@ function UserModal({
         username: initialUser.username,
         email: initialUser.email,
         password: "",
-        emailOtp: "",
         permissions: initialUser.permissions.includes(SUPER_ADMIN_PERMISSION)
           ? [SUPER_ADMIN_PERMISSION]
           : [...initialUser.permissions],
@@ -94,7 +85,6 @@ function UserModal({
       setForm(emptyForm);
     }
 
-    setVerifyModalOpen(false);
     formErrors.clear();
   }, [open, mode, initialUser, draftForm]);
 
@@ -154,7 +144,6 @@ function UserModal({
         email: form.email.trim(),
         password: form.password,
         permissions: form.permissions,
-        emailOtp: form.emailOtp.trim(),
         status: form.status,
       }).unwrap();
       onSaved("User created successfully.");
@@ -178,7 +167,6 @@ function UserModal({
           permissions: isSuperAdmin ? undefined : form.permissions,
           status: form.status,
           ...(form.password ? { password: form.password } : {}),
-          ...(emailChanged ? { emailOtp: form.emailOtp.trim() } : {}),
         },
       }).unwrap();
       onSaved("User updated successfully.");
@@ -199,23 +187,10 @@ function UserModal({
     }
 
     if (mode === "create") {
-      setVerifyModalOpen(true);
-      return;
-    }
-
-    if (emailChanged) {
-      setVerifyModalOpen(true);
-      return;
-    }
-
-    void handleUpdate();
-  }
-
-  function handleVerifyConfirm() {
-    if (mode === "create") {
       void handleCreate();
       return;
     }
+
     void handleUpdate();
   }
 
@@ -237,7 +212,7 @@ function UserModal({
             </h2>
             <p className="mt-1 max-w-xl text-[13px] text-[var(--muted)]">
               {mode === "create"
-                ? "Fill in account details, set permissions, then verify email when you create the user."
+                ? "Fill in account details and set permissions to create the user."
                 : "Update account details and permissions for this user."}
             </p>
           </div>
@@ -290,11 +265,7 @@ function UserModal({
                 value={form.email}
                 required
                 error={formErrors.field("email")}
-                onChange={(value) => {
-                  setForm((prev) => ({ ...prev, email: value, emailOtp: "" }));
-                  formErrors.clearField("email");
-                  formErrors.clearField("emailOtp");
-                }}
+                onChange={(value) => updateFormField("email", value)}
               />
               <TextInput
                 label={mode === "create" ? "Password" : "New password (optional)"}
@@ -375,22 +346,6 @@ function UserModal({
           </div>
         </form>
       </div>
-
-      <EmailVerificationModal
-        open={verifyModalOpen}
-        onClose={() => setVerifyModalOpen(false)}
-        email={form.email}
-        firstName={form.firstName}
-        lastName={form.lastName}
-        otp={form.emailOtp}
-        onOtpChange={(otp) => setForm((prev) => ({ ...prev, emailOtp: otp }))}
-        onConfirm={handleVerifyConfirm}
-        confirming={saving}
-        title={mode === "create" ? "Verify email" : "Verify new email"}
-        confirmLabel={
-          mode === "create" ? "Verify & create user" : "Verify & save changes"
-        }
-      />
     </div>
   );
 }
@@ -463,7 +418,7 @@ export function UsersPanel() {
             Dashboard users
           </h1>
           <p className="mt-2 max-w-2xl text-[14px] text-[var(--muted)]">
-            Create accounts with first name, last name, and verified email. Set
+            Create accounts with first name, last name, and email. Set
             permissions on a separate page with view, add, edit, and delete
             controls for each area.
           </p>
