@@ -1,7 +1,10 @@
 import { readFile } from "node:fs/promises";
 import { NextResponse } from "next/server";
+import path from "node:path";
 import {
+  getPublicUploadRoot,
   getUploadContentType,
+  getUploadRoot,
   resolveUploadFile,
 } from "@/server/utils/upload";
 
@@ -22,6 +25,12 @@ export async function GET(_request: Request, context: RouteContext) {
   const absolutePath = await resolveUploadFile(relativeUrl);
 
   if (!absolutePath) {
+    const relative = relativeUrl.replace(/^\/uploads\//, "");
+    console.warn(
+      `[evimersin] Media 404: ${relativeUrl} — looked in ` +
+        `${path.join(getUploadRoot(), relative)} and ` +
+        `${path.join(getPublicUploadRoot(), relative)}`,
+    );
     return new NextResponse("Not found", { status: 404 });
   }
 

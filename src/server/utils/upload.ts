@@ -73,13 +73,41 @@ export async function saveImageUpload(file: File, folder: string) {
 
   const relativeDir = toUploadsRelativeDir(folder);
   const uploadDir = path.join(getUploadRoot(), relativeDir);
-  await mkdir(uploadDir, { recursive: true });
+
+  try {
+    await mkdir(uploadDir, { recursive: true });
+  } catch (error) {
+    console.error(`[evimersin] Cannot create upload dir ${uploadDir}:`, error);
+    throw new AppError(
+      "Upload storage is not writable on the server. Check the mounted volume.",
+      500,
+    );
+  }
 
   const fileName = `${randomUUID()}${getFileExtension(file)}`;
   const filePath = path.join(uploadDir, fileName);
   const buffer = Buffer.from(await file.arrayBuffer());
 
-  await writeFile(filePath, buffer);
+  try {
+    await writeFile(filePath, buffer);
+  } catch (error) {
+    console.error(`[evimersin] Failed to write upload ${filePath}:`, error);
+    throw new AppError(
+      "Upload storage is not writable on the server. Check the mounted volume.",
+      500,
+    );
+  }
+
+  // Fail loudly instead of saving a DB path that points at a file nobody can read.
+  if (!(await fileExists(filePath))) {
+    console.error(`[evimersin] Upload vanished right after write: ${filePath}`);
+    throw new AppError(
+      "Upload could not be persisted on the server. Check the mounted volume.",
+      500,
+    );
+  }
+
+  console.log(`[evimersin] Saved upload: ${filePath}`);
 
   // Always store relative paths so localhost/prod URLs never break images.
   return `/uploads/${relativeDir}/${fileName}`.replace(/\/{2,}/g, "/");
