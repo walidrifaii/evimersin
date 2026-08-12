@@ -253,6 +253,8 @@
     "sortFeatured": "Featured First",
     "filters": "Filters",
     "ref": "Ref",
+    "share": "Share",
+    "shareMessage": "Take a look at this property on EviMersin:\n\n{title}\n{url}",
     "whatsappMessage": "Hello EviMersin, I am interested in this property:\n\n{title}\n{url}"
   },
   "notFound": {

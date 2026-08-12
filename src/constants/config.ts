@@ -77,6 +77,11 @@ export function getWhatsAppUrl(
   return `https://wa.me/${phone}?text=${text}`;
 }
 
+/** Opens WhatsApp with the text ready to send so the sender picks the chat. */
+export function getWhatsAppShareUrl(message: string) {
+  return `https://wa.me/?text=${encodeURIComponent(message)}`;
+}
+
 export function getWhatsAppUrlFromSettings(
   settings: { whatsapp_phone: string; whatsapp_message: string },
   customMessage?: string,

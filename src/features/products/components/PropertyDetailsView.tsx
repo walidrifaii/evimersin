@@ -1,11 +1,15 @@
 import { Link } from "@/i18n/navigation";
 import { getTranslations } from "next-intl/server";
 import { FaWhatsapp } from "react-icons/fa";
-import { HiChevronLeft } from "react-icons/hi";
+import { HiChevronLeft, HiOutlineShare } from "react-icons/hi";
 import { BathIcon } from "@/components/icons/BathIcon";
 import { BedIcon } from "@/components/icons/BedIcon";
 import { SquareMeterIcon } from "@/components/icons/SquareMeterIcon";
-import { getShareUrl, getWhatsAppUrlFromSettings } from "@/constants/config";
+import {
+  getShareUrl,
+  getWhatsAppShareUrl,
+  getWhatsAppUrlFromSettings,
+} from "@/constants/config";
 import {
   formatSpecValue,
   getSpecFieldsForCategory,
@@ -24,6 +28,9 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
   const tCommon = await getTranslations("common");
   const settings = await getSiteSettings();
   const propertyUrl = getShareUrl(property.href);
+  const shareUrl = getWhatsAppShareUrl(
+    t("shareMessage", { title: property.title, url: propertyUrl }),
+  );
   const whatsappUrl = settings
     ? getWhatsAppUrlFromSettings(
         settings,
@@ -54,8 +61,8 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
 
           <div className="lg:sticky lg:top-28">
             <div className="bg-white lg:rounded-2xl lg:border lg:border-[#e8edf5] lg:p-7 lg:shadow-[0_8px_28px_rgba(15,23,42,0.06)]">
-              {property.city || property.region ? (
-                <div className="mb-3 flex flex-wrap gap-2 sm:mb-4">
+              <div className="mb-3 flex flex-wrap items-start justify-between gap-2 sm:mb-4">
+                <div className="flex flex-wrap gap-2">
                   {property.city ? (
                     <span className="inline-flex rounded-md bg-[var(--brand-blue)] px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.06em] text-white">
                       {property.city}
@@ -67,7 +74,16 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
                     </span>
                   ) : null}
                 </div>
-              ) : null}
+                <a
+                  href={shareUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#e8edf5] bg-white px-3 py-1.5 text-[12px] font-semibold text-[var(--brand-navy)] transition-colors hover:border-[#25d366] hover:text-[#25d366]"
+                >
+                  <HiOutlineShare className="h-4 w-4" aria-hidden="true" />
+                  {t("share")}
+                </a>
+              </div>
               <p className="mb-2 text-[13px] font-bold tracking-[0.02em] text-[var(--brand-navy)] sm:mb-2.5 sm:text-[14px]">
                 {t("ref")} #{property.id}
               </p>
