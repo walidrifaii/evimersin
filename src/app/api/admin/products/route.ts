@@ -62,6 +62,7 @@ export const POST = compose(withAuth, withHandler)(async (request) => {
     price: Number(formData.get("price") ?? 0),
     discount_type: parseDiscountType(formData.get("discount_type")),
     discount_value: Number(formData.get("discount_value") ?? 0),
+    payment_method: readNullableFormString(formData.get("payment_method")),
     category_id: Number(formData.get("category_id")),
     purpose_id: Number(formData.get("purpose_id")),
     city_id: Number(formData.get("city_id")),

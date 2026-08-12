@@ -34,6 +34,7 @@ const FIELD_LABELS: Record<string, string> = {
   address: "Street address",
   discount_value: "Discount value",
   discount_type: "Discount type",
+  payment_method: "Payment method",
   price: "Price",
   position: "Position",
   alt_text: "Alt text",

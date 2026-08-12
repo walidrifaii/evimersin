@@ -83,6 +83,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
   const [position, setPosition] = useState(
     initial ? String(initial.position ?? "") : "",
   );
+  const [paymentMethod, setPaymentMethod] = useState(initial?.payment_method ?? "");
   const [categoryId, setCategoryId] = useState(initial?.category_id ?? 0);
   const [purposeId, setPurposeId] = useState(initial?.purpose_id ?? 0);
   const [cityId, setCityId] = useState(initial?.city_id ?? 0);
@@ -247,6 +248,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
       price: priceValue,
       discount_type: discountType,
       discount_value: discountType ? discountAmount : 0,
+      payment_method: paymentMethod.trim() || null,
       position: positionValue,
       category_id: categoryId,
       purpose_id: purposeId,
@@ -399,6 +401,16 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
             ) : null}
           </div>
         </div>
+        <TextInput
+          label="Payment method"
+          value={paymentMethod}
+          placeholder="Cash, bank transfer, installments over 12 months..."
+          error={formErrors.field("payment_method")}
+          onChange={(value) => {
+            setPaymentMethod(value);
+            clearField("payment_method");
+          }}
+        />
         <TextInput
           label="Position"
           type="number"

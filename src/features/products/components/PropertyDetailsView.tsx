@@ -119,6 +119,14 @@ export async function PropertyDetailsView({ property }: PropertyDetailsViewProps
                     {property.originalPrice}
                   </p>
                 ) : null}
+                {property.paymentMethod ? (
+                  <p className="mt-2.5 text-[14px] text-[var(--muted)] sm:text-[15px]">
+                    {t("paymentMethod")}{" "}
+                    <span className="font-semibold text-[var(--brand-navy)]">
+                      {property.paymentMethod}
+                    </span>
+                  </p>
+                ) : null}
               </div>
 
               <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-y border-[#eef2f7] py-4 text-[13px] font-medium text-[var(--muted)] sm:mt-6 sm:gap-x-6 sm:text-[14px]">

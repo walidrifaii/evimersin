@@ -113,6 +113,7 @@ CREATE TABLE IF NOT EXISTS products (
   price DOUBLE NOT NULL DEFAULT 0,
   discount_type VARCHAR(20) NULL COMMENT 'fixed, percentage, or NULL for no discount',
   discount_value DOUBLE NOT NULL DEFAULT 0,
+  payment_method VARCHAR(255) NULL COMMENT 'How the guest pays, free text set by the admin',
   category_id INT NOT NULL,
   purpose_id INT NOT NULL,
   city_id INT NOT NULL,

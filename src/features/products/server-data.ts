@@ -55,6 +55,7 @@ function toPropertyListing(product: ProductDetail): PropertyListing {
     purpose: product.purpose_name,
     price: formatProductPrice(product.final_price),
     originalPrice: discounted ? formatProductPrice(product.price) : undefined,
+    paymentMethod: product.payment_method,
     priceValue: product.final_price,
     originalPriceValue: product.price,
     beds: Number(product.bedrooms ?? 0),

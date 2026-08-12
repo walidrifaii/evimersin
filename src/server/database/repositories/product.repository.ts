@@ -21,6 +21,7 @@ const productSelect = `
   products.price,
   products.discount_type,
   products.discount_value,
+  products.payment_method,
   products.category_id,
   products.purpose_id,
   products.city_id,
@@ -205,7 +206,7 @@ export const productRepository = {
       `INSERT INTO products
         (
           name, image, position, description, price, discount_type, discount_value,
-          category_id, purpose_id, city_id, region_id,
+          payment_method, category_id, purpose_id, city_id, region_id,
           land_area, land_type, zoning, road_access, allowed_floors, electricity, water,
           built_area, floors, bedrooms, bathrooms, living_rooms, parking, garden, pool, furnished,
           floor_number, balconies, elevator, frontage, storage, mezzanine, rooms,
@@ -214,7 +215,7 @@ export const productRepository = {
        VALUES
         (
           :name, :image, :position, :description, :price, :discount_type, :discount_value,
-          :category_id, :purpose_id, :city_id, :region_id,
+          :payment_method, :category_id, :purpose_id, :city_id, :region_id,
           :land_area, :land_type, :zoning, :road_access, :allowed_floors, :electricity, :water,
           :built_area, :floors, :bedrooms, :bathrooms, :living_rooms, :parking, :garden, :pool, :furnished,
           :floor_number, :balconies, :elevator, :frontage, :storage, :mezzanine, :rooms,
@@ -228,6 +229,7 @@ export const productRepository = {
         price: input.price,
         discount_type: input.discount_type ?? null,
         discount_value: input.discount_value ?? 0,
+        payment_method: input.payment_method ?? null,
         category_id: input.category_id,
         purpose_id: input.purpose_id,
         city_id: input.city_id,

@@ -240,6 +240,7 @@
     "baths": "{count} حمام",
     "sqm": "{count} م²",
     "propertyDetails": "تفاصيل العقار",
+    "paymentMethod": "طريقة الدفع:",
     "description": "الوصف",
     "allCities": "جميع المدن",
     "allRegions": "جميع المناطق",

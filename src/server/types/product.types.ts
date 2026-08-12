@@ -40,6 +40,7 @@ export type Product = ProductSpecFields & {
   price: number;
   discount_type: DiscountType;
   discount_value: number;
+  payment_method: string | null;
   final_price: number;
   category_id: number;
   purpose_id: number;
@@ -74,6 +75,7 @@ export type CreateProductInput = Partial<ProductSpecFields> & {
   price: number;
   discount_type?: DiscountType;
   discount_value?: number;
+  payment_method?: string | null;
   category_id: number;
   purpose_id: number;
   city_id: number;
@@ -126,6 +128,7 @@ export const PRODUCT_WRITABLE_KEYS = [
   "price",
   "discount_type",
   "discount_value",
+  "payment_method",
   "category_id",
   "purpose_id",
   "city_id",

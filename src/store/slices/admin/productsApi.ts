@@ -21,6 +21,9 @@ function toProductFormData(body: Partial<ProductFormInput>) {
   if (body.discount_value !== undefined) {
     formData.set("discount_value", String(body.discount_value));
   }
+  if (body.payment_method !== undefined) {
+    formData.set("payment_method", body.payment_method ?? "");
+  }
   if (body.position !== undefined) formData.set("position", String(body.position));
   if (body.category_id !== undefined) {
     formData.set("category_id", String(body.category_id));

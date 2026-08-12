@@ -10,7 +10,7 @@ declare global {
   // eslint-disable-next-line no-var
   var __mysqlPool: Pool | undefined;
   // eslint-disable-next-line no-var
-  var __mysqlSpecMigration: Promise<void> | undefined;
+  var __mysqlColumnMigration: Promise<void> | undefined;
 }
 
 function getDatabaseConfig() {
@@ -23,7 +23,7 @@ function getDatabaseConfig() {
   return { host, port, user, password, database };
 }
 
-const PRODUCT_SPEC_MIGRATIONS = [
+const PRODUCT_COLUMN_MIGRATIONS = [
   "ALTER TABLE products ADD COLUMN land_area DOUBLE NULL AFTER city_id",
   "ALTER TABLE products ADD COLUMN land_type VARCHAR(100) NULL AFTER land_area",
   "ALTER TABLE products ADD COLUMN zoning VARCHAR(100) NULL AFTER land_type",
@@ -47,10 +47,11 @@ const PRODUCT_SPEC_MIGRATIONS = [
   "ALTER TABLE products ADD COLUMN storage TINYINT NULL AFTER frontage",
   "ALTER TABLE products ADD COLUMN mezzanine TINYINT NULL AFTER storage",
   "ALTER TABLE products ADD COLUMN rooms INT NULL AFTER mezzanine",
+  "ALTER TABLE products ADD COLUMN payment_method VARCHAR(255) NULL AFTER discount_value",
 ];
 
-async function ensureProductSpecColumns(pool: Pool) {
-  for (const sql of PRODUCT_SPEC_MIGRATIONS) {
+async function ensureProductColumns(pool: Pool) {
+  for (const sql of PRODUCT_COLUMN_MIGRATIONS) {
     try {
       await pool.execute(sql);
     } catch (error) {
@@ -59,7 +60,7 @@ async function ensureProductSpecColumns(pool: Pool) {
         !message.includes("Duplicate column name") &&
         !message.includes("already exists")
       ) {
-        console.error("[db] Product spec migration failed:", message);
+        console.error("[db] Product column migration failed:", message);
       }
     }
   }
@@ -80,10 +81,10 @@ export function getPool(): Pool {
 }
 
 async function ensureMigrations() {
-  if (!global.__mysqlSpecMigration) {
-    global.__mysqlSpecMigration = ensureProductSpecColumns(getPool());
+  if (!global.__mysqlColumnMigration) {
+    global.__mysqlColumnMigration = ensureProductColumns(getPool());
   }
-  await global.__mysqlSpecMigration;
+  await global.__mysqlColumnMigration;
 }
 
 export async function query<T>(sql: string, params?: QueryParams): Promise<T> {

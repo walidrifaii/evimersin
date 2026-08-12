@@ -28,6 +28,7 @@ export type PropertyListing = {
   purpose: string;
   price: string;
   originalPrice?: string;
+  paymentMethod?: string | null;
   priceValue: number;
   originalPriceValue?: number;
   beds: number;

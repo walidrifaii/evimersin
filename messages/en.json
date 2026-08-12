@@ -240,6 +240,7 @@
     "baths": "{count} Baths",
     "sqm": "{count} sqm",
     "propertyDetails": "Property Details",
+    "paymentMethod": "Payment:",
     "description": "Description",
     "allCities": "All Cities",
     "allRegions": "All Regions",

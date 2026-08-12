@@ -98,6 +98,9 @@ const updateProduct = compose(withAuth, withHandler)(async (request, context: Ap
     discount_value: formData.has("discount_value")
       ? Number(formData.get("discount_value") ?? 0)
       : current.discount_value,
+    payment_method: formData.has("payment_method")
+      ? readNullableFormString(formData.get("payment_method"))
+      : current.payment_method,
     category_id: Number(formData.get("category_id") ?? current.category_id),
     purpose_id: Number(formData.get("purpose_id") ?? current.purpose_id),
     city_id: Number(formData.get("city_id") ?? current.city_id),

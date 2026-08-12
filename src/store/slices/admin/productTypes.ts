@@ -39,6 +39,7 @@ export type Product = ProductSpecFields & {
   price: number;
   discount_type: DiscountType;
   discount_value: number;
+  payment_method: string | null;
   final_price: number;
   category_id: number;
   purpose_id: number;
@@ -73,6 +74,7 @@ export type ProductFormInput = Partial<
   price: number;
   discount_type?: DiscountType;
   discount_value?: number;
+  payment_method?: string | null;
   position?: number;
   category_id: number;
   purpose_id: number;
