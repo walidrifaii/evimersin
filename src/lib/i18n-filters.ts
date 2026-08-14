@@ -75,37 +75,37 @@ export function formatTranslatedFilterOption(
 }
 
 export const ANY_PRICE_KEY = "any";
+const PRICE_FROM_1M = "1000000-more";
 
-export function getPriceRangeKeys(maxPrice: number) {
+export function getPriceRangeKeys(_maxPrice?: number) {
   return [
     ANY_PRICE_KEY,
-    "0-50000",
-    "50000-100000",
-    "100000-200000",
-    "200000-500000",
-    `500000-${maxPrice}`,
+    "0-1000",
+    "1000-500000",
+    "500000-1000000",
+    PRICE_FROM_1M,
   ] as const;
 }
 
 export function formatPriceRangeLabel(
   key: string,
-  maxPrice: number,
+  _maxPrice: number,
   t: HomeTranslator,
 ): string {
   if (key === ANY_PRICE_KEY) return t("anyPrice");
-  if (key === "0-50000") return "$0 - $50,000";
-  if (key === "50000-100000") return "$50,000 - $100,000";
-  if (key === "100000-200000") return "$100,000 - $200,000";
-  if (key === "200000-500000") return "$200,000 - $500,000";
-  if (key === `500000-${maxPrice}`) {
-    return `$500,000 - $${maxPrice.toLocaleString("en-US")}`;
-  }
+  if (key === "0-1000") return "$0 - $1,000";
+  if (key === "1000-500000") return "$1,000 - $500,000";
+  if (key === "500000-1000000") return "$500,000 - $1,000,000";
+  if (key === PRICE_FROM_1M) return "$1,000,000+";
   return key;
 }
 
 export function parsePriceRangeKey(key: string) {
   if (key === ANY_PRICE_KEY) {
     return { priceMin: null as number | null, priceMax: null as number | null };
+  }
+  if (key === PRICE_FROM_1M) {
+    return { priceMin: 1_000_000, priceMax: null as number | null };
   }
   const [minRaw, maxRaw] = key.split("-");
   return {

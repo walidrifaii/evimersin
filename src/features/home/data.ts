@@ -37,7 +37,13 @@ export const homeData = {
     priceRange: {
       label: "Price Range",
       placeholder: "Any Price",
-      options: ["Any Price", "$0 - $50,000", "$50,000 - $100,000", "$100,000 - $200,000", "$200,000 - $500,000", "$500,000+"],
+      options: [
+        "Any Price",
+        "$0 - $1,000",
+        "$1,000 - $500,000",
+        "$500,000 - $1,000,000",
+        "$1,000,000+",
+      ],
     },
     button: "Search Property",
   },
