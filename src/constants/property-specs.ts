@@ -116,6 +116,7 @@ const CATEGORY_SPEC_KEYS: Record<string, PropertySpecFieldKey[]> = {
     "furnished",
   ],
   shop: [
+    "built_area",
     "floor_number",
     "bathrooms",
     "frontage",
