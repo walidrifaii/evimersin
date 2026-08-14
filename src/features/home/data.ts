@@ -9,6 +9,7 @@ import { UserIcon } from "@/components/icons/UserIcon";
 import { ApartmentIcon } from "@/components/icons/ApartmentIcon";
 import { CommercialIcon } from "@/components/icons/CommercialIcon";
 import { LandIcon } from "@/components/icons/LandIcon";
+import { ShopIcon } from "@/components/icons/ShopIcon";
 import { StudioIcon } from "@/components/icons/StudioIcon";
 import { VillaIcon } from "@/components/icons/VillaIcon";
 import { routes } from "@/constants/routes";
@@ -26,7 +27,7 @@ export const homeData = {
     propertyType: {
       label: "Property Type",
       placeholder: "All Types",
-      options: ["All Types", "Villa", "Apartment", "Studio", "Land", "Commercial", "Penthouse"],
+      options: ["All Types", "Villa", "Apartment", "Studio", "Land", "Shop", "Commercial", "Penthouse"],
     },
     purpose: {
       label: "Purpose",
@@ -42,8 +43,17 @@ export const homeData = {
   },
 } as const;
 
+export type PropertyTypeCardId =
+  | "villas"
+  | "apartments"
+  | "studios"
+  | "lands"
+  | "shops"
+  | "commercial"
+  | "more";
+
 export type PropertyTypeCardItem = {
-  id: string;
+  id: PropertyTypeCardId;
   title: string;
   shortTitle?: string;
   subtitle: string;
@@ -232,6 +242,13 @@ export const propertyTypeCards: PropertyTypeCardItem[] = [
     subtitle: "Prime Land Plots",
     href: `${routes.properties}?type=lands`,
     Icon: LandIcon,
+  },
+  {
+    id: "shops",
+    title: "Shops",
+    subtitle: "Retail Shops",
+    href: `${routes.properties}?type=shops`,
+    Icon: ShopIcon,
   },
   {
     id: "commercial",

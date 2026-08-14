@@ -12,6 +12,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 import { routes } from "@/constants/routes";
 import {
   propertyTypeCards,
+  type PropertyTypeCardId,
 } from "@/features/home/data";
 import { useTranslations } from "next-intl";
 
@@ -62,7 +63,7 @@ export function Navbar() {
     .filter((item) => item.id !== "more")
     .map((item) => ({
       ...item,
-      title: tTypes(item.id as "villas" | "apartments" | "studios" | "lands" | "commercial"),
+      title: tTypes(item.id as Exclude<PropertyTypeCardId, "more">),
     }));
 
   useEffect(() => {

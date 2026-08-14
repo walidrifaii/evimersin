@@ -5,6 +5,7 @@ import { PropertyTypeCard } from "@/features/home/components/PropertyTypeCard";
 import {
   propertyTypeCards,
   withCategoryIdHrefs,
+  type PropertyTypeCardId,
 } from "@/features/home/data";
 import { resolveCategoryIdBySlug } from "@/features/products/data";
 import type { PropertyFilterOptions } from "@/features/products/types";
@@ -25,25 +26,12 @@ export async function HeroBanner({ filterOptions }: HeroBannerProps) {
   const cards = withCategoryIdHrefs(propertyTypeCards, (slug) =>
     resolveCategoryIdBySlug(slug, filterOptions),
   ).map((item) => {
-    const subtitleKey = `${item.id}Subtitle` as
-      | "villasSubtitle"
-      | "apartmentsSubtitle"
-      | "studiosSubtitle"
-      | "landsSubtitle"
-      | "commercialSubtitle"
-      | "moreSubtitle";
+    const subtitleKey = `${item.id}Subtitle` as `${PropertyTypeCardId}Subtitle`;
     return {
       ...item,
-      title: tTypes(
-        item.id as "villas" | "apartments" | "studios" | "lands" | "commercial" | "more",
-      ),
+      title: tTypes(item.id),
       subtitle: tTypes(subtitleKey),
-      shortTitle:
-        item.id === "apartments"
-          ? tTypes("apts")
-          : tTypes(
-              item.id as "villas" | "apartments" | "studios" | "lands" | "commercial" | "more",
-            ),
+      shortTitle: item.id === "apartments" ? tTypes("apts") : tTypes(item.id),
     };
   });
 
@@ -51,7 +39,7 @@ export async function HeroBanner({ filterOptions }: HeroBannerProps) {
   const moreCard = cards.find((item) => item.id === "more");
   const mobileCards = [
     ...cards.filter((item) =>
-      ["villas", "apartments", "studios", "lands"].includes(item.id),
+      ["villas", "apartments", "studios", "lands", "shops"].includes(item.id),
     ),
     moreCard,
   ].filter((item): item is (typeof cards)[number] => Boolean(item));
@@ -92,7 +80,7 @@ export async function HeroBanner({ filterOptions }: HeroBannerProps) {
 
       <div className="relative z-10 mx-auto -mt-20 w-full px-4 sm:px-6 md:-mt-18 md:px-4 lg:-mt-28 lg:px-[100px]">
         <div className="rounded-2xl bg-white p-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.12)] md:hidden">
-          <div className="grid grid-cols-5 divide-x divide-[#eef2f7] rtl:divide-x-reverse">
+          <div className="grid grid-cols-3 divide-x divide-y divide-[#eef2f7] rtl:divide-x-reverse">
             {mobileCards.map((item, index) => (
               <div
                 key={item.id}
@@ -110,7 +98,7 @@ export async function HeroBanner({ filterOptions }: HeroBannerProps) {
         </div>
 
         <div className="hidden rounded-2xl bg-white p-2 shadow-[0_10px_30px_rgba(0,0,0,0.12)] md:block lg:hidden">
-          <div className="grid grid-cols-5 divide-x divide-[#eef2f7] rtl:divide-x-reverse">
+          <div className="grid grid-cols-3 divide-x divide-y divide-[#eef2f7] sm:grid-cols-6 sm:divide-y-0 rtl:divide-x-reverse">
             {tabletCards.map((item, index) => (
               <div
                 key={item.id}
@@ -123,7 +111,7 @@ export async function HeroBanner({ filterOptions }: HeroBannerProps) {
           </div>
         </div>
 
-        <div className="hidden grid-cols-5 gap-4 lg:grid">
+        <div className="hidden grid-cols-6 gap-4 lg:grid">
           {tabletCards.map((item, index) => (
             <div
               key={item.id}
