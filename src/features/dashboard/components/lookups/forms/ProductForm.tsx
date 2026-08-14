@@ -13,6 +13,7 @@ import {
 import {
   getImageUploadRejection,
   MAX_PRODUCT_GALLERY_IMAGES,
+  MAX_UPLOAD_IMAGE_MB,
 } from "@/constants/config";
 import { routes } from "@/constants/routes";
 import {
@@ -622,6 +623,10 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
               formErrors.field("image") ? "border-[#fca5a5] bg-[#fef2f2]" : "border-[#dbe3ef]"
             }`}
           />
+          <p className="mt-2 text-[12px] text-[var(--muted)]">
+            One cover image, JPG, PNG, WEBP, or SVG, {MAX_UPLOAD_IMAGE_MB}MB or
+            smaller.
+          </p>
           <FieldErrorText message={formErrors.field("image")} />
           {previewUrl || storedCoverSrc ? (
             <div className="mt-3">
@@ -664,7 +669,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
           </label>
           <p className="mt-2 text-[12px] text-[var(--muted)]">
             {remainingGallerySlots > 0
-              ? `Up to ${MAX_PRODUCT_GALLERY_IMAGES} images${
+              ? `Up to ${MAX_PRODUCT_GALLERY_IMAGES} extra images, ${MAX_UPLOAD_IMAGE_MB}MB each${
                   savedGalleryCount > 0 ? ` (${savedGalleryCount} already saved)` : ""
                 } — you can still add ${remainingGallerySlots}.`
               : `Maximum of ${MAX_PRODUCT_GALLERY_IMAGES} images reached. Remove one to add another.`}

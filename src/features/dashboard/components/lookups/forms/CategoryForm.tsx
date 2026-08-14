@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
 import { SafeImage } from "@/components/ui/SafeImage";
+import { MAX_UPLOAD_IMAGE_MB } from "@/constants/config";
 import { routes } from "@/constants/routes";
 import { useDashboardFormErrors } from "@/features/dashboard/hooks/useDashboardFormErrors";
 import {
@@ -133,7 +134,7 @@ function CategoryFormFields({ id, initial }: { id?: number; initial?: Category }
           }`}
         />
         <p className="mt-2 text-[12px] text-[var(--muted)]">
-          Upload JPG, PNG, WEBP, or SVG up to 5MB.
+          Upload JPG, PNG, WEBP, or SVG up to {MAX_UPLOAD_IMAGE_MB}MB.
         </p>
         <FieldErrorText message={iconError} />
         {previewUrl ? (

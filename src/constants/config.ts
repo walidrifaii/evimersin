@@ -37,10 +37,11 @@ export const config = {
 } as const;
 
 /** Extra residential unit images allowed on top of the single cover image. */
-export const MAX_PRODUCT_GALLERY_IMAGES = 3;
+export const MAX_PRODUCT_GALLERY_IMAGES = 7;
 
 /** Upload limits shared by the dashboard forms and the server upload handler. */
-export const MAX_UPLOAD_IMAGE_BYTES = 5 * 1024 * 1024;
+export const MAX_UPLOAD_IMAGE_BYTES = 1 * 1024 * 1024;
+export const MAX_UPLOAD_IMAGE_MB = MAX_UPLOAD_IMAGE_BYTES / (1024 * 1024);
 
 export const ALLOWED_UPLOAD_IMAGE_TYPES = [
   "image/jpeg",
@@ -56,7 +57,7 @@ export function getImageUploadRejection(file: File) {
   }
   if (file.size > MAX_UPLOAD_IMAGE_BYTES) {
     const megabytes = (file.size / (1024 * 1024)).toFixed(1);
-    return `${file.name} is ${megabytes}MB, over the 5MB limit`;
+    return `${file.name} is ${megabytes}MB. Each image must be ${MAX_UPLOAD_IMAGE_MB}MB or smaller`;
   }
   return null;
 }
