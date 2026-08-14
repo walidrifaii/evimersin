@@ -80,8 +80,8 @@ const PRICE_FROM_1M = "1000000-more";
 export function getPriceRangeKeys(_maxPrice?: number) {
   return [
     ANY_PRICE_KEY,
-    "0-1000",
-    "1000-500000",
+    "0-100000",
+    "100000-500000",
     "500000-1000000",
     PRICE_FROM_1M,
   ] as const;
@@ -93,8 +93,8 @@ export function formatPriceRangeLabel(
   t: HomeTranslator,
 ): string {
   if (key === ANY_PRICE_KEY) return t("anyPrice");
-  if (key === "0-1000") return "$0 - $1,000";
-  if (key === "1000-500000") return "$1,000 - $500,000";
+  if (key === "0-100000") return "$0 - $100,000";
+  if (key === "100000-500000") return "$100,000 - $500,000";
   if (key === "500000-1000000") return "$500,000 - $1,000,000";
   if (key === PRICE_FROM_1M) return "$1,000,000+";
   return key;
