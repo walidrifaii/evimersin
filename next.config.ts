@@ -25,6 +25,21 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "amctag-evimersin.38f0fz.easypanel.host",
+          },
+        ],
+        destination: "https://evimersin.co/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     return [
       {
