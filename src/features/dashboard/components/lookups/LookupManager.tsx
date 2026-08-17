@@ -232,6 +232,7 @@ export function TextInput({
   placeholder,
   autoComplete,
   error,
+  className,
 }: {
   label: string;
   value: string | number;
@@ -241,9 +242,10 @@ export function TextInput({
   placeholder?: string;
   autoComplete?: string;
   error?: string;
+  className?: string;
 }) {
   return (
-    <label className="block">
+    <label className={className ? `block ${className}` : "block"}>
       <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">{label}</span>
       <input
         type={type}

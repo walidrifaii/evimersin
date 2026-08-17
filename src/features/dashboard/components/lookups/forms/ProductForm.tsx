@@ -336,105 +336,18 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
         submitLabel={id ? "Update" : "Create"}
         error={formErrors.banner}
         fieldErrors={formErrors.fields}
-        columns={4}
+        columns={2}
         wide
       >
         <TextInput
           label="Name"
           value={name}
           required
+          className="col-span-full"
           error={formErrors.field("name")}
           onChange={(value) => {
             setName(value);
             clearField("name");
-          }}
-        />
-        <TextInput
-          label="Price"
-          type="number"
-          value={price}
-          placeholder="0"
-          required
-          error={formErrors.field("price")}
-          onChange={(value) => {
-            setPrice(value);
-            clearField("price");
-          }}
-        />
-        <label className="block">
-          <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
-            Discount type
-          </span>
-          <select
-            value={discountType ?? ""}
-            aria-invalid={Boolean(formErrors.field("discount_type"))}
-            onChange={(event) => {
-              const nextType = event.target.value;
-              setDiscountType(
-                nextType === "fixed" || nextType === "percentage" ? nextType : null,
-              );
-              if (nextType !== "fixed" && nextType !== "percentage") setDiscountValue("");
-              clearField("discount_type");
-            }}
-            className={fieldControlClass(formErrors.field("discount_type"))}
-          >
-            <option value="">No discount</option>
-            <option value="fixed">Fixed amount</option>
-            <option value="percentage">Percentage</option>
-          </select>
-          <FieldErrorText message={formErrors.field("discount_type")} />
-        </label>
-        <TextInput
-          label={
-            discountType === "percentage"
-              ? "Discount (%)"
-              : discountType === "fixed"
-                ? "Discount amount"
-                : "Discount value"
-          }
-          type="number"
-          value={discountValue}
-          placeholder="0"
-          error={formErrors.field("discount_value")}
-          onChange={(value) => {
-            setDiscountValue(value);
-            clearField("discount_value");
-          }}
-        />
-        <div className="rounded-xl border border-[#e5eaf2] bg-[#f8fafc] px-4 py-3 col-span-full sm:col-span-2 lg:col-span-2">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.06em] text-[var(--muted)]">
-            Final price
-          </p>
-          <div className="mt-1 flex flex-wrap items-center gap-2">
-            <span className="text-[18px] font-bold text-[var(--brand-navy)]">
-              {formatProductPrice(finalPrice)}
-            </span>
-            {hasActiveDiscount(discountType, discountAmount) ? (
-              <span className="text-[14px] text-[var(--muted)] line-through">
-                {formatProductPrice(priceValue)}
-              </span>
-            ) : null}
-          </div>
-        </div>
-        <TextInput
-          label="Payment method"
-          value={paymentMethod}
-          placeholder="Cash, bank transfer, installments over 12 months..."
-          error={formErrors.field("payment_method")}
-          onChange={(value) => {
-            setPaymentMethod(value);
-            clearField("payment_method");
-          }}
-        />
-        <TextInput
-          label="Position"
-          type="number"
-          value={position}
-          placeholder="0"
-          error={formErrors.field("position")}
-          onChange={(value) => {
-            setPosition(value);
-            clearField("position");
           }}
         />
         <SelectField
@@ -494,6 +407,95 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
           </select>
           <FieldErrorText message={formErrors.field("region_id")} />
         </label>
+        <TextInput
+          label="Price"
+          type="number"
+          value={price}
+          placeholder="0"
+          required
+          error={formErrors.field("price")}
+          onChange={(value) => {
+            setPrice(value);
+            clearField("price");
+          }}
+        />
+        <TextInput
+          label="Position"
+          type="number"
+          value={position}
+          placeholder="0"
+          error={formErrors.field("position")}
+          onChange={(value) => {
+            setPosition(value);
+            clearField("position");
+          }}
+        />
+        <label className="block">
+          <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
+            Discount type
+          </span>
+          <select
+            value={discountType ?? ""}
+            aria-invalid={Boolean(formErrors.field("discount_type"))}
+            onChange={(event) => {
+              const nextType = event.target.value;
+              setDiscountType(
+                nextType === "fixed" || nextType === "percentage" ? nextType : null,
+              );
+              if (nextType !== "fixed" && nextType !== "percentage") setDiscountValue("");
+              clearField("discount_type");
+            }}
+            className={fieldControlClass(formErrors.field("discount_type"))}
+          >
+            <option value="">No discount</option>
+            <option value="fixed">Fixed amount</option>
+            <option value="percentage">Percentage</option>
+          </select>
+          <FieldErrorText message={formErrors.field("discount_type")} />
+        </label>
+        <TextInput
+          label={
+            discountType === "percentage"
+              ? "Discount (%)"
+              : discountType === "fixed"
+                ? "Discount amount"
+                : "Discount value"
+          }
+          type="number"
+          value={discountValue}
+          placeholder="0"
+          error={formErrors.field("discount_value")}
+          onChange={(value) => {
+            setDiscountValue(value);
+            clearField("discount_value");
+          }}
+        />
+        <div className="rounded-xl border border-[#e5eaf2] bg-[#f8fafc] px-4 py-3 col-span-full">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.06em] text-[var(--muted)]">
+            Final price
+          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <span className="text-[18px] font-bold text-[var(--brand-navy)]">
+              {formatProductPrice(finalPrice)}
+            </span>
+            {hasActiveDiscount(discountType, discountAmount) ? (
+              <span className="text-[14px] text-[var(--muted)] line-through">
+                {formatProductPrice(priceValue)}
+              </span>
+            ) : null}
+          </div>
+        </div>
+        <TextInput
+          label="Payment method"
+          value={paymentMethod}
+          placeholder="Cash, bank transfer, installments over 12 months..."
+          className="col-span-full"
+          error={formErrors.field("payment_method")}
+          onChange={(value) => {
+            setPaymentMethod(value);
+            clearField("payment_method");
+          }}
+        />
         <StatusSelect
           value={status}
           error={formErrors.field("status")}
@@ -516,7 +518,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
             <p className="mb-3 text-[13px] font-bold text-[var(--brand-navy)]">
               {selectedCategoryName} details
             </p>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {specFields.map((field) => {
                 if (field.type === "boolean") {
                   return (
@@ -611,7 +613,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
           />
           <FieldErrorText message={formErrors.field("description")} />
         </label>
-        <label className="block col-span-full sm:col-span-2">
+        <label className="block min-w-0">
           <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
             Cover image
           </span>
@@ -682,7 +684,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
             </div>
           ) : null}
         </label>
-        <div className="col-span-full sm:col-span-2">
+        <div className="min-w-0">
           <label className="block">
             <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
               Other residential unit images
