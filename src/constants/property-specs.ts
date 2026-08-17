@@ -86,6 +86,7 @@ const CATEGORY_SPEC_KEYS: Record<string, PropertySpecFieldKey[]> = {
     "furnished",
   ],
   apartment: [
+    "built_area",
     "floor_number",
     "bedrooms",
     "bathrooms",
@@ -153,9 +154,14 @@ export function getSpecKeysForCategory(categoryName: string | null | undefined) 
 }
 
 export function getSpecFieldsForCategory(categoryName: string | null | undefined) {
-  return getSpecKeysForCategory(categoryName).map(
-    (key) => PROPERTY_SPEC_FIELDS[key],
-  );
+  const categoryKey = normalizeCategoryKey(categoryName ?? "");
+  return getSpecKeysForCategory(categoryName).map((key) => {
+    const field = PROPERTY_SPEC_FIELDS[key];
+    if (categoryKey === "apartment" && key === "built_area") {
+      return { ...field, label: "Area" };
+    }
+    return field;
+  });
 }
 
 export type PropertySpecValues = Partial<
