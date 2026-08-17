@@ -125,7 +125,7 @@ function CategoryFormFields({ id, initial }: { id?: number; initial?: Category }
         </span>
         <input
           type="file"
-          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+          accept="image/png,image/jpeg,image/webp"
           aria-invalid={Boolean(iconError)}
           onChange={async (event) => {
             const file = event.target.files?.[0] ?? null;
@@ -158,7 +158,7 @@ function CategoryFormFields({ id, initial }: { id?: number; initial?: Category }
           }`}
         />
         <p className="mt-2 text-[12px] text-[var(--muted)]">
-          Upload JPG, PNG, WEBP, or SVG. Photos are compressed to JPEG and must
+          Upload JPG, PNG, or WEBP. Photos are compressed to JPEG and must
           be {MAX_UPLOAD_IMAGE_LABEL} or smaller.
         </p>
         <FieldErrorText message={iconError} />

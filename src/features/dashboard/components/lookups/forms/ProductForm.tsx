@@ -617,7 +617,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
           </span>
           <input
             type="file"
-            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+            accept="image/png,image/jpeg,image/webp"
             aria-invalid={Boolean(formErrors.field("image"))}
             onChange={async (event) => {
               const file = event.target.files?.[0] ?? null;
@@ -652,7 +652,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
             }`}
           />
           <p className="mt-2 text-[12px] text-[var(--muted)]">
-            One cover image, JPG, PNG, WEBP, or SVG. Photos are compressed to
+            One cover image, JPG, PNG, or WEBP. Photos are compressed to
             JPEG (max 1200px) and must be {MAX_UPLOAD_IMAGE_LABEL} or smaller.
             {compressing ? " Compressing…" : ""}
           </p>
@@ -690,7 +690,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
             <input
               type="file"
               multiple
-              accept="image/png,image/jpeg,image/webp,image/svg+xml"
+              accept="image/png,image/jpeg,image/webp"
               disabled={remainingGallerySlots === 0 || compressing}
               onChange={handleGallerySelect}
               className="block w-full rounded-xl border border-[#dbe3ef] bg-[#f8fafc] px-3 py-2.5 text-[14px] text-[var(--brand-navy)] outline-none file:mr-3 file:rounded-full file:border-0 file:bg-[var(--brand-blue)] file:px-3 file:py-2 file:text-[12px] file:font-semibold file:text-white disabled:cursor-not-allowed disabled:opacity-60"

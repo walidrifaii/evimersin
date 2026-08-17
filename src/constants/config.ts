@@ -50,13 +50,17 @@ export const ALLOWED_UPLOAD_IMAGE_TYPES = [
   "image/jpeg",
   "image/png",
   "image/webp",
-  "image/svg+xml",
 ] as const;
 
 /** Reason the file type is not allowed, or null when it is fine. */
 export function getImageTypeRejection(file: File) {
+  const isSvg =
+    file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg");
+  if (isSvg) {
+    return `${file.name} cannot be used. SVG images are not allowed`;
+  }
   if (!ALLOWED_UPLOAD_IMAGE_TYPES.includes(file.type as never)) {
-    return `${file.name} is not a JPG, PNG, WEBP, or SVG image`;
+    return `${file.name} is not a JPG, PNG, or WEBP image`;
   }
   return null;
 }

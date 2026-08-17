@@ -77,8 +77,10 @@ export function toRelativeUploadPath(filePath: string | null | undefined) {
 }
 
 export async function saveImageUpload(file: File, folder: string) {
-  if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
-    throw new AppError("Only JPG, PNG, WEBP, or SVG images are allowed", 422);
+  const isSvg =
+    file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg");
+  if (isSvg || !ALLOWED_IMAGE_TYPES.has(file.type)) {
+    throw new AppError("Only JPG, PNG, or WEBP images are allowed", 422);
   }
 
   if (file.size > MAX_IMAGE_SIZE) {

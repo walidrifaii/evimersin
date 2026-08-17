@@ -35,23 +35,22 @@ function drawScaledImage(img: HTMLImageElement, maxWidth: number) {
     throw new Error("Canvas 2D is not supported");
   }
 
+  // JPEG has no alpha; fill white so transparent PNG/WEBP areas stay light.
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
   return canvas;
 }
 
 /**
  * Resize and JPEG-encode a raster image in the browser until it is at most
- * 500KB. SVGs are returned unchanged.
+ * 500KB.
  */
 export function compressImage(
   file: File,
   maxWidth = DEFAULT_MAX_WIDTH,
   quality = DEFAULT_QUALITY,
 ): Promise<File> {
-  if (file.type === "image/svg+xml") {
-    return Promise.resolve(file);
-  }
-
   return new Promise((resolve, reject) => {
     const img = new Image();
     const objectUrl = URL.createObjectURL(file);
