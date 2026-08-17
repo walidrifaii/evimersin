@@ -81,6 +81,7 @@ export function LookupFormLayout({
   children,
   columns = 2,
   wide = false,
+  compactMobile = false,
 }: {
   title: string;
   description: string;
@@ -93,13 +94,16 @@ export function LookupFormLayout({
   children: ReactNode;
   columns?: 2 | 3 | 4;
   wide?: boolean;
+  compactMobile?: boolean;
 }) {
   const gridClass =
     columns === 4
       ? "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
       : columns === 3
         ? "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
-        : "grid grid-cols-1 gap-4 sm:grid-cols-2";
+        : compactMobile
+          ? "grid grid-cols-2 gap-3 sm:gap-4"
+          : "grid grid-cols-1 gap-4 sm:grid-cols-2";
 
   return (
     <div className="space-y-6">
@@ -127,7 +131,9 @@ export function LookupFormLayout({
 
       <form
         onSubmit={onSubmit}
-        className={`${wide ? "max-w-6xl" : "max-w-2xl"} rounded-[24px] border border-[#e8eef6] bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)]`}
+        className={`${wide ? "max-w-6xl" : "max-w-2xl"} rounded-[24px] border border-[#e8eef6] bg-white ${
+          compactMobile ? "p-4 sm:p-5" : "p-5"
+        } shadow-[0_8px_30px_rgba(15,23,42,0.04)]`}
       >
         <div className={gridClass}>{children}</div>
 
@@ -181,7 +187,7 @@ export function StatusSelect({
   error?: string;
 }) {
   return (
-    <label className="block">
+    <label className="block min-w-0">
       <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">Status</span>
       <select
         value={value}
@@ -206,7 +212,7 @@ export function FeaturedSelect({
   error?: string;
 }) {
   return (
-    <label className="block">
+    <label className="block min-w-0">
       <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
         Featured
       </span>
@@ -245,7 +251,7 @@ export function TextInput({
   className?: string;
 }) {
   return (
-    <label className={className ? `block ${className}` : "block"}>
+    <label className={className ? `block min-w-0 ${className}` : "block min-w-0"}>
       <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">{label}</span>
       <input
         type={type}
@@ -287,7 +293,7 @@ export function SelectField({
   error?: string;
 }) {
   return (
-    <label className="block">
+    <label className="block min-w-0">
       <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
         {label}
       </span>

@@ -37,8 +37,8 @@ export function DashboardFormAlert({
 
 export function fieldControlClass(hasError?: string) {
   return hasError
-    ? "h-11 w-full rounded-xl border border-[#fca5a5] bg-[#fef2f2] px-3 text-[14px] text-[var(--brand-navy)] outline-none focus:border-[#b91c1c] focus:bg-white"
-    : "h-11 w-full rounded-xl border border-[#dbe3ef] bg-[#f8fafc] px-3 text-[14px] text-[var(--brand-navy)] outline-none focus:border-[var(--brand-blue)] focus:bg-white";
+    ? "h-11 w-full min-w-0 rounded-xl border border-[#fca5a5] bg-[#fef2f2] px-2.5 text-[13px] text-[var(--brand-navy)] outline-none focus:border-[#b91c1c] focus:bg-white sm:px-3 sm:text-[14px]"
+    : "h-11 w-full min-w-0 rounded-xl border border-[#dbe3ef] bg-[#f8fafc] px-2.5 text-[13px] text-[var(--brand-navy)] outline-none focus:border-[var(--brand-blue)] focus:bg-white sm:px-3 sm:text-[14px]";
 }
 
 export function FieldErrorText({ message }: { message?: string }) {

@@ -337,6 +337,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
         error={formErrors.banner}
         fieldErrors={formErrors.fields}
         columns={2}
+        compactMobile
         wide
       >
         <TextInput
@@ -384,7 +385,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
           options={activeCities}
           required
         />
-        <label className="block">
+        <label className="block min-w-0">
           <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
             Region
           </span>
@@ -430,7 +431,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
             clearField("position");
           }}
         />
-        <label className="block">
+        <label className="block min-w-0">
           <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
             Discount type
           </span>
@@ -518,11 +519,11 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
             <p className="mb-3 text-[13px] font-bold text-[var(--brand-navy)]">
               {selectedCategoryName} details
             </p>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               {specFields.map((field) => {
                 if (field.type === "boolean") {
                   return (
-                    <label key={field.key} className="block">
+                    <label key={field.key} className="block min-w-0">
                       <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
                         {field.label}
                       </span>
@@ -537,7 +538,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
                             next === "" ? null : next === "1" ? 1 : 0,
                           );
                         }}
-                        className="h-11 w-full rounded-xl border border-[#dbe3ef] bg-[#f8fafc] px-3 text-[14px] text-[var(--brand-navy)] outline-none focus:border-[var(--brand-blue)] focus:bg-white"
+                        className={fieldControlClass()}
                       >
                         <option value="">Not set</option>
                         <option value="1">Yes</option>
@@ -613,7 +614,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
           />
           <FieldErrorText message={formErrors.field("description")} />
         </label>
-        <label className="block min-w-0">
+        <label className="block min-w-0 col-span-2 md:col-span-1">
           <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
             Cover image
           </span>
@@ -684,7 +685,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
             </div>
           ) : null}
         </label>
-        <div className="min-w-0">
+        <div className="min-w-0 col-span-2 md:col-span-1">
           <label className="block">
             <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
               Other residential unit images
