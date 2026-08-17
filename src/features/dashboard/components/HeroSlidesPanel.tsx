@@ -3,6 +3,7 @@
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
 import { SafeImage } from "@/components/ui/SafeImage";
+import { prepareImageForUpload } from "@/lib/compress-image";
 import {
   FormLoading,
   StatusBadge,
@@ -48,6 +49,7 @@ function SlideModal({
   const [form, setForm] = useState<SlideFormState>(emptyForm);
   const [previewUrl, setPreviewUrl] = useState("");
   const [localError, setLocalError] = useState<unknown>(null);
+  const [compressing, setCompressing] = useState(false);
   const [createSlide, createState] = useCreateHeroSlideMutation();
   const [updateSlide, updateState] = useUpdateHeroSlideMutation();
 
@@ -109,7 +111,7 @@ function SlideModal({
 
   if (!open) return null;
 
-  const saving = createState.isLoading || updateState.isLoading;
+  const saving = createState.isLoading || updateState.isLoading || compressing;
 
   return (
     <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
@@ -139,12 +141,30 @@ function SlideModal({
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
-                onChange={(event) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    imageFile: event.target.files?.[0] ?? null,
-                  }))
-                }
+                onChange={async (event) => {
+                  const file = event.target.files?.[0] ?? null;
+                  event.target.value = "";
+                  if (!file) {
+                    setForm((prev) => ({ ...prev, imageFile: null }));
+                    return;
+                  }
+
+                  setCompressing(true);
+                  setLocalError(null);
+                  try {
+                    const result = await prepareImageForUpload(file, 1920);
+
+                    if (!result.ok) {
+                      setForm((prev) => ({ ...prev, imageFile: null }));
+                      setLocalError(new Error(result.reason));
+                      return;
+                    }
+
+                    setForm((prev) => ({ ...prev, imageFile: result.file }));
+                  } finally {
+                    setCompressing(false);
+                  }
+                }}
                 className="block w-full text-[13px] text-[var(--brand-navy)] file:mr-3 file:rounded-full file:border-0 file:bg-[#eff6ff] file:px-4 file:py-2 file:text-[12px] file:font-semibold file:text-[var(--brand-blue)]"
               />
             </label>

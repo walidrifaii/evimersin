@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
 import { SafeImage } from "@/components/ui/SafeImage";
-import { MAX_UPLOAD_IMAGE_MB } from "@/constants/config";
+import { MAX_UPLOAD_IMAGE_LABEL } from "@/constants/config";
 import { routes } from "@/constants/routes";
 import { useDashboardFormErrors } from "@/features/dashboard/hooks/useDashboardFormErrors";
 import {
@@ -14,6 +14,7 @@ import {
   TextInput,
 } from "@/features/dashboard/components/lookups/LookupManager";
 import { FieldErrorText } from "@/features/dashboard/components/DashboardFormAlert";
+import { prepareImageForUpload } from "@/lib/compress-image";
 import { toDisplayImageSrc } from "@/lib/image-url";
 import {
   useCreateCategoryMutation,
@@ -43,6 +44,7 @@ function CategoryFormFields({ id, initial }: { id?: number; initial?: Category }
   const [name, setName] = useState(initial?.name ?? "");
   const [position, setPosition] = useState<number>(initial?.position ?? 0);
   const [iconFile, setIconFile] = useState<File | null>(null);
+  const [compressing, setCompressing] = useState(false);
   const [status, setStatus] = useState<Status>(initial?.status ?? 1);
   const [previewUrl, setPreviewUrl] = useState(
     toDisplayImageSrc(initial?.icon),
@@ -91,7 +93,7 @@ function CategoryFormFields({ id, initial }: { id?: number; initial?: Category }
       description="Categories group properties across listings and filters."
       backHref={backHref}
       onSubmit={onSubmit}
-      submitting={createState.isLoading || updateState.isLoading}
+      submitting={createState.isLoading || updateState.isLoading || compressing}
       submitLabel={id ? "Update" : "Create"}
       error={formErrors.banner}
       fieldErrors={formErrors.fields}
@@ -125,16 +127,39 @@ function CategoryFormFields({ id, initial }: { id?: number; initial?: Category }
           type="file"
           accept="image/png,image/jpeg,image/webp,image/svg+xml"
           aria-invalid={Boolean(iconError)}
-          onChange={(event) => {
-            setIconFile(event.target.files?.[0] ?? null);
-            formErrors.clearField("icon");
+          onChange={async (event) => {
+            const file = event.target.files?.[0] ?? null;
+            event.target.value = "";
+            if (!file) {
+              setIconFile(null);
+              return;
+            }
+
+            setCompressing(true);
+            try {
+              const result = await prepareImageForUpload(file);
+
+              if (!result.ok) {
+                setIconFile(null);
+                formErrors.setLocal("The icon image was not accepted.", {
+                  icon: result.reason,
+                });
+                return;
+              }
+
+              setIconFile(result.file);
+              formErrors.clearField("icon");
+            } finally {
+              setCompressing(false);
+            }
           }}
           className={`block w-full rounded-xl border bg-[#f8fafc] px-3 py-2.5 text-[14px] text-[var(--brand-navy)] outline-none file:mr-3 file:rounded-full file:border-0 file:bg-[var(--brand-blue)] file:px-3 file:py-2 file:text-[12px] file:font-semibold file:text-white ${
             iconError ? "border-[#fca5a5] bg-[#fef2f2]" : "border-[#dbe3ef]"
           }`}
         />
         <p className="mt-2 text-[12px] text-[var(--muted)]">
-          Upload JPG, PNG, WEBP, or SVG up to {MAX_UPLOAD_IMAGE_MB}MB.
+          Upload JPG, PNG, WEBP, or SVG. Photos are compressed to JPEG and must
+          be {MAX_UPLOAD_IMAGE_LABEL} or smaller.
         </p>
         <FieldErrorText message={iconError} />
         {previewUrl ? (

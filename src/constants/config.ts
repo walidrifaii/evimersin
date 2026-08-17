@@ -40,8 +40,11 @@ export const config = {
 export const MAX_PRODUCT_GALLERY_IMAGES = 7;
 
 /** Upload limits shared by the dashboard forms and the server upload handler. */
-export const MAX_UPLOAD_IMAGE_BYTES = 1 * 1024 * 1024;
-export const MAX_UPLOAD_IMAGE_MB = MAX_UPLOAD_IMAGE_BYTES / (1024 * 1024);
+export const MAX_UPLOAD_IMAGE_BYTES = 500 * 1024;
+export const MAX_UPLOAD_IMAGE_KB = MAX_UPLOAD_IMAGE_BYTES / 1024;
+export const MAX_UPLOAD_IMAGE_LABEL = `${MAX_UPLOAD_IMAGE_KB}KB`;
+/** Original photos can be larger; the browser compresses them before upload. */
+export const MAX_ORIGINAL_IMAGE_BYTES = 25 * 1024 * 1024;
 
 export const ALLOWED_UPLOAD_IMAGE_TYPES = [
   "image/jpeg",
@@ -50,14 +53,21 @@ export const ALLOWED_UPLOAD_IMAGE_TYPES = [
   "image/svg+xml",
 ] as const;
 
-/** Reason the file cannot be uploaded, or null when it is fine. */
-export function getImageUploadRejection(file: File) {
+/** Reason the file type is not allowed, or null when it is fine. */
+export function getImageTypeRejection(file: File) {
   if (!ALLOWED_UPLOAD_IMAGE_TYPES.includes(file.type as never)) {
     return `${file.name} is not a JPG, PNG, WEBP, or SVG image`;
   }
+  return null;
+}
+
+/** Reason the file cannot be uploaded, or null when it is fine. */
+export function getImageUploadRejection(file: File) {
+  const typeRejection = getImageTypeRejection(file);
+  if (typeRejection) return typeRejection;
   if (file.size > MAX_UPLOAD_IMAGE_BYTES) {
-    const megabytes = (file.size / (1024 * 1024)).toFixed(1);
-    return `${file.name} is ${megabytes}MB. Each image must be ${MAX_UPLOAD_IMAGE_MB}MB or smaller`;
+    const kilobytes = Math.ceil(file.size / 1024);
+    return `${file.name} is ${kilobytes}KB. Each image must be ${MAX_UPLOAD_IMAGE_LABEL} or smaller`;
   }
   return null;
 }

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import type { ChangeEvent, FormEvent } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { SafeImage } from "@/components/ui/SafeImage";
 import {
   ALL_PROPERTY_SPEC_KEYS,
@@ -11,9 +11,8 @@ import {
   type PropertySpecFieldKey,
 } from "@/constants/property-specs";
 import {
-  getImageUploadRejection,
   MAX_PRODUCT_GALLERY_IMAGES,
-  MAX_UPLOAD_IMAGE_MB,
+  MAX_UPLOAD_IMAGE_LABEL,
 } from "@/constants/config";
 import { routes } from "@/constants/routes";
 import {
@@ -30,6 +29,7 @@ import {
   fieldControlClass,
 } from "@/features/dashboard/components/DashboardFormAlert";
 import { useDashboardFormErrors } from "@/features/dashboard/hooks/useDashboardFormErrors";
+import { prepareImageForUpload } from "@/lib/compress-image";
 import { toDisplayImageSrc } from "@/lib/image-url";
 import {
   calculateFinalPrice,
@@ -93,6 +93,8 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
   const [isFeatured, setIsFeatured] = useState<Status>(initial?.is_featured ?? 0);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
+  const [compressing, setCompressing] = useState(false);
+  const coverCompressSeq = useRef(0);
   const formErrors = useDashboardFormErrors();
   const [galleryError, setGalleryError] = useState<unknown>(null);
   const [galleryNotice, setGalleryNotice] = useState<string | null>(null);
@@ -170,34 +172,43 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
     MAX_PRODUCT_GALLERY_IMAGES - savedGalleryCount - galleryFiles.length,
   );
 
-  function handleGallerySelect(event: ChangeEvent<HTMLInputElement>) {
+  async function handleGallerySelect(event: ChangeEvent<HTMLInputElement>) {
     const selected = Array.from(event.target.files ?? []);
     // Clearing the input lets the same file be picked again after removing it.
     event.target.value = "";
     if (selected.length === 0) return;
 
-    // One bad file makes the server reject the whole save, so filter here first.
-    const reasons: string[] = [];
-    const usable = selected.filter((file) => {
-      const rejection = getImageUploadRejection(file);
-      if (rejection) reasons.push(rejection);
-      return !rejection;
-    });
+    setCompressing(true);
+    try {
+      const reasons: string[] = [];
+      const prepared: File[] = [];
 
-    const accepted = usable.slice(0, remainingGallerySlots);
-    const overLimit = usable.length - accepted.length;
-    if (overLimit > 0) {
-      reasons.push(
-        `only ${MAX_PRODUCT_GALLERY_IMAGES} images are allowed, so ${overLimit} more ${
-          overLimit === 1 ? "was" : "were"
-        } skipped`,
-      );
-    }
+      for (const file of selected) {
+        const result = await prepareImageForUpload(file);
+        if (result.ok) {
+          prepared.push(result.file);
+        } else {
+          reasons.push(result.reason);
+        }
+      }
 
-    setGalleryNotice(reasons.length > 0 ? `Not added: ${reasons.join("; ")}.` : null);
+      const accepted = prepared.slice(0, remainingGallerySlots);
+      const overLimit = prepared.length - accepted.length;
+      if (overLimit > 0) {
+        reasons.push(
+          `only ${MAX_PRODUCT_GALLERY_IMAGES} images are allowed, so ${overLimit} more ${
+            overLimit === 1 ? "was" : "were"
+          } skipped`,
+        );
+      }
 
-    if (accepted.length > 0) {
-      setGalleryFiles((previous) => [...previous, ...accepted]);
+      setGalleryNotice(reasons.length > 0 ? `Not added: ${reasons.join("; ")}.` : null);
+
+      if (accepted.length > 0) {
+        setGalleryFiles((previous) => [...previous, ...accepted]);
+      }
+    } finally {
+      setCompressing(false);
     }
   }
 
@@ -317,7 +328,10 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
         backHref={backHref}
         onSubmit={onSubmit}
         submitting={
-          createState.isLoading || updateState.isLoading || addImageState.isLoading
+          createState.isLoading ||
+          updateState.isLoading ||
+          addImageState.isLoading ||
+          compressing
         }
         submitLabel={id ? "Update" : "Create"}
         error={formErrors.banner}
@@ -605,27 +619,42 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
             type="file"
             accept="image/png,image/jpeg,image/webp,image/svg+xml"
             aria-invalid={Boolean(formErrors.field("image"))}
-            onChange={(event) => {
+            onChange={async (event) => {
               const file = event.target.files?.[0] ?? null;
-              const rejection = file ? getImageUploadRejection(file) : null;
-              if (rejection) {
-                event.target.value = "";
+              event.target.value = "";
+              const seq = ++coverCompressSeq.current;
+              if (!file) {
                 setImageFile(null);
-                formErrors.setLocal("The cover image was not accepted.", {
-                  image: rejection,
-                });
                 return;
               }
-              setImageFile(file);
-              clearField("image");
+
+              setCompressing(true);
+              try {
+                const result = await prepareImageForUpload(file);
+                if (seq !== coverCompressSeq.current) return;
+
+                if (!result.ok) {
+                  setImageFile(null);
+                  formErrors.setLocal("The cover image was not accepted.", {
+                    image: result.reason,
+                  });
+                  return;
+                }
+
+                setImageFile(result.file);
+                clearField("image");
+              } finally {
+                if (seq === coverCompressSeq.current) setCompressing(false);
+              }
             }}
             className={`block w-full rounded-xl border bg-[#f8fafc] px-3 py-2.5 text-[14px] text-[var(--brand-navy)] outline-none file:mr-3 file:rounded-full file:border-0 file:bg-[var(--brand-blue)] file:px-3 file:py-2 file:text-[12px] file:font-semibold file:text-white ${
               formErrors.field("image") ? "border-[#fca5a5] bg-[#fef2f2]" : "border-[#dbe3ef]"
             }`}
           />
           <p className="mt-2 text-[12px] text-[var(--muted)]">
-            One cover image, JPG, PNG, WEBP, or SVG, {MAX_UPLOAD_IMAGE_MB}MB or
-            smaller.
+            One cover image, JPG, PNG, WEBP, or SVG. Photos are compressed to
+            JPEG (max 1200px) and must be {MAX_UPLOAD_IMAGE_LABEL} or smaller.
+            {compressing ? " Compressing…" : ""}
           </p>
           <FieldErrorText message={formErrors.field("image")} />
           {previewUrl || storedCoverSrc ? (
@@ -662,14 +691,14 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
               type="file"
               multiple
               accept="image/png,image/jpeg,image/webp,image/svg+xml"
-              disabled={remainingGallerySlots === 0}
+              disabled={remainingGallerySlots === 0 || compressing}
               onChange={handleGallerySelect}
               className="block w-full rounded-xl border border-[#dbe3ef] bg-[#f8fafc] px-3 py-2.5 text-[14px] text-[var(--brand-navy)] outline-none file:mr-3 file:rounded-full file:border-0 file:bg-[var(--brand-blue)] file:px-3 file:py-2 file:text-[12px] file:font-semibold file:text-white disabled:cursor-not-allowed disabled:opacity-60"
             />
           </label>
           <p className="mt-2 text-[12px] text-[var(--muted)]">
             {remainingGallerySlots > 0
-              ? `Up to ${MAX_PRODUCT_GALLERY_IMAGES} extra images, ${MAX_UPLOAD_IMAGE_MB}MB each${
+              ? `Up to ${MAX_PRODUCT_GALLERY_IMAGES} extra images, compressed to ${MAX_UPLOAD_IMAGE_LABEL} each${
                   savedGalleryCount > 0 ? ` (${savedGalleryCount} already saved)` : ""
                 } — you can still add ${remainingGallerySlots}.`
               : `Maximum of ${MAX_PRODUCT_GALLERY_IMAGES} images reached. Remove one to add another.`}

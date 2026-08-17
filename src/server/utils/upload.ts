@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import {
   ALLOWED_UPLOAD_IMAGE_TYPES,
   MAX_UPLOAD_IMAGE_BYTES,
-  MAX_UPLOAD_IMAGE_MB,
+  MAX_UPLOAD_IMAGE_LABEL,
 } from "@/constants/config";
 import { AppError } from "@/server/utils/errors";
 import { mediaRepository } from "@/server/database/repositories/media.repository";
@@ -83,7 +83,7 @@ export async function saveImageUpload(file: File, folder: string) {
 
   if (file.size > MAX_IMAGE_SIZE) {
     throw new AppError(
-      `Image size must be ${MAX_UPLOAD_IMAGE_MB}MB or less`,
+      `Image size must be ${MAX_UPLOAD_IMAGE_LABEL} or less`,
       422,
     );
   }
