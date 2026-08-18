@@ -36,13 +36,7 @@ export async function HeroBanner({ filterOptions }: HeroBannerProps) {
   });
 
   const tabletCards = cards.filter((item) => item.id !== "more");
-  const moreCard = cards.find((item) => item.id === "more");
-  const mobileCards = [
-    ...cards.filter((item) =>
-      ["villas", "apartments", "studios", "lands", "shops"].includes(item.id),
-    ),
-    moreCard,
-  ].filter((item): item is (typeof cards)[number] => Boolean(item));
+  const mobileCards = cards.filter((item) => item.id !== "more");
 
   return (
     <section className="relative w-full bg-white">
@@ -80,7 +74,7 @@ export async function HeroBanner({ filterOptions }: HeroBannerProps) {
 
       <div className="relative z-10 mx-auto -mt-20 w-full px-4 sm:px-6 md:-mt-18 md:px-4 lg:-mt-28 lg:px-[100px]">
         <div className="rounded-2xl bg-white p-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.12)] md:hidden">
-          <div className="grid grid-cols-3 divide-x divide-y divide-[#eef2f7] rtl:divide-x-reverse">
+          <div className="grid grid-cols-5 divide-x divide-[#eef2f7] rtl:divide-x-reverse">
             {mobileCards.map((item, index) => (
               <div
                 key={item.id}
@@ -111,7 +105,7 @@ export async function HeroBanner({ filterOptions }: HeroBannerProps) {
           </div>
         </div>
 
-        <div className="hidden grid-cols-6 gap-4 lg:grid">
+        <div className="mx-auto hidden max-w-[1720px] grid-cols-5 justify-center gap-4 lg:grid">
           {tabletCards.map((item, index) => (
             <div
               key={item.id}

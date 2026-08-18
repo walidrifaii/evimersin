@@ -34,13 +34,18 @@ async function slideImageExists(imagePath: string) {
 
 /** Active hero slides whose image is still readable. */
 export async function getHeroSlides(): Promise<PublicHeroSlide[]> {
-  const slides = await heroSlideRepository.findActive();
-  const available: PublicHeroSlide[] = [];
+  try {
+    const slides = await heroSlideRepository.findActive();
+    const available: PublicHeroSlide[] = [];
 
-  for (const slide of slides) {
-    if (!(await slideImageExists(slide.image))) continue;
-    available.push(toPublicSlide(slide));
+    for (const slide of slides) {
+      if (!(await slideImageExists(slide.image))) continue;
+      available.push(toPublicSlide(slide));
+    }
+
+    return available;
+  } catch (error) {
+    console.error("[hero-slides] Failed to load active hero slides:", error);
+    return [];
   }
-
-  return available;
 }
