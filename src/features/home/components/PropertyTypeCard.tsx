@@ -32,7 +32,7 @@ export function PropertyTypeCard({
       <span
         className={`block w-full min-w-0 font-bold text-[var(--brand-navy)] ${
           compact
-            ? "break-words text-[0.625rem] leading-[1.15] min-[390px]:text-[0.7rem] sm:text-[0.95rem]"
+            ? "break-words text-[0.6rem] leading-[1.15] md:text-[0.95rem]"
             : "text-[1.25rem] md:text-[1.05rem] lg:text-[1.375rem]"
         }`}
       >
