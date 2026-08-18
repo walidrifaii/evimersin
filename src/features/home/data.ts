@@ -235,13 +235,13 @@ export const propertyTypeCards: PropertyTypeCardItem[] = [
     href: `${routes.properties}?type=apartments`,
     Icon: ApartmentIcon,
   },
-  {
-    id: "studios",
-    title: "Studios",
-    subtitle: "Comfortable Studios",
-    href: `${routes.properties}?type=studios`,
-    Icon: StudioIcon,
-  },
+  // {
+  //   id: "studios",
+  //   title: "Studios",
+  //   subtitle: "Comfortable Studios",
+  //   href: `${routes.properties}?type=studios`,
+  //   Icon: StudioIcon,
+  // },
   {
     id: "lands",
     title: "Lands",
