@@ -72,13 +72,13 @@ export async function HeroBanner({ filterOptions }: HeroBannerProps) {
         </HeroBannerInteractive>
       </div>
 
-      <div className="relative z-10 mx-auto -mt-20 w-full px-4 sm:px-6 md:-mt-18 md:px-4 lg:-mt-28 lg:px-[100px]">
-        <div className="rounded-2xl bg-white p-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.12)] md:hidden">
-          <div className="grid grid-cols-5 divide-x divide-[#eef2f7] rtl:divide-x-reverse">
+      <div className="relative z-10 mx-auto -mt-[4.5rem] w-full px-3 sm:-mt-20 sm:px-6 md:-mt-18 md:px-4 lg:-mt-28 lg:px-[100px]">
+        <div className="overflow-hidden rounded-[1.75rem] bg-white p-2 shadow-[0_12px_32px_rgba(15,23,42,0.14)] ring-1 ring-black/[0.025] md:hidden">
+          <div className="grid grid-cols-5 divide-x divide-[#e8edf4] rtl:divide-x-reverse">
             {mobileCards.map((item, index) => (
               <div
                 key={item.id}
-                className="animate-[heroRise_700ms_ease-out] [animation-fill-mode:both]"
+                className="min-w-0 animate-[heroRise_700ms_ease-out] [animation-fill-mode:both] motion-reduce:animate-none"
                 style={{ animationDelay: `${120 + index * 60}ms` }}
               >
                 <PropertyTypeCard
