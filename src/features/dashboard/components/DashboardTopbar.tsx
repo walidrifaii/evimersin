@@ -23,7 +23,7 @@ export function DashboardTopbar({ onMenuOpen }: DashboardTopbarProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const deferredQuery = useDeferredValue(query.trim());
   const canSearch =
-    ["products", "categories", "cities", "purposes"].includes(activeTab) &&
+    ["products", "categories", "countries", "cities", "purposes"].includes(activeTab) &&
     canAccessTab(permissions, activeTab);
   const skipSearch = !canSearch || deferredQuery.length < 1;
 

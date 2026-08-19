@@ -3,7 +3,10 @@ import { RequireDashboardAccess } from "@/features/dashboard/components/RequireD
 
 export default function NewCountryPage() {
   return (
-    <RequireDashboardAccess tab="cities" permission="cities:create">
+    <RequireDashboardAccess
+      tab="countries"
+      permission={["countries:create", "cities:create"]}
+    >
       <CountryForm />
     </RequireDashboardAccess>
   );

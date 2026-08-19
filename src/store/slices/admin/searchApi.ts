@@ -4,6 +4,7 @@ import type { ApiResponse } from "@/store/api/types";
 export type DashboardSearchType =
   | "products"
   | "categories"
+  | "countries"
   | "cities"
   | "purposes";
 

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
+import Link from "next/link";
 import { routes } from "@/constants/routes";
 import { useDashboardFormErrors } from "@/features/dashboard/hooks/useDashboardFormErrors";
 import {
@@ -48,7 +49,7 @@ function CityFormFields({ id, initial }: { id?: number; initial?: City }) {
   const defaultCountryId =
     initial?.country_id ??
     activeCountries.find((country) =>
-      country.name.toLowerCase().includes("Lebanon"),
+      country.name.toLowerCase().includes("lebanon"),
     )?.id ??
     activeCountries[0]?.id ??
     countries[0]?.id ??
@@ -124,6 +125,18 @@ function CityFormFields({ id, initial }: { id?: number; initial?: City }) {
           formErrors.clearField("country_id");
         }}
       />
+      {countries.length === 0 ? (
+        <p className="text-[13px] text-[var(--muted)]">
+          No countries yet.{" "}
+          <Link
+            href={routes.lookupNew("countries")}
+            className="font-semibold text-[var(--brand-blue)] hover:underline"
+          >
+            Add a country
+          </Link>{" "}
+          first, then come back to add this city.
+        </p>
+      ) : null}
 
       <StatusSelect
         value={status}

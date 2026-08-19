@@ -8,16 +8,17 @@ export const searchService = {
       return { query: "", results: [] };
     }
 
-    const [products, categories, cities, purposes] = await Promise.all([
+    const [products, categories, countries, cities, purposes] = await Promise.all([
       searchRepository.searchProducts(query),
       searchRepository.searchCategories(query),
+      searchRepository.searchCountries(query),
       searchRepository.searchCities(query),
       searchRepository.searchPurposes(query),
     ]);
 
     return {
       query,
-      results: [...products, ...categories, ...cities, ...purposes],
+      results: [...products, ...categories, ...countries, ...cities, ...purposes],
     };
   },
 };

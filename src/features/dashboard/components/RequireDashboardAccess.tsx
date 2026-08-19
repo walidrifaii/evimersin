@@ -10,8 +10,8 @@ type RequireDashboardAccessProps = {
   children: ReactNode;
   /** Dashboard tab id, e.g. "products" — requires `{tab}:read` */
   tab?: string;
-  /** Specific permission key, e.g. "products:create" */
-  permission?: string;
+  /** Specific permission key, or any of several keys */
+  permission?: string | string[];
 };
 
 export function RequireDashboardAccess({
@@ -23,9 +23,14 @@ export function RequireDashboardAccess({
   const { permissions } = usePermissions();
 
   const tabAllowed = tab ? canAccessTab(permissions, tab) : true;
-  const permissionAllowed = permission
-    ? hasPermission(permissions, permission)
-    : true;
+  const requiredPermissions = Array.isArray(permission)
+    ? permission
+    : permission
+      ? [permission]
+      : [];
+  const permissionAllowed =
+    requiredPermissions.length === 0 ||
+    requiredPermissions.some((item) => hasPermission(permissions, item));
   const allowed = tabAllowed && permissionAllowed;
 
   useEffect(() => {

@@ -8,6 +8,7 @@ import { AnnouncementsPanel } from "@/features/dashboard/components/Announcement
 import { DashboardOverview } from "@/features/dashboard/components/DashboardOverview";
 import { CategoriesPanel } from "@/features/dashboard/components/lookups/CategoriesPanel";
 import { CitiesPanel } from "@/features/dashboard/components/lookups/CitiesPanel";
+import { CountriesPanel } from "@/features/dashboard/components/lookups/CountriesPanel";
 import { RegionsPanel } from "@/features/dashboard/components/lookups/RegionsPanel";
 import { ProductsPanel } from "@/features/dashboard/components/lookups/ProductsPanel";
 import { PurposesPanel } from "@/features/dashboard/components/lookups/PurposesPanel";
@@ -29,17 +30,10 @@ export function DashboardContent() {
 
     const fallbackTab = getFirstAllowedTab(permissions);
 
-    if (!tabParam || tabParam === "countries" || tabParam === "account-security") {
-      const legacyTarget =
-        tabParam === "countries"
-          ? "cities"
-          : tabParam === "account-security"
-            ? "security"
-            : null;
-
+    if (!tabParam || tabParam === "account-security") {
       const next =
-        legacyTarget && canAccessTab(permissions, legacyTarget)
-          ? legacyTarget
+        tabParam === "account-security" && canAccessTab(permissions, "security")
+          ? "security"
           : fallbackTab;
 
       router.replace(routes.dashboardTab(next));
@@ -72,6 +66,8 @@ export function DashboardContent() {
       return <DashboardOverview />;
     case "announcements":
       return <AnnouncementsPanel />;
+    case "countries":
+      return <CountriesPanel />;
     case "cities":
       return <CitiesPanel />;
     case "regions":

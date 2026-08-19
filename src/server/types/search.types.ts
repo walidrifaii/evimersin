@@ -1,6 +1,7 @@
 export type DashboardSearchType =
   | "products"
   | "categories"
+  | "countries"
   | "cities"
   | "purposes";
 

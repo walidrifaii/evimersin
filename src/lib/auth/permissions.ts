@@ -60,6 +60,12 @@ export function canAccessTab(
   if (tabId === "hero-slides") {
     return hasPermission(permissions, "settings:read");
   }
+  if (tabId === "countries") {
+    return (
+      hasPermission(permissions, "countries:read") ||
+      hasPermission(permissions, "cities:read")
+    );
+  }
   if (!permissions?.length) return false;
   if (permissions.includes(SUPER_ADMIN_PERMISSION)) return true;
 
@@ -72,6 +78,7 @@ export function getFirstAllowedTab(permissions: string[] | undefined | null) {
     "announcements",
     "products",
     "categories",
+    "countries",
     "cities",
     "regions",
     "purposes",

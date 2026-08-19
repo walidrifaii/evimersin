@@ -31,7 +31,12 @@ export function CitiesPanel() {
   const filtered = useMemo(
     () =>
       data.filter((item) =>
-        matchesDashboardSearch(deferredQuery, item.id, item.name),
+        matchesDashboardSearch(
+          deferredQuery,
+          item.id,
+          item.name,
+          item.country_name,
+        ),
       ),
     [data, deferredQuery],
   );
@@ -39,7 +44,7 @@ export function CitiesPanel() {
   return (
     <LookupListLayout
       title="Cities"
-      description="Manage cities in Lebanon for property locations."
+      description="Manage cities for property locations. Each city belongs to a country."
       addHref={routes.lookupNew("cities")}
       addLabel="Add city"
       showAdd={canCreate}
@@ -48,7 +53,7 @@ export function CitiesPanel() {
     >
       {data.length === 0 ? (
         <div className="px-5 py-10 text-center text-[14px] text-[var(--muted)]">
-          No cities yet. Add your first city in Lebanon.
+          No cities yet. Add your first city.
         </div>
       ) : filtered.length === 0 ? (
         <div className="px-5 py-10 text-center text-[14px] text-[var(--muted)]">
@@ -56,11 +61,14 @@ export function CitiesPanel() {
         </div>
       ) : (
         <LookupTable
-          headers={["ID", "Name", "Status", "Actions"]}
+          headers={["ID", "Name", "Country", "Status", "Actions"]}
           rows={filtered.map((item) => (
             <tr key={item.id} className="border-t border-[#eef2f7]">
               <td className="px-5 py-3 text-[var(--muted)]">{item.id}</td>
               <td className="px-5 py-3 font-semibold text-[var(--brand-navy)]">{item.name}</td>
+              <td className="px-5 py-3 text-[var(--muted)]">
+                {item.country_name || "—"}
+              </td>
               <td className="px-5 py-3">
                 <StatusBadge status={item.status} />
               </td>

@@ -12,6 +12,7 @@ import type {
 const TYPE_LABELS: Record<DashboardSearchType, string> = {
   products: "Residential Units",
   categories: "Categories",
+  countries: "Countries",
   cities: "Cities",
   purposes: "Purposes",
 };
@@ -19,6 +20,7 @@ const TYPE_LABELS: Record<DashboardSearchType, string> = {
 const TYPE_ORDER: DashboardSearchType[] = [
   "products",
   "categories",
+  "countries",
   "cities",
   "purposes",
 ];
@@ -152,8 +154,8 @@ export function DashboardSearchDrawer({
         <div className="flex-1 overflow-y-auto px-5 py-4">
           {!trimmed ? (
             <p className="py-10 text-center text-[14px] text-[var(--muted)]">
-              Start typing to search residential units, categories, cities, and
-              purposes.
+              Start typing to search residential units, categories, countries,
+              cities, and purposes.
             </p>
           ) : isLoading ? (
             <p className="py-10 text-center text-[14px] text-[var(--muted)]">

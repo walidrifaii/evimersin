@@ -8,7 +8,10 @@ export default async function EditCountryPage({
 }) {
   const { id } = await params;
   return (
-    <RequireDashboardAccess tab="cities" permission="cities:update">
+    <RequireDashboardAccess
+      tab="countries"
+      permission={["countries:update", "cities:update"]}
+    >
       <CountryForm id={Number(id)} />
     </RequireDashboardAccess>
   );

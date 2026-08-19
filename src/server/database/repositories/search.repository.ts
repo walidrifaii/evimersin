@@ -92,6 +92,25 @@ export const searchRepository = {
     }));
   },
 
+  async searchCountries(q: string): Promise<DashboardSearchHit[]> {
+    const rows = await query<Array<{ id: number; name: string; status: number }>>(
+      `SELECT id, name, status
+       FROM country
+       WHERE name LIKE :q OR CAST(id AS CHAR) LIKE :q
+       ORDER BY name ASC
+       LIMIT ${LIMIT_PER_TYPE}`,
+      { q: likeTerm(q) },
+    );
+
+    return rows.map((row) => ({
+      type: "countries" as const,
+      id: row.id,
+      title: row.name,
+      subtitle: Number(row.status) === 1 ? "Active" : "Inactive",
+      image: null,
+    }));
+  },
+
   async searchPurposes(q: string): Promise<DashboardSearchHit[]> {
     const rows = await query<
       Array<{ id: number; name: string; position: number }>
