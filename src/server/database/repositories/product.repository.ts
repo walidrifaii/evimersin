@@ -51,6 +51,8 @@ const productSelect = `
   products.rooms,
   categories.name AS category_name,
   purpose.name AS purpose_name,
+  cities.country_id AS country_id,
+  country.name AS country_name,
   cities.name AS city_name,
   regions.name AS region_name,
   products.status,
@@ -64,6 +66,7 @@ const productFrom = `
   INNER JOIN categories ON categories.id = products.category_id
   INNER JOIN purpose ON purpose.id = products.purpose_id
   INNER JOIN cities ON cities.id = products.city_id
+  LEFT JOIN country ON country.id = cities.country_id
   LEFT JOIN regions ON regions.id = products.region_id
 `;
 

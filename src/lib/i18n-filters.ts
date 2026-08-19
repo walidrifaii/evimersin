@@ -5,6 +5,7 @@ type ProductsTranslator = ReturnType<typeof useTranslations<"products">>;
 type HomeTranslator = ReturnType<typeof useTranslations<"home">>;
 
 const homeLabelKeys: Record<string, Parameters<HomeTranslator>[0]> = {
+  "All Countries": "allCountries",
   "All Cities": "allCities",
   "All Regions": "allRegions",
   "All Types": "allTypes",
@@ -15,6 +16,7 @@ const homeLabelKeys: Record<string, Parameters<HomeTranslator>[0]> = {
 };
 
 const productsLabelKeys: Record<string, Parameters<ProductsTranslator>[0]> = {
+  "All Countries": "allCountries",
   "All Cities": "allCities",
   "All Regions": "allRegions",
   "All Types": "allTypes",

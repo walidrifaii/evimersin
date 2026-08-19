@@ -35,6 +35,7 @@ export function PropertiesPageContent({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const countryIdParam = searchParams.get("countryId");
   const cityIdParam = searchParams.get("cityId");
   const regionIdParam = searchParams.get("regionId");
   const categoryIdParam = searchParams.get("categoryId");
@@ -49,6 +50,7 @@ export function PropertiesPageContent({
     () =>
       filtersFromSearchParams(
         {
+          countryId: countryIdParam,
           cityId: cityIdParam,
           regionId: regionIdParam,
           categoryId: categoryIdParam,
@@ -62,6 +64,7 @@ export function PropertiesPageContent({
         filterOptions,
       ),
     [
+      countryIdParam,
       cityIdParam,
       regionIdParam,
       categoryIdParam,
@@ -88,7 +91,7 @@ export function PropertiesPageContent({
   }, [filtersFromUrl]);
 
   const filtered = useMemo(
-    () => filterProperties(listings, appliedFilters),
+    () => filterProperties(listings, appliedFilters, filterOptions),
     [appliedFilters, listings],
   );
 

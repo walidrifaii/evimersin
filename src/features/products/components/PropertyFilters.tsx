@@ -7,6 +7,7 @@ import {
   defaultPropertyFilters,
   findOptionById,
   formatPriceLabelForOptions,
+  getCityOptionsForCountry,
   getRegionOptionsForCity,
 } from "@/features/products/data";
 import {
@@ -23,7 +24,7 @@ import type {
 type PropertyFiltersProps = {
   value: PropertyFiltersState;
   options: PropertyFilterOptions;
-  listings?: Array<Pick<PropertyListing, "cityId" | "regionId">>;
+  listings?: Array<Pick<PropertyListing, "countryId" | "cityId" | "regionId">>;
   onChange: (next: PropertyFiltersState) => void;
   onApply: () => void;
 };
@@ -117,6 +118,11 @@ export function PropertyFilters({
 }: PropertyFiltersProps) {
   const t = useTranslations("products");
   const translateLabel = (label: string) => translateFilterLabel(t, label);
+  const cityOptions = getCityOptionsForCountry(
+    options,
+    value.countryId,
+    listings,
+  );
   const regionOptions = getRegionOptionsForCity(options, value.cityId, listings);
 
   function update<K extends keyof PropertyFiltersState>(
@@ -126,10 +132,21 @@ export function PropertyFilters({
     onChange({ ...value, [key]: nextValue });
   }
 
+  function updateCountry(countryId: number | null) {
+    onChange({
+      ...value,
+      countryId,
+      cityId: null,
+      regionId: null,
+    });
+  }
+
   function updateCity(cityId: number | null) {
+    const selectedCity = findOptionById(cityId, cityOptions);
     onChange({
       ...value,
       cityId,
+      countryId: selectedCity?.countryId ?? value.countryId,
       regionId: null,
     });
   }
@@ -181,8 +198,15 @@ export function PropertyFilters({
           translateLabel={translateLabel}
         />
         <FilterSelect
+          label={t("country")}
+          options={options.country}
+          value={value.countryId}
+          onChange={updateCountry}
+          translateLabel={translateLabel}
+        />
+        <FilterSelect
           label={t("city")}
-          options={options.city}
+          options={cityOptions}
           value={value.cityId}
           onChange={updateCity}
           translateLabel={translateLabel}

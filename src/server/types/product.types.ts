@@ -48,6 +48,8 @@ export type Product = ProductSpecFields & {
   region_id: number | null;
   category_name: string;
   purpose_name: string;
+  country_id: number | null;
+  country_name: string | null;
   city_name: string;
   region_name: string | null;
   status: Status;

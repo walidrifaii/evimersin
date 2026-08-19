@@ -14,6 +14,7 @@ import {
 import {
   buildPropertiesSearchHref,
   findOptionById,
+  getCityOptionsForCountry,
 } from "@/features/products/data";
 import type {
   FilterOption,
@@ -80,7 +81,7 @@ function FilterDropdown({
           e.stopPropagation();
           onToggle();
         }}
-        className="group flex h-full min-h-[60px] w-full min-w-0 flex-col justify-center gap-3 px-8 py-4 text-start transition-colors lg:min-h-[68px] lg:gap-4 lg:px-12 lg:py-5"
+        className="group flex h-full min-h-[60px] w-full min-w-0 flex-col justify-center gap-3 px-5 py-4 text-start transition-colors lg:min-h-[68px] lg:gap-4 lg:px-6 lg:py-5"
       >
         <span className="text-[14px] font-medium leading-none text-[#9ca3af] lg:text-[15px]">
           {label}
@@ -137,8 +138,9 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
   const t = useTranslations("home");
   const priceRangeRef = useRef<HTMLDivElement>(null);
   const [filters, setFilters] = useState<
-    Pick<PropertyFiltersState, "cityId" | "categoryId" | "purposeId">
+    Pick<PropertyFiltersState, "countryId" | "cityId" | "categoryId" | "purposeId">
   >({
+    countryId: null,
     cityId: null,
     categoryId: null,
     purposeId: null,
@@ -146,10 +148,15 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
   const [priceRangeKey, setPriceRangeKey] = useState(ANY_PRICE_KEY);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
+  const cityOptions = getCityOptionsForCountry(
+    filterOptions,
+    filters.countryId,
+  );
   const priceKeys = getPriceRangeKeys(filterOptions.priceMax);
   const price = parsePriceRangeKey(priceRangeKey);
   const searchHref = buildPropertiesSearchHref(
     {
+      countryId: filters.countryId,
       cityId: filters.cityId,
       regionId: null,
       categoryId: filters.categoryId,
@@ -192,7 +199,56 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
       dir={isRtl ? "rtl" : "ltr"}
       className="relative z-50 flex w-full flex-col gap-2 overflow-visible rounded-2xl bg-white p-3 text-start shadow-[0_12px_32px_rgba(0,0,0,0.14)] lg:flex-row lg:items-stretch lg:gap-0 lg:rounded-[20px] lg:p-4"
     >
-      <div className="grid min-w-0 flex-1 grid-cols-1 divide-y divide-[#e5e7eb] overflow-visible lg:grid-cols-4 lg:items-stretch lg:divide-y-0">
+      <div className="grid min-w-0 flex-1 grid-cols-1 divide-y divide-[#e5e7eb] overflow-visible lg:grid-cols-5 lg:items-stretch lg:divide-y-0">
+        <div
+          className={`relative flex w-full min-w-0 items-stretch overflow-visible lg:border-e lg:border-[#e5e7eb] ${dropdownLayer("country")}`}
+        >
+          <FilterDropdown
+            label={t("searchCountry")}
+            options={filterOptions.country}
+            value={filters.countryId}
+            onChange={(countryId) =>
+              setFilters((prev) => ({
+                ...prev,
+                countryId,
+                cityId: null,
+              }))
+            }
+            isOpen={openDropdown === "country"}
+            onToggle={() =>
+              setOpenDropdown((prev) =>
+                prev === "country" ? null : "country",
+              )
+            }
+            onClose={() => setOpenDropdown(null)}
+            translateLabel={translateLabel}
+          />
+        </div>
+
+        <div
+          className={`relative flex w-full min-w-0 items-stretch overflow-visible lg:border-e lg:border-[#e5e7eb] ${dropdownLayer("city")}`}
+        >
+          <FilterDropdown
+            label={t("searchCity")}
+            options={cityOptions}
+            value={filters.cityId}
+            onChange={(cityId) => {
+              const selectedCity = findOptionById(cityId, cityOptions);
+              setFilters((prev) => ({
+                ...prev,
+                cityId,
+                countryId: selectedCity?.countryId ?? prev.countryId,
+              }));
+            }}
+            isOpen={openDropdown === "city"}
+            onToggle={() =>
+              setOpenDropdown((prev) => (prev === "city" ? null : "city"))
+            }
+            onClose={() => setOpenDropdown(null)}
+            translateLabel={translateLabel}
+          />
+        </div>
+
         <div
           className={`relative flex w-full min-w-0 items-stretch overflow-visible lg:border-e lg:border-[#e5e7eb] ${dropdownLayer("purpose")}`}
         >
@@ -234,25 +290,6 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
         </div>
 
         <div
-          className={`relative flex w-full min-w-0 items-stretch overflow-visible lg:border-e lg:border-[#e5e7eb] ${dropdownLayer("city")}`}
-        >
-          <FilterDropdown
-            label={t("searchCity")}
-            options={filterOptions.city}
-            value={filters.cityId}
-            onChange={(cityId) =>
-              setFilters((prev) => ({ ...prev, cityId }))
-            }
-            isOpen={openDropdown === "city"}
-            onToggle={() =>
-              setOpenDropdown((prev) => (prev === "city" ? null : "city"))
-            }
-            onClose={() => setOpenDropdown(null)}
-            translateLabel={translateLabel}
-          />
-        </div>
-
-        <div
           ref={priceRangeRef}
           className={`relative flex w-full min-w-0 items-stretch overflow-visible ${dropdownLayer("priceRange")}`}
         >
@@ -264,7 +301,7 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
                 prev === "priceRange" ? null : "priceRange",
               )
             }
-            className="group flex h-full min-h-[60px] w-full min-w-0 flex-col justify-center gap-3 px-8 py-4 text-start transition-colors lg:min-h-[68px] lg:gap-4 lg:px-12 lg:py-5"
+            className="group flex h-full min-h-[60px] w-full min-w-0 flex-col justify-center gap-3 px-5 py-4 text-start transition-colors lg:min-h-[68px] lg:gap-4 lg:px-6 lg:py-5"
           >
             <span className="text-[14px] font-medium leading-none text-[#9ca3af] lg:text-[15px]">
               {t("searchPriceRange")}
@@ -306,7 +343,7 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
 
       <Link
         href={searchHref}
-        className="inline-flex h-16 w-full shrink-0 items-center justify-center rounded-[16px] bg-[var(--brand-blue)] px-8 text-base font-semibold leading-none text-white transition-colors hover:bg-[#1d4ed8] lg:h-16 lg:w-auto lg:min-w-[220px] lg:self-center lg:px-12 lg:text-[17px]"
+        className="inline-flex h-16 w-full shrink-0 items-center justify-center rounded-[16px] bg-[var(--brand-blue)] px-8 text-base font-semibold leading-none text-white transition-colors hover:bg-[#1d4ed8] lg:h-16 lg:w-auto lg:min-w-[180px] lg:self-center lg:px-10 lg:text-[17px]"
       >
         {t("searchButton")}
       </Link>
