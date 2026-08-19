@@ -49,7 +49,7 @@ export function PropertyGallery({ title, images }: PropertyGalleryProps) {
   return (
     <div>
       <div
-        className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-[#e8edf5] sm:aspect-[16/10] lg:aspect-[16/9]"
+        className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-solid border-[#e8edf5] sm:aspect-[16/10] lg:aspect-[16/9]"
         onTouchStart={(e) => {
           touchStartX.current = e.touches[0]?.clientX ?? null;
         }}
