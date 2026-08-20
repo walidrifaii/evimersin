@@ -69,7 +69,7 @@ export function PropertyGallery({ title, images }: PropertyGalleryProps) {
           fill
           priority
           sizes="(max-width: 1024px) 100vw, 70vw"
-          className="object-contain"
+          className="object-cover"
         />
 
         <div className="absolute bottom-3 left-3 rounded-full bg-black/60 px-3 py-1 text-[12px] font-semibold text-white backdrop-blur-sm sm:bottom-4 sm:left-4 sm:text-[13px]">
@@ -146,7 +146,7 @@ export function PropertyGallery({ title, images }: PropertyGalleryProps) {
                   alt=""
                   fill
                   sizes="(max-width: 640px) 20vw, 120px"
-                  className="object-contain"
+                  className="object-cover"
                 />
               </button>
             ))}
