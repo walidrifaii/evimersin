@@ -31,7 +31,13 @@ export function CategoriesPanel() {
   const filtered = useMemo(
     () =>
       data.filter((item) =>
-        matchesDashboardSearch(deferredQuery, item.id, item.name, item.position),
+        matchesDashboardSearch(
+          deferredQuery,
+          item.id,
+          item.name,
+          item.name_ar,
+          item.position,
+        ),
       ),
     [data, deferredQuery],
   );
@@ -56,11 +62,14 @@ export function CategoriesPanel() {
         </div>
       ) : (
         <LookupTable
-          headers={["ID", "Name", "Position", "Status", "Actions"]}
+          headers={["ID", "Name", "Name (AR)", "Position", "Status", "Actions"]}
           rows={filtered.map((item) => (
             <tr key={item.id} className="border-t border-[#eef2f7]">
               <td className="px-5 py-3 text-[var(--muted)]">{item.id}</td>
               <td className="px-5 py-3 font-semibold text-[var(--brand-navy)]">{item.name}</td>
+              <td className="px-5 py-3 text-[var(--brand-navy)]" dir="rtl">
+                {item.name_ar || "—"}
+              </td>
               <td className="px-5 py-3 text-[var(--brand-navy)]">{item.position}</td>
               <td className="px-5 py-3">
                 <StatusBadge status={item.status} />

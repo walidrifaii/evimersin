@@ -42,6 +42,7 @@ function CategoryFormFields({ id, initial }: { id?: number; initial?: Category }
   const formErrors = useDashboardFormErrors();
 
   const [name, setName] = useState(initial?.name ?? "");
+  const [nameAr, setNameAr] = useState(initial?.name_ar ?? "");
   const [position, setPosition] = useState<number>(initial?.position ?? 0);
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [compressing, setCompressing] = useState(false);
@@ -68,6 +69,7 @@ function CategoryFormFields({ id, initial }: { id?: number; initial?: Category }
 
     const payload: CategoryFormInput = {
       name,
+      name_ar: nameAr.trim() || null,
       status,
       position: Number(position) || 0,
       icon: iconFile,
@@ -99,7 +101,7 @@ function CategoryFormFields({ id, initial }: { id?: number; initial?: Category }
       fieldErrors={formErrors.fields}
     >
       <TextInput
-        label="Name"
+        label="Name (English)"
         value={name}
         required
         placeholder="Villa"
@@ -107,6 +109,17 @@ function CategoryFormFields({ id, initial }: { id?: number; initial?: Category }
         onChange={(value) => {
           setName(value);
           formErrors.clearField("name");
+        }}
+      />
+      <TextInput
+        label="Name (Arabic)"
+        value={nameAr}
+        placeholder="فيلا"
+        dir="rtl"
+        error={formErrors.field("name_ar")}
+        onChange={(value) => {
+          setNameAr(value);
+          formErrors.clearField("name_ar");
         }}
       />
       <TextInput

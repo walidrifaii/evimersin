@@ -73,25 +73,34 @@ export function Navbar({ categories = [] }: NavbarProps) {
       categories.length > 0
         ? buildPropertyTypeCardsFromCategories(categories, {
             includeMore: false,
+            locale,
           })
         : propertyTypeCards.filter((item) => item.id !== "more");
 
     return source.map((item) => {
-      const knownKey = resolvePropertyTypeCardKey(item.title);
+      const category = categories.find((entry) => entry.id === item.categoryId);
+      const hasArabicName = Boolean(category?.nameAr?.trim());
+      const knownKey = resolvePropertyTypeCardKey(category?.name ?? item.title);
       const Icon =
         item.Icon ?? getPropertyTypeFallbackIcon(item.title || String(item.id));
+
+      const useDbName =
+        locale === "ar"
+          ? hasArabicName || !isKnownPropertyTypeCardKey(knownKey)
+          : !isKnownPropertyTypeCardKey(knownKey);
 
       return {
         id: item.id,
         href: item.href,
         iconSrc: item.iconSrc ?? null,
         Icon,
-        title: isKnownPropertyTypeCardKey(knownKey)
-          ? tTypes(knownKey)
-          : item.title,
+        title:
+          useDbName || !isKnownPropertyTypeCardKey(knownKey)
+            ? item.title
+            : tTypes(knownKey),
       };
     });
-  }, [categories, tTypes]);
+  }, [categories, locale, tTypes]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {

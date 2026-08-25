@@ -428,26 +428,26 @@ export const regionRepository = {
 export const categoryRepository = {
   findAll: () =>
     query<Category[]>(
-      `SELECT id, name, status, position, icon
+      `SELECT id, name, name_ar, status, position, icon
        FROM categories
        ORDER BY position ASC, name ASC`,
     ),
 
   findAllWithStats: () =>
     query<CategoryWithStats[]>(
-      `SELECT categories.id, categories.name, categories.status,
+      `SELECT categories.id, categories.name, categories.name_ar, categories.status,
               categories.position, categories.icon,
               COUNT(products.id) AS products_count
        FROM categories
        LEFT JOIN products ON products.category_id = categories.id
-       GROUP BY categories.id, categories.name, categories.status,
+       GROUP BY categories.id, categories.name, categories.name_ar, categories.status,
                 categories.position, categories.icon
        ORDER BY categories.position ASC, categories.name ASC`,
     ),
 
   async findById(id: number) {
     const rows = await query<Category[]>(
-      `SELECT id, name, status, position, icon
+      `SELECT id, name, name_ar, status, position, icon
        FROM categories WHERE id = :id LIMIT 1`,
       { id },
     );
@@ -456,13 +456,13 @@ export const categoryRepository = {
 
   async findByIdWithStats(id: number): Promise<CategoryWithStats | null> {
     const rows = await query<CategoryWithStats[]>(
-      `SELECT categories.id, categories.name, categories.status,
+      `SELECT categories.id, categories.name, categories.name_ar, categories.status,
               categories.position, categories.icon,
               COUNT(products.id) AS products_count
        FROM categories
        LEFT JOIN products ON products.category_id = categories.id
        WHERE categories.id = :id
-       GROUP BY categories.id, categories.name, categories.status,
+       GROUP BY categories.id, categories.name, categories.name_ar, categories.status,
                 categories.position, categories.icon
        LIMIT 1`,
       { id },
@@ -472,9 +472,15 @@ export const categoryRepository = {
 
   async create(input: CreateCategoryInput) {
     const result = await execute(
-      `INSERT INTO categories (name, status, position, icon)
-       VALUES (:name, :status, :position, :icon)`,
-      input,
+      `INSERT INTO categories (name, name_ar, status, position, icon)
+       VALUES (:name, :name_ar, :status, :position, :icon)`,
+      {
+        name: input.name,
+        name_ar: input.name_ar ?? null,
+        status: input.status,
+        position: input.position,
+        icon: input.icon ?? null,
+      },
     );
     return result.insertId;
   },

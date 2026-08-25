@@ -34,6 +34,7 @@ export type CityWithCountry = City & {
 export type Category = {
   id: number;
   name: string;
+  name_ar: string | null;
   status: Status;
   position: number;
   icon: string | null;
@@ -79,7 +80,9 @@ export type RegionWithCity = Region & {
 export type CreateRegionInput = Omit<Region, "id" | "city_name">;
 export type UpdateRegionInput = Partial<CreateRegionInput>;
 
-export type CreateCategoryInput = Omit<Category, "id">;
+export type CreateCategoryInput = Omit<Category, "id" | "name_ar"> & {
+  name_ar?: string | null;
+};
 export type UpdateCategoryInput = Partial<CreateCategoryInput>;
 
 export type CreatePurposeInput = Omit<Purpose, "id">;

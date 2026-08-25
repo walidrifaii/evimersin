@@ -239,6 +239,7 @@ export function TextInput({
   autoComplete,
   error,
   className,
+  dir,
 }: {
   label: string;
   value: string | number;
@@ -249,6 +250,7 @@ export function TextInput({
   autoComplete?: string;
   error?: string;
   className?: string;
+  dir?: "ltr" | "rtl" | "auto";
 }) {
   return (
     <label className={className ? `block min-w-0 ${className}` : "block min-w-0"}>
@@ -258,6 +260,7 @@ export function TextInput({
         value={value}
         required={required}
         placeholder={placeholder}
+        dir={dir}
         aria-invalid={Boolean(error)}
         autoComplete={
           autoComplete ??

@@ -8,6 +8,7 @@ import type {
 function toCategoryFormData(body: Partial<CategoryFormInput>) {
   const formData = new FormData();
   formData.set("name", body.name ?? "");
+  formData.set("name_ar", body.name_ar ?? "");
   formData.set("status", String(body.status ?? 1));
   formData.set("position", String(body.position ?? 0));
 

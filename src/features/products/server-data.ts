@@ -149,7 +149,7 @@ const getCachedPropertyListingById = unstable_cache(
   { revalidate: 60, tags: ["property-listings"] },
 );
 
-async function loadPropertyFilterOptions() {
+async function loadPropertyFilterOptions(locale = "en") {
   const settled = await Promise.allSettled([
     productRepository.findActive(),
     countryRepository.findAll(),
@@ -186,6 +186,11 @@ async function loadPropertyFilterOptions() {
       countryId: city.country_id,
     }));
 
+  const categoryLabel = (category: { name: string; name_ar: string | null }) =>
+    locale === "ar" && category.name_ar?.trim()
+      ? category.name_ar.trim()
+      : category.name;
+
   return buildPropertyFilterOptions(
     products.map((product) => ({
       countryId: product.country_id,
@@ -214,7 +219,10 @@ async function loadPropertyFilterOptions() {
         })),
       propertyTypes: categories
         .filter((category) => Number(category.status) === 1)
-        .map((category) => ({ id: category.id, label: category.name })),
+        .map((category) => ({
+          id: category.id,
+          label: categoryLabel(category),
+        })),
       purposes: purposes
         .filter((purpose) => Number(purpose.status) === 1)
         .map((purpose) => ({ id: purpose.id, label: purpose.name })),
@@ -230,6 +238,7 @@ async function loadPublicCategories(): Promise<PublicCategoryItem[]> {
       .map((category) => ({
         id: Number(category.id),
         name: category.name,
+        nameAr: category.name_ar?.trim() || null,
         icon: toDisplayImageSrc(category.icon) || null,
         position: Number(category.position) || 0,
       }));
@@ -240,8 +249,8 @@ async function loadPublicCategories(): Promise<PublicCategoryItem[]> {
 }
 
 /** Fresh each request so city filters never stick on an empty build cache. */
-export const getPropertyFilterOptions = cache(async () => {
-  return loadPropertyFilterOptions();
+export const getPropertyFilterOptions = cache(async (locale = "en") => {
+  return loadPropertyFilterOptions(locale);
 });
 
 /** Active categories for hero cards and nav (ordered by position). */

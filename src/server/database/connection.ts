@@ -48,6 +48,7 @@ const PRODUCT_COLUMN_MIGRATIONS = [
   "ALTER TABLE products ADD COLUMN mezzanine TINYINT NULL AFTER storage",
   "ALTER TABLE products ADD COLUMN rooms INT NULL AFTER mezzanine",
   "ALTER TABLE products ADD COLUMN payment_method VARCHAR(255) NULL AFTER discount_value",
+  "ALTER TABLE categories ADD COLUMN name_ar VARCHAR(150) NULL AFTER name",
 ];
 
 async function ensureProductColumns(pool: Pool) {
@@ -60,7 +61,7 @@ async function ensureProductColumns(pool: Pool) {
         !message.includes("Duplicate column name") &&
         !message.includes("already exists")
       ) {
-        console.error("[db] Product column migration failed:", message);
+        console.error("[db] Column migration failed:", message);
       }
     }
   }

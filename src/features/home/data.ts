@@ -62,9 +62,22 @@ export type PropertyTypeCardId =
 export type PublicCategoryItem = {
   id: number;
   name: string;
+  nameAr: string | null;
   icon: string | null;
   position: number;
 };
+
+/** English name for EN; Arabic name when locale is ar (falls back to English). */
+export function getCategoryDisplayName(
+  category: Pick<PublicCategoryItem, "name" | "nameAr">,
+  locale: string,
+) {
+  if (locale === "ar") {
+    const arabic = category.nameAr?.trim();
+    if (arabic) return arabic;
+  }
+  return category.name;
+}
 
 export type PropertyTypeCardItem = {
   id: string;
@@ -356,20 +369,22 @@ export const propertyTypeCards: PropertyTypeCardItem[] = [
 
 export function buildPropertyTypeCardsFromCategories(
   categories: PublicCategoryItem[],
-  options?: { includeMore?: boolean },
+  options?: { includeMore?: boolean; locale?: string },
 ): PropertyTypeCardItem[] {
+  const locale = options?.locale ?? "en";
   const cards = categories.map((category) => {
     const typeKey = resolvePropertyTypeCardKey(category.name);
+    const title = getCategoryDisplayName(category, locale);
     return {
       id: typeKey ?? `category-${category.id}`,
-      title: category.name,
+      title,
       shortTitle:
-        typeKey === "apartments"
+        typeKey === "apartments" && locale !== "ar"
           ? "Apts"
-          : category.name.length > 10
-            ? `${category.name.slice(0, 8)}…`
-            : category.name,
-      subtitle: category.name,
+          : title.length > 10
+            ? `${title.slice(0, 8)}…`
+            : title,
+      subtitle: title,
       href: `${routes.properties}?categoryId=${category.id}`,
       Icon: getPropertyTypeFallbackIcon(category.name),
       iconSrc: category.icon,

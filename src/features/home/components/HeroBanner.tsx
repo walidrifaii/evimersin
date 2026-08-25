@@ -32,16 +32,29 @@ export async function HeroBanner({
 
   const sourceCards =
     categories.length > 0
-      ? buildPropertyTypeCardsFromCategories(categories, { includeMore: false })
+      ? buildPropertyTypeCardsFromCategories(categories, {
+          includeMore: false,
+          locale,
+        })
       : withCategoryIdHrefs(
           propertyTypeCards.filter((item) => item.id !== "more"),
           (slug) => resolveCategoryIdBySlug(slug, filterOptions),
         );
 
   const cards = sourceCards.map((item) => {
-    // Only translate known labels (Villa → Villas, etc). New DB categories
-    // keep their backend name — never treat `category-7` as an i18n key.
-    const knownKey = resolvePropertyTypeCardKey(item.title);
+    // Prefer DB name_ar / name. Fall back to message keys only when no
+    // Arabic name is stored for a known English category slug.
+    const category = categories.find((entry) => entry.id === item.categoryId);
+    const hasArabicName = Boolean(category?.nameAr?.trim());
+    const knownKey = resolvePropertyTypeCardKey(category?.name ?? item.title);
+
+    if (locale === "ar" && (hasArabicName || !isKnownPropertyTypeCardKey(knownKey))) {
+      return {
+        ...item,
+        shortTitle: item.shortTitle ?? item.title,
+        subtitle: item.subtitle || item.title,
+      };
+    }
 
     if (!isKnownPropertyTypeCardKey(knownKey)) {
       return {

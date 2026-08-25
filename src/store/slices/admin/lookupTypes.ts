@@ -17,6 +17,7 @@ export type City = {
 export type Category = {
   id: number;
   name: string;
+  name_ar: string | null;
   status: Status;
   position: number;
   icon: string | null;
@@ -62,6 +63,7 @@ export type UpdateRegionInput = Partial<CreateRegionInput>;
 
 export type CreateCategoryInput = {
   name: string;
+  name_ar?: string | null;
   status?: Status;
   position?: number;
   icon?: string | null;
@@ -71,6 +73,7 @@ export type UpdateCategoryInput = Partial<CreateCategoryInput>;
 
 export type CategoryFormInput = {
   name: string;
+  name_ar?: string | null;
   status?: Status;
   position?: number;
   icon?: File | null;

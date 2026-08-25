@@ -38,6 +38,7 @@ const updateCategory = compose(withAuth, withHandler)(async (request, context: A
 
   const input = validateBody(updateCategorySchema, {
     name: formData.get("name"),
+    name_ar: formData.get("name_ar"),
     status: Number(formData.get("status") ?? current.status),
     position: Number(formData.get("position") ?? current.position),
     icon: nextIcon,

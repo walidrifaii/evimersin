@@ -9,13 +9,15 @@ import {
   getPropertyFilterOptions,
   getPublicCategories,
 } from "@/features/products/server-data";
+import { getLocale } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
+  const locale = await getLocale();
   const [filterOptions, categories, featuredListings, hotDeals] =
     await Promise.all([
-      getPropertyFilterOptions(),
+      getPropertyFilterOptions(locale),
       getPublicCategories(),
       getFeaturedPropertyListings(12),
       getHotDealPropertyListings(12),

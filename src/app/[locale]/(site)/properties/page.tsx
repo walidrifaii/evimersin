@@ -6,6 +6,7 @@ import {
   getPropertyFilterOptions,
   getPropertyListings,
 } from "@/features/products/server-data";
+import { getLocale } from "next-intl/server";
 
 export const metadata: Metadata = {
   title: `Properties | ${config.appName}`,
@@ -16,9 +17,10 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function ProductsPage() {
+  const locale = await getLocale();
   const [listings, filterOptions] = await Promise.all([
     getPropertyListings(),
-    getPropertyFilterOptions(),
+    getPropertyFilterOptions(locale),
   ]);
 
   return (

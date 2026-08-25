@@ -21,6 +21,7 @@ export const POST = compose(withAuth, withHandler)(async (request) => {
 
   const input = validateBody(createCategorySchema, {
     name: formData.get("name"),
+    name_ar: formData.get("name_ar"),
     status: Number(formData.get("status") ?? 1),
     position: Number(formData.get("position") ?? 0),
     icon,
