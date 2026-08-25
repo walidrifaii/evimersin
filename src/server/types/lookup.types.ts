@@ -60,7 +60,7 @@ export type UpdateCountryInput = Partial<CreateCountryInput>;
 
 export type CreateCityInput = Omit<City, "id" | "country_name">;
 export type UpdateCityInput = Partial<CreateCityInput>;
-
+// test 
 export type Region = {
   id: number;
   name: string;
