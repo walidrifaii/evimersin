@@ -44,6 +44,7 @@ import {
   useDeleteProductImageMutation,
   useGetCategoriesQuery,
   useGetCitiesQuery,
+  useGetCountriesQuery,
   useGetProductQuery,
   useGetPurposesQuery,
   useGetRegionsQuery,
@@ -64,6 +65,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
   const router = useRouter();
   const { data: categories = [] } = useGetCategoriesQuery();
   const { data: purposes = [] } = useGetPurposesQuery();
+  const { data: countries = [] } = useGetCountriesQuery();
   const { data: cities = [] } = useGetCitiesQuery();
   const { data: regions = [] } = useGetRegionsQuery();
   const [createProduct, createState] = useCreateProductMutation();
@@ -87,6 +89,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
   const [paymentMethod, setPaymentMethod] = useState(initial?.payment_method ?? "");
   const [categoryId, setCategoryId] = useState(initial?.category_id ?? 0);
   const [purposeId, setPurposeId] = useState(initial?.purpose_id ?? 0);
+  const [countryId, setCountryId] = useState(0);
   const [cityId, setCityId] = useState(initial?.city_id ?? 0);
   const [regionId, setRegionId] = useState(initial?.region_id ?? 0);
   const [status, setStatus] = useState<Status>(initial?.status ?? 1);
@@ -121,8 +124,13 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
   const activePurposes = purposes.filter(
     (item) => Number(item.status) === 1 || item.id === purposeId,
   );
+  const activeCountries = countries.filter(
+    (item) => Number(item.status) === 1 || item.id === countryId,
+  );
   const activeCities = cities.filter(
-    (item) => Number(item.status) === 1 || item.id === cityId,
+    (item) =>
+      item.country_id === countryId &&
+      (Number(item.status) === 1 || item.id === cityId),
   );
   const activeRegions = regions.filter(
     (item) =>
@@ -142,6 +150,21 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
   ) {
     setSpecValues((prev) => ({ ...prev, [key]: value }));
   }
+
+  // Edit mode: derive country from the product's city once cities load.
+  useEffect(() => {
+    if (!cityId || countryId) return;
+    const city = cities.find((item) => item.id === cityId);
+    if (city?.country_id) setCountryId(city.country_id);
+  }, [cities, cityId, countryId]);
+
+  useEffect(() => {
+    if (!countryId || !cityId) return;
+    if (!activeCities.some((item) => item.id === cityId)) {
+      setCityId(0);
+      setRegionId(0);
+    }
+  }, [activeCities, cityId, countryId]);
 
   useEffect(() => {
     if (regionId && !activeRegions.some((item) => item.id === regionId)) {
@@ -225,6 +248,7 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
 
     if (!categoryId) nextFieldErrors.category_id = "Category is required";
     if (!purposeId) nextFieldErrors.purpose_id = "Purpose is required";
+    if (!countryId) nextFieldErrors.country_id = "Country is required";
     if (!cityId) nextFieldErrors.city_id = "City is required";
 
     const trimmedName = name.trim();
@@ -374,17 +398,46 @@ function ProductFormFields({ id, initial }: { id?: number; initial?: ProductDeta
           required
         />
         <SelectField
-          label="City"
-          value={cityId}
-          error={formErrors.field("city_id")}
-          onChange={(nextCityId) => {
-            setCityId(nextCityId);
+          label="Country"
+          value={countryId}
+          error={formErrors.field("country_id")}
+          onChange={(nextCountryId) => {
+            setCountryId(nextCountryId);
+            setCityId(0);
             setRegionId(0);
+            clearField("country_id");
             clearField("city_id");
           }}
-          options={activeCities}
+          options={activeCountries}
           required
         />
+        <label className="block min-w-0">
+          <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
+            City <span className="text-[var(--brand-red)]">*</span>
+          </span>
+          <select
+            value={cityId || ""}
+            disabled={!countryId}
+            required
+            aria-invalid={Boolean(formErrors.field("city_id"))}
+            onChange={(event) => {
+              setCityId(Number(event.target.value) || 0);
+              setRegionId(0);
+              clearField("city_id");
+            }}
+            className={`${fieldControlClass(formErrors.field("city_id"))} disabled:cursor-not-allowed disabled:opacity-60`}
+          >
+            <option value="">
+              {countryId ? "Select city" : "Select a country first"}
+            </option>
+            {activeCities.map((city) => (
+              <option key={city.id} value={city.id}>
+                {city.name}
+              </option>
+            ))}
+          </select>
+          <FieldErrorText message={formErrors.field("city_id")} />
+        </label>
         <label className="block min-w-0">
           <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
             Region
