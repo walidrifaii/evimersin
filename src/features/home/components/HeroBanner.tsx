@@ -4,10 +4,10 @@ import { PropertySearchBar } from "@/features/home/components/PropertySearchBar"
 import { PropertyTypeCard } from "@/features/home/components/PropertyTypeCard";
 import {
   buildPropertyTypeCardsFromCategories,
+  isKnownPropertyTypeCardKey,
   propertyTypeCards,
   resolvePropertyTypeCardKey,
   withCategoryIdHrefs,
-  type PropertyTypeCardId,
   type PublicCategoryItem,
 } from "@/features/home/data";
 import { resolveCategoryIdBySlug } from "@/features/products/data";
@@ -39,22 +39,19 @@ export async function HeroBanner({
         );
 
   const cards = sourceCards.map((item) => {
-    const typeKey =
-      resolvePropertyTypeCardKey(item.title) ??
-      (item.id as PropertyTypeCardId | undefined);
-    const knownKey =
-      typeKey && typeKey !== "more"
-        ? (typeKey as Exclude<PropertyTypeCardId, "more">)
-        : null;
+    // Only translate known labels (Villa → Villas, etc). New DB categories
+    // keep their backend name — never treat `category-7` as an i18n key.
+    const knownKey = resolvePropertyTypeCardKey(item.title);
 
-    if (!knownKey) {
+    if (!isKnownPropertyTypeCardKey(knownKey)) {
       return {
         ...item,
         shortTitle: item.shortTitle ?? item.title,
+        subtitle: item.subtitle || item.title,
       };
     }
 
-    const subtitleKey = `${knownKey}Subtitle` as `${Exclude<PropertyTypeCardId, "more">}Subtitle`;
+    const subtitleKey = `${knownKey}Subtitle` as `${typeof knownKey}Subtitle`;
     return {
       ...item,
       title: tTypes(knownKey),

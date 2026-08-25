@@ -14,9 +14,9 @@ import { routes } from "@/constants/routes";
 import {
   buildPropertyTypeCardsFromCategories,
   getPropertyTypeFallbackIcon,
+  isKnownPropertyTypeCardKey,
   propertyTypeCards,
   resolvePropertyTypeCardKey,
-  type PropertyTypeCardId,
   type PublicCategoryItem,
 } from "@/features/home/data";
 import { useTranslations } from "next-intl";
@@ -77,13 +77,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
         : propertyTypeCards.filter((item) => item.id !== "more");
 
     return source.map((item) => {
-      const typeKey =
-        resolvePropertyTypeCardKey(item.title) ??
-        (item.id !== "more" ? (item.id as PropertyTypeCardId) : null);
-      const knownKey =
-        typeKey && typeKey !== "more"
-          ? (typeKey as Exclude<PropertyTypeCardId, "more">)
-          : null;
+      const knownKey = resolvePropertyTypeCardKey(item.title);
       const Icon =
         item.Icon ?? getPropertyTypeFallbackIcon(item.title || String(item.id));
 
@@ -92,7 +86,9 @@ export function Navbar({ categories = [] }: NavbarProps) {
         href: item.href,
         iconSrc: item.iconSrc ?? null,
         Icon,
-        title: knownKey ? tTypes(knownKey) : item.title,
+        title: isKnownPropertyTypeCardKey(knownKey)
+          ? tTypes(knownKey)
+          : item.title,
       };
     });
   }, [categories, tTypes]);

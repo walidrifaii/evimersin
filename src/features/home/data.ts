@@ -274,11 +274,27 @@ export function getPropertyTypeFallbackIcon(
   return propertyTypeIconByKey[key] ?? ApartmentIcon;
 }
 
+const knownPropertyTypeCardKeys = new Set<Exclude<PropertyTypeCardId, "more">>([
+  "villas",
+  "apartments",
+  "studios",
+  "lands",
+  "shops",
+  "commercial",
+]);
+
 export function resolvePropertyTypeCardKey(
   name: string,
 ): Exclude<PropertyTypeCardId, "more"> | null {
   const key = name.trim().toLowerCase().replace(/\s+/g, "");
   return propertyTypeCardKeyByLabel[key] ?? null;
+}
+
+/** Only true for labels that have entries in messages `propertyTypes`. */
+export function isKnownPropertyTypeCardKey(
+  key: string | null | undefined,
+): key is Exclude<PropertyTypeCardId, "more"> {
+  return Boolean(key && knownPropertyTypeCardKeys.has(key as Exclude<PropertyTypeCardId, "more">));
 }
 
 export const morePropertyTypeCard: PropertyTypeCardItem = {
