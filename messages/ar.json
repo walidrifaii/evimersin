@@ -35,6 +35,7 @@
     "lands": "أراضي",
     "shops": "محلات",
     "commercial": "تجاري",
+    "office": "مكاتب",
     "more": "المزيد",
     "villasSubtitle": "فلل فاخرة",
     "apartmentsSubtitle": "شقق عصرية",
@@ -42,6 +43,7 @@
     "landsSubtitle": "قطع أراضٍ مميزة",
     "shopsSubtitle": "محلات تجارية",
     "commercialSubtitle": "مساحات تجارية",
+    "officeSubtitle": "مساحات مكتبية",
     "moreSubtitle": "تصفح المزيد"
   },
   "footer": {

@@ -35,6 +35,7 @@
     "lands": "Lands",
     "shops": "Shops",
     "commercial": "Commercial",
+    "office": "Office",
     "more": "More",
     "villasSubtitle": "Luxury Villas",
     "apartmentsSubtitle": "Modern Apartments",
@@ -42,6 +43,7 @@
     "landsSubtitle": "Prime Land Plots",
     "shopsSubtitle": "Retail Shops",
     "commercialSubtitle": "Commercial Spaces",
+    "officeSubtitle": "Office Spaces",
     "moreSubtitle": "Browse More"
   },
   "footer": {

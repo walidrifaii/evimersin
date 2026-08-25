@@ -56,6 +56,7 @@ export type PropertyTypeCardId =
   | "lands"
   | "shops"
   | "commercial"
+  | "office"
   | "more";
 
 export type PublicCategoryItem = {
@@ -244,6 +245,8 @@ const propertyTypeIconByKey: Record<
   shop: ShopIcon,
   shops: ShopIcon,
   commercial: CommercialIcon,
+  office: CommercialIcon,
+  offices: CommercialIcon,
   penthouse: ApartmentIcon,
   penthouses: ApartmentIcon,
 };
@@ -264,6 +267,8 @@ const propertyTypeCardKeyByLabel: Record<
   shop: "shops",
   shops: "shops",
   commercial: "commercial",
+  office: "office",
+  offices: "office",
 };
 
 /** Fallback SVG icons when a category has no uploaded icon. */
@@ -281,6 +286,7 @@ const knownPropertyTypeCardKeys = new Set<Exclude<PropertyTypeCardId, "more">>([
   "lands",
   "shops",
   "commercial",
+  "office",
 ]);
 
 export function resolvePropertyTypeCardKey(
