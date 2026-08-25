@@ -3,9 +3,12 @@ import { HeroBannerInteractive } from "@/features/home/components/HeroBannerInte
 import { PropertySearchBar } from "@/features/home/components/PropertySearchBar";
 import { PropertyTypeCard } from "@/features/home/components/PropertyTypeCard";
 import {
+  buildPropertyTypeCardsFromCategories,
   propertyTypeCards,
+  resolvePropertyTypeCardKey,
   withCategoryIdHrefs,
   type PropertyTypeCardId,
+  type PublicCategoryItem,
 } from "@/features/home/data";
 import { resolveCategoryIdBySlug } from "@/features/products/data";
 import type { PropertyFilterOptions } from "@/features/products/types";
@@ -14,29 +17,56 @@ import { getLocale, getTranslations } from "next-intl/server";
 
 type HeroBannerProps = {
   filterOptions: PropertyFilterOptions;
+  categories?: PublicCategoryItem[];
 };
 
-export async function HeroBanner({ filterOptions }: HeroBannerProps) {
+export async function HeroBanner({
+  filterOptions,
+  categories = [],
+}: HeroBannerProps) {
   const locale = await getLocale();
   const isRtl = locale === "ar";
   const t = await getTranslations("home");
   const tTypes = await getTranslations("propertyTypes");
   const initialHeroSlides = await getHeroSlides();
 
-  const cards = withCategoryIdHrefs(propertyTypeCards, (slug) =>
-    resolveCategoryIdBySlug(slug, filterOptions),
-  ).map((item) => {
-    const subtitleKey = `${item.id}Subtitle` as `${PropertyTypeCardId}Subtitle`;
+  const sourceCards =
+    categories.length > 0
+      ? buildPropertyTypeCardsFromCategories(categories, { includeMore: false })
+      : withCategoryIdHrefs(
+          propertyTypeCards.filter((item) => item.id !== "more"),
+          (slug) => resolveCategoryIdBySlug(slug, filterOptions),
+        );
+
+  const cards = sourceCards.map((item) => {
+    const typeKey =
+      resolvePropertyTypeCardKey(item.title) ??
+      (item.id as PropertyTypeCardId | undefined);
+    const knownKey =
+      typeKey && typeKey !== "more"
+        ? (typeKey as Exclude<PropertyTypeCardId, "more">)
+        : null;
+
+    if (!knownKey) {
+      return {
+        ...item,
+        shortTitle: item.shortTitle ?? item.title,
+      };
+    }
+
+    const subtitleKey = `${knownKey}Subtitle` as `${Exclude<PropertyTypeCardId, "more">}Subtitle`;
     return {
       ...item,
-      title: tTypes(item.id),
+      title: tTypes(knownKey),
       subtitle: tTypes(subtitleKey),
-      shortTitle: item.id === "apartments" ? tTypes("apts") : tTypes(item.id),
+      shortTitle: knownKey === "apartments" ? tTypes("apts") : tTypes(knownKey),
     };
   });
 
-  const tabletCards = cards.filter((item) => item.id !== "more");
-  const mobileCards = cards.filter((item) => item.id !== "more");
+  const tabletCards = cards;
+  const mobileCards = cards;
+  const mobileCols = Math.max(mobileCards.length, 1);
+  const desktopCols = Math.min(Math.max(tabletCards.length, 1), 6);
 
   return (
     <section className="relative w-full bg-white">
@@ -74,7 +104,12 @@ export async function HeroBanner({ filterOptions }: HeroBannerProps) {
 
       <div className="relative z-10 mx-auto -mt-[4.5rem] w-full px-3 sm:-mt-20 sm:px-6 md:-mt-18 md:px-4 lg:-mt-28 lg:px-[100px]">
         <div className="overflow-hidden rounded-[1.75rem] bg-white p-2 shadow-[0_12px_32px_rgba(15,23,42,0.14)] ring-1 ring-black/[0.025] md:hidden">
-          <div className="grid grid-cols-5 divide-x divide-[#e8edf4] rtl:divide-x-reverse">
+          <div
+            className="grid divide-x divide-[#e8edf4] rtl:divide-x-reverse"
+            style={{
+              gridTemplateColumns: `repeat(${mobileCols}, minmax(0, 1fr))`,
+            }}
+          >
             {mobileCards.map((item, index) => (
               <div
                 key={item.id}
@@ -92,7 +127,12 @@ export async function HeroBanner({ filterOptions }: HeroBannerProps) {
         </div>
 
         <div className="hidden rounded-2xl bg-white p-2 shadow-[0_10px_30px_rgba(0,0,0,0.12)] md:block lg:hidden">
-          <div className="grid grid-cols-3 divide-x divide-y divide-[#eef2f7] sm:grid-cols-6 sm:divide-y-0 rtl:divide-x-reverse">
+          <div
+            className="grid divide-x divide-y divide-[#eef2f7] sm:divide-y-0 rtl:divide-x-reverse"
+            style={{
+              gridTemplateColumns: `repeat(${Math.min(tabletCards.length || 1, 6)}, minmax(0, 1fr))`,
+            }}
+          >
             {tabletCards.map((item, index) => (
               <div
                 key={item.id}
@@ -105,7 +145,12 @@ export async function HeroBanner({ filterOptions }: HeroBannerProps) {
           </div>
         </div>
 
-        <div className="mx-auto hidden max-w-[1720px] grid-cols-5 justify-center gap-4 lg:grid">
+        <div
+          className="mx-auto hidden max-w-[1720px] justify-center gap-4 lg:grid"
+          style={{
+            gridTemplateColumns: `repeat(${desktopCols}, minmax(0, 1fr))`,
+          }}
+        >
           {tabletCards.map((item, index) => (
             <div
               key={item.id}

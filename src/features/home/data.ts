@@ -58,13 +58,22 @@ export type PropertyTypeCardId =
   | "commercial"
   | "more";
 
+export type PublicCategoryItem = {
+  id: number;
+  name: string;
+  icon: string | null;
+  position: number;
+};
+
 export type PropertyTypeCardItem = {
-  id: PropertyTypeCardId;
+  id: string;
   title: string;
   shortTitle?: string;
   subtitle: string;
   href: string;
   Icon: ComponentType<SVGProps<SVGSVGElement>>;
+  iconSrc?: string | null;
+  categoryId?: number | null;
 };
 
 export type FeaturedPropertyItem = {
@@ -219,6 +228,70 @@ export const whyChooseUsItems: WhyChooseUsItem[] = [
   },
 ];
 
+const propertyTypeIconByKey: Record<
+  string,
+  ComponentType<SVGProps<SVGSVGElement>>
+> = {
+  villa: VillaIcon,
+  villas: VillaIcon,
+  apartment: ApartmentIcon,
+  apartments: ApartmentIcon,
+  apts: ApartmentIcon,
+  studio: StudioIcon,
+  studios: StudioIcon,
+  land: LandIcon,
+  lands: LandIcon,
+  shop: ShopIcon,
+  shops: ShopIcon,
+  commercial: CommercialIcon,
+  penthouse: ApartmentIcon,
+  penthouses: ApartmentIcon,
+};
+
+const propertyTypeCardKeyByLabel: Record<
+  string,
+  Exclude<PropertyTypeCardId, "more">
+> = {
+  villa: "villas",
+  villas: "villas",
+  apartment: "apartments",
+  apartments: "apartments",
+  apts: "apartments",
+  studio: "studios",
+  studios: "studios",
+  land: "lands",
+  lands: "lands",
+  shop: "shops",
+  shops: "shops",
+  commercial: "commercial",
+};
+
+/** Fallback SVG icons when a category has no uploaded icon. */
+export function getPropertyTypeFallbackIcon(
+  name: string,
+): ComponentType<SVGProps<SVGSVGElement>> {
+  const key = name.trim().toLowerCase().replace(/\s+/g, "");
+  return propertyTypeIconByKey[key] ?? ApartmentIcon;
+}
+
+export function resolvePropertyTypeCardKey(
+  name: string,
+): Exclude<PropertyTypeCardId, "more"> | null {
+  const key = name.trim().toLowerCase().replace(/\s+/g, "");
+  return propertyTypeCardKeyByLabel[key] ?? null;
+}
+
+export const morePropertyTypeCard: PropertyTypeCardItem = {
+  id: "more",
+  title: "More",
+  subtitle: "Browse More",
+  href: routes.properties,
+  Icon: MoreCircleIcon,
+  iconSrc: null,
+  categoryId: null,
+};
+
+/** Hardcoded fallbacks only when the backend returns no active categories. */
 export const propertyTypeCards: PropertyTypeCardItem[] = [
   {
     id: "villas",
@@ -235,13 +308,6 @@ export const propertyTypeCards: PropertyTypeCardItem[] = [
     href: `${routes.properties}?type=apartments`,
     Icon: ApartmentIcon,
   },
-  // {
-  //   id: "studios",
-  //   title: "Studios",
-  //   subtitle: "Comfortable Studios",
-  //   href: `${routes.properties}?type=studios`,
-  //   Icon: StudioIcon,
-  // },
   {
     id: "lands",
     title: "Lands",
@@ -263,24 +329,46 @@ export const propertyTypeCards: PropertyTypeCardItem[] = [
     href: `${routes.properties}?type=commercial`,
     Icon: CommercialIcon,
   },
-  {
-    id: "more",
-    title: "More",
-    subtitle: "Browse More",
-    href: routes.properties,
-    Icon: MoreCircleIcon,
-  },
+  morePropertyTypeCard,
 ];
+
+export function buildPropertyTypeCardsFromCategories(
+  categories: PublicCategoryItem[],
+  options?: { includeMore?: boolean },
+): PropertyTypeCardItem[] {
+  const cards = categories.map((category) => {
+    const typeKey = resolvePropertyTypeCardKey(category.name);
+    return {
+      id: typeKey ?? `category-${category.id}`,
+      title: category.name,
+      shortTitle:
+        typeKey === "apartments"
+          ? "Apts"
+          : category.name.length > 10
+            ? `${category.name.slice(0, 8)}…`
+            : category.name,
+      subtitle: category.name,
+      href: `${routes.properties}?categoryId=${category.id}`,
+      Icon: getPropertyTypeFallbackIcon(category.name),
+      iconSrc: category.icon,
+      categoryId: category.id,
+    } satisfies PropertyTypeCardItem;
+  });
+
+  if (options?.includeMore === false) return cards;
+  return [...cards, morePropertyTypeCard];
+}
 
 export function withCategoryIdHrefs(
   cards: PropertyTypeCardItem[],
   resolveCategoryId: (slug: string) => number | null,
 ) {
   return cards.map((card) => {
-    if (card.id === "more") return card;
+    if (card.id === "more" || card.categoryId != null) return card;
     const categoryId = resolveCategoryId(card.id);
     return {
       ...card,
+      categoryId,
       href:
         categoryId !== null
           ? `${routes.properties}?categoryId=${categoryId}`

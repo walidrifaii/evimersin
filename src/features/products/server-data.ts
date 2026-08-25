@@ -8,6 +8,7 @@ import {
   formatProductPrice,
   hasActiveDiscount,
 } from "@/lib/product-pricing";
+import type { PublicCategoryItem } from "@/features/home/data";
 import { buildPropertyFilterOptions } from "@/features/products/data";
 import { ALL_PROPERTY_SPEC_KEYS } from "@/constants/property-specs";
 import {
@@ -221,9 +222,31 @@ async function loadPropertyFilterOptions() {
   );
 }
 
+async function loadPublicCategories(): Promise<PublicCategoryItem[]> {
+  try {
+    const categories = await categoryRepository.findAll();
+    return categories
+      .filter((category) => Number(category.status) === 1)
+      .map((category) => ({
+        id: Number(category.id),
+        name: category.name,
+        icon: toDisplayImageSrc(category.icon) || null,
+        position: Number(category.position) || 0,
+      }));
+  } catch (error) {
+    console.error("[listings] Failed to load public categories:", error);
+    return [];
+  }
+}
+
 /** Fresh each request so city filters never stick on an empty build cache. */
 export const getPropertyFilterOptions = cache(async () => {
   return loadPropertyFilterOptions();
+});
+
+/** Active categories for hero cards and nav (ordered by position). */
+export const getPublicCategories = cache(async () => {
+  return loadPublicCategories();
 });
 
 /** Per-request dedupe + cross-request ISR cache (60s). */

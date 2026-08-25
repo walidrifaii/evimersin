@@ -7,20 +7,23 @@ import {
   getFeaturedPropertyListings,
   getHotDealPropertyListings,
   getPropertyFilterOptions,
+  getPublicCategories,
 } from "@/features/products/server-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [filterOptions, featuredListings, hotDeals] = await Promise.all([
-    getPropertyFilterOptions(),
-    getFeaturedPropertyListings(12),
-    getHotDealPropertyListings(12),
-  ]);
+  const [filterOptions, categories, featuredListings, hotDeals] =
+    await Promise.all([
+      getPropertyFilterOptions(),
+      getPublicCategories(),
+      getFeaturedPropertyListings(12),
+      getHotDealPropertyListings(12),
+    ]);
 
   return (
     <div className="flex flex-1 flex-col bg-white">
-      <HeroBanner filterOptions={filterOptions} />
+      <HeroBanner filterOptions={filterOptions} categories={categories} />
       <FeaturedProperties listings={featuredListings} />
       <HotDeals listings={hotDeals} />
       <WhyChooseUs />

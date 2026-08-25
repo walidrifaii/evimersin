@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { PropertyTypeCardItem } from "@/features/home/data";
 
@@ -12,8 +13,11 @@ export function PropertyTypeCard({
   compact = false,
   label,
 }: PropertyTypeCardProps) {
-  const { Icon, title, subtitle, href } = item;
+  const { Icon, title, subtitle, href, iconSrc } = item;
   const displayLabel = label ?? title;
+  const iconClass = compact
+    ? "h-7 w-7 shrink-0 sm:h-9 sm:w-9"
+    : "h-14 w-14 md:h-10 md:w-10 lg:h-16 lg:w-16";
 
   return (
     <Link
@@ -24,11 +28,24 @@ export function PropertyTypeCard({
           : "min-h-[15rem] gap-4 rounded-2xl bg-white px-5 py-10 shadow-[0_4px_24px_rgba(0,0,0,0.08)] md:min-h-[8.5rem] md:gap-3 md:px-3 md:py-5 lg:min-h-[17rem] lg:gap-5 lg:px-5 lg:py-12"
       }`}
     >
-      <Icon
-        className={`text-[var(--brand-blue)] transition-transform duration-300 group-hover:scale-105 ${
-          compact ? "h-7 w-7 shrink-0 sm:h-9 sm:w-9" : "h-14 w-14 md:h-10 md:w-10 lg:h-16 lg:w-16"
-        }`}
-      />
+      {iconSrc ? (
+        <span
+          className={`relative inline-flex items-center justify-center overflow-hidden ${iconClass}`}
+        >
+          <Image
+            src={iconSrc}
+            alt=""
+            fill
+            sizes={compact ? "36px" : "64px"}
+            className="object-contain transition-transform duration-300 group-hover:scale-105"
+            unoptimized
+          />
+        </span>
+      ) : (
+        <Icon
+          className={`text-[var(--brand-blue)] transition-transform duration-300 group-hover:scale-105 ${iconClass}`}
+        />
+      )}
       <span
         className={`block w-full min-w-0 font-bold text-[var(--brand-navy)] ${
           compact

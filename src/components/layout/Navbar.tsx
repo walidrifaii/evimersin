@@ -1,7 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BrandLogo } from "@/components/layout/BrandLogo";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 import { useAppLocale } from "@/components/layout/LocaleAttributes";
@@ -11,8 +12,12 @@ import { useSiteSettings } from "@/components/providers/SiteSettingsProvider";
 import { Link, usePathname } from "@/i18n/navigation";
 import { routes } from "@/constants/routes";
 import {
+  buildPropertyTypeCardsFromCategories,
+  getPropertyTypeFallbackIcon,
   propertyTypeCards,
+  resolvePropertyTypeCardKey,
   type PropertyTypeCardId,
+  type PublicCategoryItem,
 } from "@/features/home/data";
 import { useTranslations } from "next-intl";
 
@@ -45,7 +50,11 @@ function isSubNavActive(
   return true;
 }
 
-export function Navbar() {
+type NavbarProps = {
+  categories?: PublicCategoryItem[];
+};
+
+export function Navbar({ categories = [] }: NavbarProps) {
   const locale = useAppLocale();
   const isRtl = locale === "ar";
   const pathname = usePathname();
@@ -59,12 +68,34 @@ export function Navbar() {
   const tCommon = useTranslations("common");
   const tTypes = useTranslations("propertyTypes");
 
-  const propertyNavItems = propertyTypeCards
-    .filter((item) => item.id !== "more")
-    .map((item) => ({
-      ...item,
-      title: tTypes(item.id as Exclude<PropertyTypeCardId, "more">),
-    }));
+  const propertyNavItems = useMemo(() => {
+    const source =
+      categories.length > 0
+        ? buildPropertyTypeCardsFromCategories(categories, {
+            includeMore: false,
+          })
+        : propertyTypeCards.filter((item) => item.id !== "more");
+
+    return source.map((item) => {
+      const typeKey =
+        resolvePropertyTypeCardKey(item.title) ??
+        (item.id !== "more" ? (item.id as PropertyTypeCardId) : null);
+      const knownKey =
+        typeKey && typeKey !== "more"
+          ? (typeKey as Exclude<PropertyTypeCardId, "more">)
+          : null;
+      const Icon =
+        item.Icon ?? getPropertyTypeFallbackIcon(item.title || String(item.id));
+
+      return {
+        id: item.id,
+        href: item.href,
+        iconSrc: item.iconSrc ?? null,
+        Icon,
+        title: knownKey ? tTypes(knownKey) : item.title,
+      };
+    });
+  }, [categories, tTypes]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -149,13 +180,26 @@ export function Navbar() {
                                 : "text-[var(--nav-text)]"
                             }`}
                           >
-                            <Icon
-                              className={`h-4 w-4 shrink-0 ${
-                                subActive
-                                  ? "text-[var(--brand-red)]"
-                                  : "text-[var(--brand-blue)]"
-                              }`}
-                            />
+                            {subItem.iconSrc ? (
+                              <span className="relative h-4 w-4 shrink-0 overflow-hidden">
+                                <Image
+                                  src={subItem.iconSrc}
+                                  alt=""
+                                  fill
+                                  sizes="16px"
+                                  className="object-contain"
+                                  unoptimized
+                                />
+                              </span>
+                            ) : (
+                              <Icon
+                                className={`h-4 w-4 shrink-0 ${
+                                  subActive
+                                    ? "text-[var(--brand-red)]"
+                                    : "text-[var(--brand-blue)]"
+                                }`}
+                              />
+                            )}
                             {subItem.title}
                           </Link>
                         );
