@@ -16,9 +16,9 @@ export function PropertyTypeCard({
   const { Icon, title, subtitle, href, iconSrc } = item;
   const displayLabel = label ?? title;
   const iconClass = compact
-    ? "h-7 w-7 shrink-0 sm:h-9 sm:w-9"
-    : "h-14 w-14 md:h-10 md:w-10 lg:h-16 lg:w-16";
-
+    ? "h-11 w-11 shrink-0 sm:h-14 sm:w-14"
+    : "h-[5.25rem] w-[5.25rem] md:h-16 md:w-16 lg:h-24 lg:w-24";
+  const imageSizes = compact ? "56px" : "96px";
   return (
     <Link
       href={href}
@@ -36,7 +36,7 @@ export function PropertyTypeCard({
             src={iconSrc}
             alt=""
             fill
-            sizes={compact ? "36px" : "64px"}
+            sizes={imageSizes}
             className="object-contain transition-transform duration-300 group-hover:scale-105"
             unoptimized
           />

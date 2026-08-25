@@ -177,12 +177,12 @@ export function Navbar({ categories = [] }: NavbarProps) {
                             }`}
                           >
                             {subItem.iconSrc ? (
-                              <span className="relative h-4 w-4 shrink-0 overflow-hidden">
+                              <span className="relative h-6 w-6 shrink-0 overflow-hidden">
                                 <Image
                                   src={subItem.iconSrc}
                                   alt=""
                                   fill
-                                  sizes="16px"
+                                  sizes="24px"
                                   className="object-contain"
                                   unoptimized
                                 />
