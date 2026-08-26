@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import nextDynamic from "next/dynamic";
 import { config } from "@/constants/config";
 import { HomeSectionSkeleton } from "@/features/home/components/HomeSectionSkeleton";
+import { PropertiesPageContent } from "@/features/products/components/PropertiesPageContent";
 import {
   getPropertyFilterOptions,
   getPropertyListings,
@@ -16,16 +16,6 @@ export const metadata: Metadata = {
 };
 
 export const revalidate = 60;
-
-const PropertiesPageContent = nextDynamic(
-  () =>
-    import("@/features/products/components/PropertiesPageContent").then(
-      (mod) => ({ default: mod.PropertiesPageContent }),
-    ),
-  {
-    loading: () => <HomeSectionSkeleton variant="properties" />,
-  },
-);
 
 async function PropertiesLoader() {
   const locale = await getLocale();

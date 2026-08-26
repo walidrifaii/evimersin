@@ -73,9 +73,11 @@ export function getPool(): Pool {
     global.__mysqlPool = mysql.createPool({
       ...getDatabaseConfig(),
       waitForConnections: true,
-      connectionLimit: 10,
+      connectionLimit: 20,
       queueLimit: 0,
       namedPlaceholders: true,
+      enableKeepAlive: true,
+      keepAliveInitialDelay: 10_000,
     });
   }
 

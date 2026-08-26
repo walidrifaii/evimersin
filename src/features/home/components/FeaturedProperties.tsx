@@ -173,6 +173,7 @@ export function FeaturedProperties({ initialPage }: FeaturedPropertiesProps) {
 
             <Link
               href={routes.properties}
+              prefetch={false}
               className="inline-flex h-12 shrink-0 items-center justify-center rounded-lg border border-[var(--brand-blue)] px-6 text-[15px] font-semibold text-[var(--brand-blue)] transition-colors hover:bg-[#eff6ff]"
             >
               {tCommon("viewAllProperties")}

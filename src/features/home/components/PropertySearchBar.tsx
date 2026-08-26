@@ -357,6 +357,7 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
 
       <Link
         href={searchHref}
+        prefetch={false}
         className="inline-flex h-16 w-full shrink-0 items-center justify-center rounded-[16px] bg-[var(--brand-blue)] px-8 text-base font-semibold leading-none text-white transition-colors hover:bg-[#1d4ed8] lg:h-16 lg:w-auto lg:min-w-[180px] lg:self-center lg:px-10 lg:text-[17px]"
       >
         {t("searchButton")}

@@ -12,7 +12,7 @@ type PropertyListingCardProps = {
 export function PropertyListingCard({ item }: PropertyListingCardProps) {
   return (
     <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-[#e8edf5] bg-white shadow-[0_6px_24px_rgba(15,23,42,0.07)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_14px_36px_rgba(15,23,42,0.12)]">
-      <Link href={item.href} className="relative block aspect-[16/10] w-full overflow-hidden">
+      <Link href={item.href} prefetch={false} className="relative block aspect-[16/10] w-full overflow-hidden">
         <SafeImage
           src={item.image}
           alt={item.title}
@@ -36,7 +36,7 @@ export function PropertyListingCard({ item }: PropertyListingCardProps) {
 
       <div className="relative flex flex-1 flex-col gap-3 p-4 sm:p-5">
         <div>
-          <Link href={item.href}>
+          <Link href={item.href} prefetch={false}>
             <h3 className="text-[16px] font-bold leading-snug text-[var(--brand-navy)] transition-colors hover:text-[var(--brand-blue)] sm:text-[17px]">
               {item.title}
             </h3>

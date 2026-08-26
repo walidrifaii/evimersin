@@ -156,6 +156,7 @@ export function HotDeals({ initialPage }: HotDealsProps) {
 
             <Link
               href={routes.properties}
+              prefetch={false}
               className="inline-flex h-11 shrink-0 items-center justify-center self-start rounded-lg border border-white/80 px-5 text-[14px] font-semibold text-white transition-colors hover:bg-white/10"
             >
               {tCommon("viewAllDeals")}

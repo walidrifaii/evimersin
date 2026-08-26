@@ -9,33 +9,42 @@ const SESSION_KEY = "evimersin_preloader_done";
 const VISIBLE_MS = 3000;
 const EXIT_MS = 400;
 
+function hasShownPreloader() {
+  try {
+    return sessionStorage.getItem(SESSION_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markPreloaderShown() {
+  try {
+    sessionStorage.setItem(SESSION_KEY, "1");
+    document.documentElement.classList.add("preloader-skip");
+  } catch {
+    // ignore
+  }
+}
+
 /**
- * Shows once per browser tab session for 3s.
- * Avoids the double-flash caused by removing DOM with a script then React
- * re-inserting the same markup on hydration.
+ * Shows once per tab session for 3s. Skips on later navigations / remounts.
  */
 export function SitePreloader() {
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(false);
   const [exiting, setExiting] = useState(false);
 
   useEffect(() => {
-    try {
-      if (sessionStorage.getItem(SESSION_KEY) === "1") {
-        setVisible(false);
-        return;
-      }
-    } catch {
-      // sessionStorage blocked — still show once this mount.
+    if (hasShownPreloader()) {
+      document.documentElement.classList.add("preloader-skip");
+      return;
     }
+
+    setVisible(true);
 
     let hideTimer: ReturnType<typeof setTimeout> | undefined;
     const exitTimer = setTimeout(() => {
       setExiting(true);
-      try {
-        sessionStorage.setItem(SESSION_KEY, "1");
-      } catch {
-        // ignore
-      }
+      markPreloaderShown();
       hideTimer = setTimeout(() => setVisible(false), EXIT_MS);
     }, VISIBLE_MS);
 

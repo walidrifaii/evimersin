@@ -55,13 +55,12 @@ export default async function RootLayout({
       lang={locale}
       dir={dir}
       className={`${poppins.variable} ${notoSansArabic.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className={`min-h-full bg-white text-[var(--foreground)] ${fontClass}`}>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `try{if(sessionStorage.getItem("evimersin_preloader_done")==="1"){document.documentElement.classList.add("preloader-skip")}}catch(e){}`,
-          }}
-        />
+      <body
+        className={`min-h-full bg-white text-[var(--foreground)] ${fontClass}`}
+        suppressHydrationWarning
+      >
         <SitePreloader />
         {children}
       </body>

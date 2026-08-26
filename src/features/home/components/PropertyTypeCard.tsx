@@ -22,6 +22,7 @@ export function PropertyTypeCard({
   return (
     <Link
       href={href}
+      prefetch={false}
       className={`group flex min-w-0 flex-col items-center justify-center text-center transition-transform duration-300 active:scale-[0.97] motion-reduce:transition-none md:hover:-translate-y-1 md:active:scale-100 ${
         compact
           ? "h-[5.75rem] gap-1.5 rounded-none bg-transparent px-0.5 py-2.5 shadow-none sm:h-auto sm:min-h-[5.9rem] sm:gap-2 sm:px-2 sm:py-3"

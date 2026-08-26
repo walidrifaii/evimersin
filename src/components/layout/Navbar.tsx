@@ -153,6 +153,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
                 <div key={item.href} className="group relative">
                   <Link
                     href={item.href}
+                    prefetch={false}
                     aria-current={active ? "page" : undefined}
                     className={`inline-flex items-center gap-1 text-[1.1rem] font-semibold transition-colors group-hover:text-[var(--brand-red)] ${
                       active
@@ -178,6 +179,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
                           <Link
                             key={subItem.id}
                             href={subItem.href}
+                            prefetch={false}
                             aria-current={subActive ? "page" : undefined}
                             className={`flex items-center gap-3 px-4 py-2.5 text-[0.9rem] font-semibold transition-colors hover:bg-[#f8fafc] hover:text-[var(--brand-red)] ${
                               subActive
@@ -334,6 +336,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
                               <li key={subItem.id}>
                                 <Link
                                   href={subItem.href}
+                                  prefetch={false}
                                   onClick={() => setMenuOpen(false)}
                                   aria-current={subActive ? "page" : undefined}
                                   className={`block text-[0.95rem] font-medium transition-colors hover:text-white ${

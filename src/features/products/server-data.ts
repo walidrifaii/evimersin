@@ -86,8 +86,11 @@ function toPropertyListing(product: ProductDetail): PropertyListing {
 
 async function loadPropertyListings() {
   try {
-    const details = await productRepository.findActiveDetails();
-    return details.map(toPropertyListing);
+    // List cards only need the primary image — skip gallery fetch (major TTFB win).
+    const products = await productRepository.findActive();
+    return products.map((product) =>
+      toPropertyListing({ ...product, images: [] }),
+    );
   } catch (error) {
     console.error("[listings] Failed to load property listings:", error);
     return [];
