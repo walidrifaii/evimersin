@@ -210,6 +210,8 @@ body {
 
 html.preloader-skip #site-preloader {
   display: none !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
 }
 
 .preloader-orb-a {

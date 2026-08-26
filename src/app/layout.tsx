@@ -61,6 +61,11 @@ export default async function RootLayout({
         className={`min-h-full bg-white text-[var(--foreground)] ${fontClass}`}
         suppressHydrationWarning
       >
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(sessionStorage.getItem("evimersin_preloader_done")==="1"){document.documentElement.classList.add("preloader-skip")}}catch(e){}`,
+          }}
+        />
         <SitePreloader />
         {children}
       </body>

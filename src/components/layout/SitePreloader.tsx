@@ -8,70 +8,86 @@ import { config } from "@/constants/config";
 const SESSION_KEY = "evimersin_preloader_done";
 const VISIBLE_MS = 3000;
 const EXIT_MS = 400;
+const EXIT_EVENT = "evimersin-preloader-exit";
 
-function hasShownPreloader() {
-  try {
-    return sessionStorage.getItem(SESSION_KEY) === "1";
-  } catch {
-    return false;
+declare global {
+  interface Window {
+    __evimersinPreloaderTimer?: number;
   }
 }
 
-function markPreloaderShown() {
+function isPreloaderDone() {
   try {
-    sessionStorage.setItem(SESSION_KEY, "1");
-    document.documentElement.classList.add("preloader-skip");
+    if (sessionStorage.getItem(SESSION_KEY) === "1") return true;
   } catch {
     // ignore
   }
+  return document.documentElement.classList.contains("preloader-skip");
+}
+
+function markPreloaderDone() {
+  try {
+    sessionStorage.setItem(SESSION_KEY, "1");
+  } catch {
+    // ignore
+  }
+  document.documentElement.classList.add("preloader-skip");
 }
 
 /**
- * Shows once per tab session for 3s. Skips on later navigations / remounts.
+ * First paint only. Never turns on again after content loads / remounts.
+ * (Previous bug: started hidden, then useEffect set visible=true → second splash.)
  */
 export function SitePreloader() {
-  const [visible, setVisible] = useState(false);
-  const [exiting, setExiting] = useState(false);
+  const [phase, setPhase] = useState<"show" | "exit" | "gone">(() => {
+    if (typeof window === "undefined") return "show";
+    return isPreloaderDone() ? "gone" : "show";
+  });
 
   useEffect(() => {
-    if (hasShownPreloader()) {
-      document.documentElement.classList.add("preloader-skip");
+    if (isPreloaderDone()) {
+      setPhase("gone");
       return;
     }
 
-    setVisible(true);
+    function onExit() {
+      setPhase("exit");
+      window.setTimeout(() => setPhase("gone"), EXIT_MS);
+    }
 
-    let hideTimer: ReturnType<typeof setTimeout> | undefined;
-    const exitTimer = setTimeout(() => {
-      setExiting(true);
-      markPreloaderShown();
-      hideTimer = setTimeout(() => setVisible(false), EXIT_MS);
-    }, VISIBLE_MS);
+    window.addEventListener(EXIT_EVENT, onExit);
+
+    // One shared timer for the whole tab — remounts must not restart the splash.
+    if (!window.__evimersinPreloaderTimer) {
+      window.__evimersinPreloaderTimer = window.setTimeout(() => {
+        markPreloaderDone();
+        window.dispatchEvent(new Event(EXIT_EVENT));
+      }, VISIBLE_MS);
+    }
 
     return () => {
-      clearTimeout(exitTimer);
-      if (hideTimer) clearTimeout(hideTimer);
+      window.removeEventListener(EXIT_EVENT, onExit);
     };
   }, []);
 
   useEffect(() => {
-    if (!visible) return;
+    if (phase !== "show" && phase !== "exit") return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = previous;
     };
-  }, [visible]);
+  }, [phase]);
 
-  if (!visible) return null;
+  if (phase === "gone") return null;
 
   return (
     <div
       id="site-preloader"
       className={`fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-[var(--brand-navy)] transition-all duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
-        exiting ? "pointer-events-none opacity-0" : "opacity-100"
+        phase === "exit" ? "pointer-events-none opacity-0" : "opacity-100"
       }`}
-      aria-busy={!exiting}
+      aria-busy={phase === "show"}
       aria-live="polite"
       role="status"
     >
@@ -83,7 +99,9 @@ export function SitePreloader() {
 
       <div
         className={`relative flex flex-col items-center px-6 transition-all duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
-          exiting ? "translate-y-4 scale-[0.97] opacity-0" : "translate-y-0 scale-100 opacity-100"
+          phase === "exit"
+            ? "translate-y-4 scale-[0.97] opacity-0"
+            : "translate-y-0 scale-100 opacity-100"
         }`}
       >
         <p className="preloader-tagline mb-7 text-[0.68rem] font-semibold uppercase tracking-[0.32em] text-white/40 sm:mb-8 sm:text-[0.72rem]">
