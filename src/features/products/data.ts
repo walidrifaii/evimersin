@@ -323,16 +323,17 @@ export function getCityOptionsForCountry(
   countryId: number | null,
   listings?: Array<Pick<PropertyListing, "countryId" | "cityId">>,
 ): CityFilterOption[] {
-  const citiesInCountry =
-    countryId === null
-      ? options.city.filter((city) => city.id !== null)
-      : options.city.filter(
-          (city) => city.id !== null && city.countryId === countryId,
-        );
+  // No country selected → no city list (only a prompt option).
+  if (countryId === null) {
+    return [{ id: null, label: "Select a country first" }];
+  }
+
+  const citiesInCountry = options.city.filter(
+    (city) => city.id !== null && city.countryId === countryId,
+  );
 
   const allCount =
     listings?.filter((item) => {
-      if (countryId === null) return true;
       if (item.countryId === countryId) return true;
       const city = options.city.find((option) => option.id === item.cityId);
       return city?.countryId === countryId;

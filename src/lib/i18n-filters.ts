@@ -13,6 +13,7 @@ const homeLabelKeys: Record<string, Parameters<HomeTranslator>[0]> = {
   "For Sale": "forSale",
   "For Rent": "forRent",
   "Any Price": "anyPrice",
+  "Select a country first": "selectCountryFirst",
 };
 
 const productsLabelKeys: Record<string, Parameters<ProductsTranslator>[0]> = {
@@ -27,6 +28,7 @@ const productsLabelKeys: Record<string, Parameters<ProductsTranslator>[0]> = {
   "Price: Low to High": "sortPriceAsc",
   "Price: High to Low": "sortPriceDesc",
   "Featured First": "sortFeatured",
+  "Select a country first": "selectCountryFirst",
 };
 
 function stripCountSuffix(label: string) {

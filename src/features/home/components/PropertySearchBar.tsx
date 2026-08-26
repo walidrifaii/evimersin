@@ -36,6 +36,7 @@ function FilterDropdown({
   onToggle,
   onClose,
   translateLabel,
+  disabled = false,
 }: {
   label: string;
   options: FilterOption[];
@@ -45,6 +46,7 @@ function FilterDropdown({
   onToggle: () => void;
   onClose: () => void;
   translateLabel: (label: string) => string;
+  disabled?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const selectedOption =
@@ -56,7 +58,7 @@ function FilterDropdown({
     : translateLabel("");
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || disabled) return;
 
     function handlePointerDown(e: PointerEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -66,7 +68,11 @@ function FilterDropdown({
 
     document.addEventListener("pointerdown", handlePointerDown);
     return () => document.removeEventListener("pointerdown", handlePointerDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, disabled]);
+
+  useEffect(() => {
+    if (disabled && isOpen) onClose();
+  }, [disabled, isOpen, onClose]);
 
   return (
     <div
@@ -77,26 +83,29 @@ function FilterDropdown({
         type="button"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
+        disabled={disabled}
         onClick={(e) => {
           e.stopPropagation();
-          onToggle();
+          if (!disabled) onToggle();
         }}
-        className="group flex h-full min-h-[60px] w-full min-w-0 flex-col justify-center gap-3 px-5 py-4 text-start transition-colors lg:min-h-[68px] lg:gap-4 lg:px-6 lg:py-5"
+        className={`group flex h-full min-h-[60px] w-full min-w-0 flex-col justify-center gap-3 px-5 py-4 text-start transition-colors lg:min-h-[68px] lg:gap-4 lg:px-6 lg:py-5 ${
+          disabled ? "cursor-not-allowed opacity-55" : ""
+        }`}
       >
         <span className="text-[14px] font-medium leading-none text-[#9ca3af] lg:text-[15px]">
           {label}
         </span>
-        <span className="flex w-full min-w-0 items-center gap-2 text-[18px] font-semibold leading-none text-[#1f2937] transition-colors group-hover:text-[var(--brand-red)] lg:text-[20px]">
+        <span className="flex w-full min-w-0 items-center gap-2 text-[18px] font-semibold leading-none text-[#1f2937] transition-colors group-hover:text-[var(--brand-red)] lg:text-[20px] group-disabled:group-hover:text-[#1f2937]">
           <span className="min-w-0 flex-1 truncate text-start">{selectedLabel}</span>
           <ChevronDown
-            className={`h-4 w-4 shrink-0 text-[#6b7280] transition-all duration-200 group-hover:text-[var(--brand-red)] ${
+            className={`h-4 w-4 shrink-0 text-[#6b7280] transition-all duration-200 group-hover:text-[var(--brand-red)] group-disabled:group-hover:text-[#6b7280] ${
               isOpen ? "rotate-180" : ""
             }`}
           />
         </span>
       </button>
 
-      {isOpen ? (
+      {isOpen && !disabled ? (
         <div
           role="listbox"
           className="absolute inset-x-0 top-full z-[100] mt-2 max-h-64 overflow-y-auto rounded-xl border border-[#e5e7eb] bg-white shadow-[0_12px_32px_rgba(0,0,0,0.18)]"
@@ -232,6 +241,7 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
             label={t("searchCity")}
             options={cityOptions}
             value={filters.cityId}
+            disabled={filters.countryId === null}
             onChange={(cityId) => {
               const selectedCity = findOptionById(cityId, cityOptions);
               setFilters((prev) => ({
