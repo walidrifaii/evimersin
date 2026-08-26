@@ -149,71 +149,41 @@ export function buildPropertyFilterOptions(
             cityId: item.cityId,
           }));
 
-  const totalCount = listings.length;
-
-  const cityById = new Map(
-    uniqueById(cities.filter((item) => item.id !== null)).map((city) => [
-      city.id as number,
-      city,
-    ]),
-  );
-
   const countryOptions = uniqueById(
     countries.filter((item) => item.id !== null),
-  ).map((option) => ({
-    ...option,
-    count: listings.filter((item) => {
-      if (item.countryId === option.id) return true;
-      const city = cityById.get(item.cityId);
-      return city?.countryId === option.id;
-    }).length,
-  }));
-
-  const cityOptions = uniqueById(cities.filter((item) => item.id !== null)).map(
-    (option) => ({
-      ...option,
-      count: listings.filter((item) => item.cityId === option.id).length,
-    }),
   );
+
+  const cityOptions = uniqueById(cities.filter((item) => item.id !== null));
 
   const propertyTypeOptions = uniqueById(
     propertyTypes.filter((item) => item.id !== null),
-  ).map((option) => ({
-    ...option,
-    count: listings.filter((item) => item.categoryId === option.id).length,
-  }));
+  );
 
   const purposeOptions = uniqueById(
     purposes.filter((item) => item.id !== null),
-  ).map((option) => ({
-    ...option,
-    count: listings.filter((item) => item.purposeId === option.id).length,
-  }));
+  );
 
   const regionOptions = uniqueById(
     regions.filter((item) => item.id !== null),
-  ).map((option) => ({
-    ...option,
-    count: listings.filter((item) => item.regionId === option.id).length,
-  })) as RegionFilterOption[];
+  ) as RegionFilterOption[];
 
   return {
     ...propertyFilterOptions,
     country: [
-      { id: null, label: "All Countries", count: totalCount },
+      { id: null, label: "All Countries" },
       ...countryOptions,
     ],
     city: [
-      { id: null, label: "All Cities", count: totalCount },
+      { id: null, label: "All Cities" },
       ...cityOptions,
     ],
     region: regionOptions,
     propertyType: [
-      { id: null, label: "All Types", count: totalCount },
+      { id: null, label: "All Types" },
       ...propertyTypeOptions,
     ],
     purpose: [
-      { id: null, label: "Buy / Rent", count: totalCount },
+      { id: null, label: "Buy / Rent" },
       ...purposeOptions,
     ],
     priceMax: maxPrice,
@@ -323,26 +293,18 @@ export function getCityOptionsForCountry(
   countryId: number | null,
   listings?: Array<Pick<PropertyListing, "countryId" | "cityId">>,
 ): CityFilterOption[] {
-  // No country selected → no city list (only a prompt option).
+  // No country selected → clickable, but no city rows.
   if (countryId === null) {
-    return [{ id: null, label: "Select a country first" }];
+    return [];
   }
 
   const citiesInCountry = options.city.filter(
     (city) => city.id !== null && city.countryId === countryId,
   );
 
-  const allCount =
-    listings?.filter((item) => {
-      if (item.countryId === countryId) return true;
-      const city = options.city.find((option) => option.id === item.cityId);
-      return city?.countryId === countryId;
-    }).length ??
-    citiesInCountry.reduce((sum, city) => sum + (city.count ?? 0), 0);
-
   return [
-    { id: null, label: "All Cities", count: allCount },
-    ...citiesInCountry,
+    { id: null, label: "All Cities" },
+    ...citiesInCountry.map(({ count: _count, ...city }) => city),
   ];
 }
 
@@ -356,13 +318,10 @@ export function getRegionOptionsForCity(
   }
 
   const regionsInCity = options.region.filter((region) => region.cityId === cityId);
-  const allCount =
-    listings?.filter((item) => item.cityId === cityId).length ??
-    regionsInCity.reduce((sum, region) => sum + (region.count ?? 0), 0);
 
   return [
-    { id: null, label: "All Regions", count: allCount },
-    ...regionsInCity.map(({ cityId: _cityId, ...region }) => region),
+    { id: null, label: "All Regions" },
+    ...regionsInCity.map(({ cityId: _cityId, count: _count, ...region }) => region),
   ];
 }
 

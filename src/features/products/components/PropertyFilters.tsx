@@ -35,14 +35,14 @@ function FilterSelect({
   value,
   onChange,
   translateLabel,
-  disabled = false,
+  emptyLabel,
 }: {
   label: string;
   options: FilterOption[];
   value: number | null;
   onChange: (value: number | null) => void;
   translateLabel: (label: string) => string;
-  disabled?: boolean;
+  emptyLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -52,7 +52,7 @@ function FilterSelect({
     ? formatTranslatedFilterOption(selectedOption, translateLabel, {
         withCount: false,
       })
-    : translateLabel("");
+    : translateLabel(emptyLabel ?? "");
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -62,10 +62,6 @@ function FilterSelect({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
 
-  useEffect(() => {
-    if (disabled) setOpen(false);
-  }, [disabled]);
-
   return (
     <div ref={ref} className="relative">
       <label className="mb-2 block text-[13px] font-semibold text-[var(--brand-navy)]">
@@ -73,11 +69,8 @@ function FilterSelect({
       </label>
       <button
         type="button"
-        disabled={disabled}
-        onClick={() => {
-          if (!disabled) setOpen((prev) => !prev);
-        }}
-        className={`flex h-12 w-full items-center justify-between gap-2 rounded-xl border border-[#e5eaf2] bg-white px-4 text-start text-[14px] font-medium text-[var(--brand-navy)] transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:border-[#e5eaf2] disabled:hover:text-[var(--brand-navy)]`}
+        onClick={() => setOpen((prev) => !prev)}
+        className="flex h-12 w-full items-center justify-between gap-2 rounded-xl border border-[#e5eaf2] bg-white px-4 text-start text-[14px] font-medium text-[var(--brand-navy)] transition-colors hover:border-[var(--brand-red)] hover:text-[var(--brand-red)]"
       >
         <span className="truncate">{selectedLabel}</span>
         <HiChevronDown
@@ -88,32 +81,36 @@ function FilterSelect({
         />
       </button>
 
-      {open && !disabled ? (
+      {open ? (
         <div className="absolute left-0 right-0 top-full z-40 mt-2 max-h-64 overflow-y-auto rounded-xl border border-[#e5eaf2] bg-white shadow-[0_12px_32px_rgba(15,23,42,0.12)]">
-          {options.map((option) => (
-            <button
-              key={`${option.id ?? "all"}-${option.label}`}
-              type="button"
-              onMouseDown={(event) => {
-                event.preventDefault();
-              }}
-              onClick={() => {
-                onChange(option.id);
-                setOpen(false);
-              }}
-              className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-start text-[14px] font-medium transition-colors hover:text-[var(--brand-red)] ${
-                option.id === value
-                  ? "text-[var(--brand-red)]"
-                  : "text-[var(--brand-navy)]"
-              }`}
-            >
-              <span className="truncate">
-                {formatTranslatedFilterOption(option, translateLabel, {
-                  withCount: false,
-                })}
-              </span>
-            </button>
-          ))}
+          {options.length === 0 ? (
+            <div className="px-4 py-3 text-[14px] text-[#94a3b8]" />
+          ) : (
+            options.map((option) => (
+              <button
+                key={`${option.id ?? "all"}-${option.label}`}
+                type="button"
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                }}
+                onClick={() => {
+                  onChange(option.id);
+                  setOpen(false);
+                }}
+                className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-start text-[14px] font-medium transition-colors hover:text-[var(--brand-red)] ${
+                  option.id === value
+                    ? "text-[var(--brand-red)]"
+                    : "text-[var(--brand-navy)]"
+                }`}
+              >
+                <span className="truncate">
+                  {formatTranslatedFilterOption(option, translateLabel, {
+                    withCount: false,
+                  })}
+                </span>
+              </button>
+            ))
+          )}
         </div>
       ) : null}
     </div>
@@ -221,7 +218,7 @@ export function PropertyFilters({
           value={value.cityId}
           onChange={updateCity}
           translateLabel={translateLabel}
-          disabled={value.countryId === null}
+          emptyLabel="All Cities"
         />
         <FilterSelect
           label={t("region")}
@@ -229,7 +226,6 @@ export function PropertyFilters({
           value={value.cityId === null ? null : value.regionId}
           onChange={(regionId) => update("regionId", regionId)}
           translateLabel={translateLabel}
-          disabled={value.cityId === null}
         />
 
         <div>

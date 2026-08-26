@@ -36,7 +36,7 @@ function FilterDropdown({
   onToggle,
   onClose,
   translateLabel,
-  disabled = false,
+  emptyLabel = "All Cities",
 }: {
   label: string;
   options: FilterOption[];
@@ -46,7 +46,7 @@ function FilterDropdown({
   onToggle: () => void;
   onClose: () => void;
   translateLabel: (label: string) => string;
-  disabled?: boolean;
+  emptyLabel?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const selectedOption =
@@ -55,10 +55,10 @@ function FilterDropdown({
     ? formatTranslatedFilterOption(selectedOption, translateLabel, {
         withCount: false,
       })
-    : translateLabel("");
+    : translateLabel(emptyLabel);
 
   useEffect(() => {
-    if (!isOpen || disabled) return;
+    if (!isOpen) return;
 
     function handlePointerDown(e: PointerEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -68,11 +68,7 @@ function FilterDropdown({
 
     document.addEventListener("pointerdown", handlePointerDown);
     return () => document.removeEventListener("pointerdown", handlePointerDown);
-  }, [isOpen, onClose, disabled]);
-
-  useEffect(() => {
-    if (disabled && isOpen) onClose();
-  }, [disabled, isOpen, onClose]);
+  }, [isOpen, onClose]);
 
   return (
     <div
@@ -83,58 +79,61 @@ function FilterDropdown({
         type="button"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
-        disabled={disabled}
         onClick={(e) => {
           e.stopPropagation();
-          if (!disabled) onToggle();
+          onToggle();
         }}
-        className={`group flex h-full min-h-[60px] w-full min-w-0 flex-col justify-center gap-3 px-5 py-4 text-start transition-colors lg:min-h-[68px] lg:gap-4 lg:px-6 lg:py-5 ${
-          disabled ? "cursor-not-allowed opacity-55" : ""
-        }`}
+        className="group flex h-full min-h-[60px] w-full min-w-0 flex-col justify-center gap-3 px-5 py-4 text-start transition-colors lg:min-h-[68px] lg:gap-4 lg:px-6 lg:py-5"
       >
         <span className="text-[14px] font-medium leading-none text-[#9ca3af] lg:text-[15px]">
           {label}
         </span>
-        <span className="flex w-full min-w-0 items-center gap-2 text-[18px] font-semibold leading-none text-[#1f2937] transition-colors group-hover:text-[var(--brand-red)] lg:text-[20px] group-disabled:group-hover:text-[#1f2937]">
+        <span className="flex w-full min-w-0 items-center gap-2 text-[18px] font-semibold leading-none text-[#1f2937] transition-colors group-hover:text-[var(--brand-red)] lg:text-[20px]">
           <span className="min-w-0 flex-1 truncate text-start">{selectedLabel}</span>
           <ChevronDown
-            className={`h-4 w-4 shrink-0 text-[#6b7280] transition-all duration-200 group-hover:text-[var(--brand-red)] group-disabled:group-hover:text-[#6b7280] ${
+            className={`h-4 w-4 shrink-0 text-[#6b7280] transition-all duration-200 group-hover:text-[var(--brand-red)] ${
               isOpen ? "rotate-180" : ""
             }`}
           />
         </span>
       </button>
 
-      {isOpen && !disabled ? (
+      {isOpen ? (
         <div
           role="listbox"
           className="absolute inset-x-0 top-full z-[100] mt-2 max-h-64 overflow-y-auto rounded-xl border border-[#e5e7eb] bg-white shadow-[0_12px_32px_rgba(0,0,0,0.18)]"
         >
-          {options.map((opt) => (
-            <button
-              key={`${opt.id ?? "all"}-${opt.label}`}
-              type="button"
-              role="option"
-              aria-selected={opt.id === value}
-              onMouseDown={(event) => {
-                event.preventDefault();
-              }}
-              onClick={(event) => {
-                event.stopPropagation();
-                onChange(opt.id);
-                onClose();
-              }}
-              className={`flex w-full items-center justify-between gap-3 px-6 py-3.5 text-start text-[15px] font-medium transition-colors hover:text-[var(--brand-red)] lg:text-[16px] ${
-                opt.id === value
-                  ? "text-[var(--brand-red)]"
-                  : "text-[#374151]"
-              }`}
-            >
-              <span className="truncate">
-                {formatTranslatedFilterOption(opt, translateLabel)}
-              </span>
-            </button>
-          ))}
+          {options.length === 0 ? (
+            <div className="px-6 py-3.5 text-[15px] text-[#9ca3af]" />
+          ) : (
+            options.map((opt) => (
+              <button
+                key={`${opt.id ?? "all"}-${opt.label}`}
+                type="button"
+                role="option"
+                aria-selected={opt.id === value}
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                }}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onChange(opt.id);
+                  onClose();
+                }}
+                className={`flex w-full items-center justify-between gap-3 px-6 py-3.5 text-start text-[15px] font-medium transition-colors hover:text-[var(--brand-red)] lg:text-[16px] ${
+                  opt.id === value
+                    ? "text-[var(--brand-red)]"
+                    : "text-[#374151]"
+                }`}
+              >
+                <span className="truncate">
+                  {formatTranslatedFilterOption(opt, translateLabel, {
+                    withCount: false,
+                  })}
+                </span>
+              </button>
+            ))
+          )}
         </div>
       ) : null}
     </div>
@@ -241,7 +240,7 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
             label={t("searchCity")}
             options={cityOptions}
             value={filters.cityId}
-            disabled={filters.countryId === null}
+            emptyLabel="All Cities"
             onChange={(cityId) => {
               const selectedCity = findOptionById(cityId, cityOptions);
               setFilters((prev) => ({
