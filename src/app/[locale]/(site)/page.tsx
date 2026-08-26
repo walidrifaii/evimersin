@@ -3,9 +3,10 @@ import nextDynamic from "next/dynamic";
 import { HeroBanner } from "@/features/home/components/HeroBanner";
 import { HomeSectionSkeleton } from "@/features/home/components/HomeSectionSkeleton";
 import {
-  getFeaturedPropertyListings,
-  getHotDealPropertyListings,
+  getFeaturedPropertyListingsPage,
+  getHotDealPropertyListingsPage,
 } from "@/features/products/server-data";
+import { HOME_LISTINGS_PAGE_SIZE } from "@/features/products/types";
 
 export const revalidate = 60;
 
@@ -42,13 +43,19 @@ const NewsletterSection = nextDynamic(
 );
 
 async function FeaturedSection() {
-  const listings = await getFeaturedPropertyListings(12);
-  return <FeaturedProperties listings={listings} />;
+  const initialPage = await getFeaturedPropertyListingsPage(
+    1,
+    HOME_LISTINGS_PAGE_SIZE,
+  );
+  return <FeaturedProperties initialPage={initialPage} />;
 }
 
 async function HotDealsSection() {
-  const listings = await getHotDealPropertyListings(12);
-  return <HotDeals listings={listings} />;
+  const initialPage = await getHotDealPropertyListingsPage(
+    1,
+    HOME_LISTINGS_PAGE_SIZE,
+  );
+  return <HotDeals initialPage={initialPage} />;
 }
 
 export default function HomePage() {

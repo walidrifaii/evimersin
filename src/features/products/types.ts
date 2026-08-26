@@ -50,6 +50,16 @@ export type PropertyListing = {
   specs: Partial<Record<PropertySpecFieldKey, string | number | boolean | null>>;
 };
 
+export const HOME_LISTINGS_PAGE_SIZE = 6;
+
+export type PropertyListingsPage = {
+  items: PropertyListing[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+};
+
 export type PropertyFiltersState = {
   countryId: number | null;
   cityId: number | null;

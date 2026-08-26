@@ -20,7 +20,11 @@ import {
 } from "@/server/database/repositories/lookup.repository";
 import { productRepository } from "@/server/database/repositories/product.repository";
 import type { Product, ProductDetail } from "@/server/types/product.types";
-import type { PropertyListing } from "@/features/products/types";
+import type {
+  PropertyListing,
+  PropertyListingsPage,
+} from "@/features/products/types";
+import { HOME_LISTINGS_PAGE_SIZE } from "@/features/products/types";
 
 function toBadge(product: Product) {
   if (Number(product.is_featured) === 1) return "FEATURED";
@@ -110,6 +114,72 @@ async function loadHotDealListings(limit: number) {
   }
 }
 
+async function loadFeaturedListingsPage(
+  page: number,
+  pageSize: number,
+): Promise<PropertyListingsPage> {
+  const safePage = Math.max(1, Math.floor(page) || 1);
+  const safePageSize = Math.max(1, Math.min(50, Math.floor(pageSize) || HOME_LISTINGS_PAGE_SIZE));
+
+  try {
+    const result = await productRepository.findFeaturedDetailsPage(
+      safePage,
+      safePageSize,
+    );
+    const total = result.total;
+    const totalPages = Math.max(1, Math.ceil(total / safePageSize));
+    return {
+      items: result.items.map(toPropertyListing),
+      page: Math.min(safePage, totalPages),
+      pageSize: safePageSize,
+      total,
+      totalPages: total === 0 ? 0 : totalPages,
+    };
+  } catch (error) {
+    console.error("[listings] Failed to load featured page:", error);
+    return {
+      items: [],
+      page: safePage,
+      pageSize: safePageSize,
+      total: 0,
+      totalPages: 0,
+    };
+  }
+}
+
+async function loadHotDealListingsPage(
+  page: number,
+  pageSize: number,
+): Promise<PropertyListingsPage> {
+  const safePage = Math.max(1, Math.floor(page) || 1);
+  const safePageSize = Math.max(1, Math.min(50, Math.floor(pageSize) || HOME_LISTINGS_PAGE_SIZE));
+
+  try {
+    const result = await productRepository.findHotDealDetailsPage(
+      safePage,
+      safePageSize,
+    );
+    const total = result.total;
+    const totalPages = Math.max(1, Math.ceil(total / safePageSize));
+    return {
+      items: result.items.map(toPropertyListing),
+      page: Math.min(safePage, totalPages),
+      pageSize: safePageSize,
+      total,
+      totalPages: total === 0 ? 0 : totalPages,
+    };
+  } catch (error) {
+    console.error("[listings] Failed to load hot deal page:", error);
+    return {
+      items: [],
+      page: safePage,
+      pageSize: safePageSize,
+      total: 0,
+      totalPages: 0,
+    };
+  }
+}
+
 async function loadPropertyListingById(id: string) {
   try {
     const numericId = Number(id);
@@ -140,6 +210,20 @@ const getCachedFeaturedListings = unstable_cache(
 const getCachedHotDealListings = unstable_cache(
   async (limit: number) => loadHotDealListings(limit),
   ["property-hot-deals"],
+  { revalidate: 60, tags: ["property-listings"] },
+);
+
+const getCachedFeaturedListingsPage = unstable_cache(
+  async (page: number, pageSize: number) =>
+    loadFeaturedListingsPage(page, pageSize),
+  ["property-featured-page"],
+  { revalidate: 60, tags: ["property-listings"] },
+);
+
+const getCachedHotDealListingsPage = unstable_cache(
+  async (page: number, pageSize: number) =>
+    loadHotDealListingsPage(page, pageSize),
+  ["property-hot-deals-page"],
   { revalidate: 60, tags: ["property-listings"] },
 );
 
@@ -277,6 +361,20 @@ export const getFeaturedPropertyListings = cache(async (limit = 4) => {
 export const getHotDealPropertyListings = cache(async (limit = 4) => {
   return getCachedHotDealListings(limit);
 });
+
+export const getFeaturedPropertyListingsPage = cache(
+  async (page = 1, pageSize = HOME_LISTINGS_PAGE_SIZE) => {
+    return getCachedFeaturedListingsPage(page, pageSize);
+  },
+);
+
+export const getHotDealPropertyListingsPage = cache(
+  async (page = 1, pageSize = HOME_LISTINGS_PAGE_SIZE) => {
+    return getCachedHotDealListingsPage(page, pageSize);
+  },
+);
+
+export { HOME_LISTINGS_PAGE_SIZE };
 
 export const getPropertyListingById = cache(async (id: string) => {
   return getCachedPropertyListingById(id);

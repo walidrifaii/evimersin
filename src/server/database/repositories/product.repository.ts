@@ -135,34 +135,81 @@ export const productRepository = {
   },
 
   findFeatured: async (limit = 4) => {
-    const safeLimit = Math.max(1, Math.min(50, Math.floor(limit)));
-    const rows = await query<Array<Omit<Product, "final_price">>>(
-      `SELECT ${productSelect}
-       ${productFrom}
-       WHERE products.status = 1 AND products.is_featured = 1
-       ORDER BY products.position ASC, products.id DESC
-       LIMIT ${safeLimit}`,
-    );
-    return rows.map((row) => withProductPricing(row));
+    const page = await productRepository.findFeaturedPage(1, limit);
+    return page.items;
   },
 
   findHotDeals: async (limit = 4) => {
-    const safeLimit = Math.max(1, Math.min(50, Math.floor(limit)));
-    const rows = await query<Array<Omit<Product, "final_price">>>(
-      `SELECT ${productSelect}
-       ${productFrom}
-       WHERE products.status = 1
-         AND (
-           products.is_hot_deal = 1
-           OR (
-             products.discount_type IS NOT NULL
-             AND products.discount_value > 0
-           )
-         )
-       ORDER BY products.position ASC, products.id DESC
-       LIMIT ${safeLimit}`,
-    );
-    return rows.map((row) => withProductPricing(row));
+    const page = await productRepository.findHotDealsPage(1, limit);
+    return page.items;
+  },
+
+  findFeaturedPage: async (page = 1, pageSize = 6) => {
+    const safePageSize = Math.max(1, Math.min(50, Math.floor(pageSize)));
+    const safePage = Math.max(1, Math.floor(page));
+    const offset = (safePage - 1) * safePageSize;
+
+    const [countRows, rows] = await Promise.all([
+      query<Array<{ total: number }>>(
+        `SELECT COUNT(*) AS total
+         FROM products
+         WHERE status = 1 AND is_featured = 1`,
+      ),
+      query<Array<Omit<Product, "final_price">>>(
+        `SELECT ${productSelect}
+         ${productFrom}
+         WHERE products.status = 1 AND products.is_featured = 1
+         ORDER BY products.position ASC, products.id DESC
+         LIMIT ${safePageSize} OFFSET ${offset}`,
+      ),
+    ]);
+
+    return {
+      items: rows.map((row) => withProductPricing(row)),
+      total: Number(countRows[0]?.total ?? 0),
+    };
+  },
+
+  findHotDealsPage: async (page = 1, pageSize = 6) => {
+    const safePageSize = Math.max(1, Math.min(50, Math.floor(pageSize)));
+    const safePage = Math.max(1, Math.floor(page));
+    const offset = (safePage - 1) * safePageSize;
+    const hotDealWhere = `
+      products.status = 1
+      AND (
+        products.is_hot_deal = 1
+        OR (
+          products.discount_type IS NOT NULL
+          AND products.discount_value > 0
+        )
+      )`;
+
+    const [countRows, rows] = await Promise.all([
+      query<Array<{ total: number }>>(
+        `SELECT COUNT(*) AS total
+         FROM products
+         WHERE status = 1
+           AND (
+             is_hot_deal = 1
+             OR (
+               discount_type IS NOT NULL
+               AND discount_value > 0
+             )
+           )`,
+      ),
+      query<Array<Omit<Product, "final_price">>>(
+        `SELECT ${productSelect}
+         ${productFrom}
+         WHERE ${hotDealWhere}
+         ORDER BY products.position ASC, products.id DESC
+         LIMIT ${safePageSize} OFFSET ${offset}`,
+      ),
+    ]);
+
+    return {
+      items: rows.map((row) => withProductPricing(row)),
+      total: Number(countRows[0]?.total ?? 0),
+    };
   },
 
   async findById(id: number) {
@@ -220,6 +267,28 @@ export const productRepository = {
   async findHotDealDetails(limit = 4): Promise<ProductDetail[]> {
     const products = await this.findHotDeals(limit);
     return this.findDetailsByProducts(products);
+  },
+
+  async findFeaturedDetailsPage(
+    page = 1,
+    pageSize = 6,
+  ): Promise<{ items: ProductDetail[]; total: number }> {
+    const result = await this.findFeaturedPage(page, pageSize);
+    return {
+      items: await this.findDetailsByProducts(result.items),
+      total: result.total,
+    };
+  },
+
+  async findHotDealDetailsPage(
+    page = 1,
+    pageSize = 6,
+  ): Promise<{ items: ProductDetail[]; total: number }> {
+    const result = await this.findHotDealsPage(page, pageSize);
+    return {
+      items: await this.findDetailsByProducts(result.items),
+      total: result.total,
+    };
   },
 
   async create(input: CreateProductInput) {
