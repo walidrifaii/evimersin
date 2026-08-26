@@ -13,7 +13,13 @@ async function SiteNavbar() {
   return <Navbar categories={categories} />;
 }
 
-async function SiteShell({ children }: { children: React.ReactNode }) {
+export default async function SiteLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  // Await settings here — do not Suspense-swap the whole shell (that remounted
+  // children and made Featured/Hot Deals disappear until refresh).
   const settings = await getSiteSettings();
 
   return (
@@ -31,29 +37,5 @@ async function SiteShell({ children }: { children: React.ReactNode }) {
         <DeferredSiteClients />
       </div>
     </SiteSettingsProvider>
-  );
-}
-
-function SiteShellFallback({ children }: { children: React.ReactNode }) {
-  return (
-    <SiteSettingsProvider settings={null}>
-      <div className="flex min-h-full flex-col">
-        <div className="h-[5rem] w-full border-b border-black/5 bg-white" />
-        <main className="flex flex-1 flex-col">{children}</main>
-        <Footer />
-      </div>
-    </SiteSettingsProvider>
-  );
-}
-
-export default function SiteLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <Suspense fallback={<SiteShellFallback>{children}</SiteShellFallback>}>
-      <SiteShell>{children}</SiteShell>
-    </Suspense>
   );
 }

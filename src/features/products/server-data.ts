@@ -364,13 +364,22 @@ export const getHotDealPropertyListings = cache(async (limit = 4) => {
 
 export const getFeaturedPropertyListingsPage = cache(
   async (page = 1, pageSize = HOME_LISTINGS_PAGE_SIZE) => {
-    return getCachedFeaturedListingsPage(page, pageSize);
+    const cached = await getCachedFeaturedListingsPage(page, pageSize);
+    // Avoid sticking on an empty build/cold-start cache — retry live once.
+    if (cached.items.length === 0 && cached.total === 0) {
+      return loadFeaturedListingsPage(page, pageSize);
+    }
+    return cached;
   },
 );
 
 export const getHotDealPropertyListingsPage = cache(
   async (page = 1, pageSize = HOME_LISTINGS_PAGE_SIZE) => {
-    return getCachedHotDealListingsPage(page, pageSize);
+    const cached = await getCachedHotDealListingsPage(page, pageSize);
+    if (cached.items.length === 0 && cached.total === 0) {
+      return loadHotDealListingsPage(page, pageSize);
+    }
+    return cached;
   },
 );
 

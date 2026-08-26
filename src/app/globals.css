@@ -177,41 +177,39 @@ body {
 .preloader-logo-inner {
   display: block;
   transform: translateY(110%);
-  animation: preloaderLogoDrawer 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.04s forwards;
+  animation: preloaderLogoDrawer 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.12s forwards;
 }
 
 .preloader-tagline {
   opacity: 0;
-  animation: preloaderRiseIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) 0.05s forwards;
+  animation: preloaderRiseIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.15s forwards;
 }
 
 .preloader-subtitle {
   opacity: 0;
-  animation: preloaderRiseIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) 0.12s forwards;
+  animation: preloaderRiseIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.45s forwards;
 }
 
 .preloader-underline {
-  animation: preloaderUnderline 0.3s cubic-bezier(0.22, 1, 0.36, 1) 0.1s forwards;
+  animation: preloaderUnderline 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.35s forwards;
 }
 
 .preloader-bar-wrap {
   opacity: 0;
-  animation: preloaderFadeIn 0.2s ease-out 0.08s forwards;
+  animation: preloaderFadeIn 0.35s ease-out 0.4s forwards;
 }
 
 .preloader-progress {
   transform: scaleX(0);
-  animation: preloaderProgress 0.35s cubic-bezier(0.22, 1, 0.36, 1) 0.06s forwards;
+  animation: preloaderProgress 2.6s cubic-bezier(0.22, 1, 0.36, 1) 0.35s forwards;
 }
 
 .preloader-shimmer {
-  animation: preloaderShimmer 1s ease-in-out 0.2s infinite;
+  animation: preloaderShimmer 1.2s ease-in-out 0.5s infinite;
 }
 
-.site-preloader-exit {
-  opacity: 0 !important;
-  pointer-events: none !important;
-  transition: opacity 0.2s ease-out !important;
+html.preloader-skip #site-preloader {
+  display: none !important;
 }
 
 .preloader-orb-a {

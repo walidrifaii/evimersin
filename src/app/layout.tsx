@@ -57,6 +57,11 @@ export default async function RootLayout({
       className={`${poppins.variable} ${notoSansArabic.variable} h-full antialiased`}
     >
       <body className={`min-h-full bg-white text-[var(--foreground)] ${fontClass}`}>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(sessionStorage.getItem("evimersin_preloader_done")==="1"){document.documentElement.classList.add("preloader-skip")}}catch(e){}`,
+          }}
+        />
         <SitePreloader />
         {children}
       </body>

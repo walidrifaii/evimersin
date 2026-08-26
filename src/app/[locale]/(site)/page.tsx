@@ -1,6 +1,9 @@
 import { Suspense } from "react";
-import nextDynamic from "next/dynamic";
 import { HeroBanner } from "@/features/home/components/HeroBanner";
+import { FeaturedProperties } from "@/features/home/components/FeaturedProperties";
+import { HotDeals } from "@/features/home/components/HotDeals";
+import { WhyChooseUs } from "@/features/home/components/WhyChooseUs";
+import { NewsletterSection } from "@/features/home/components/NewsletterSection";
 import { HomeSectionSkeleton } from "@/features/home/components/HomeSectionSkeleton";
 import {
   getFeaturedPropertyListingsPage,
@@ -10,43 +13,12 @@ import { HOME_LISTINGS_PAGE_SIZE } from "@/features/products/types";
 
 export const revalidate = 60;
 
-const FeaturedProperties = nextDynamic(
-  () =>
-    import("@/features/home/components/FeaturedProperties").then((mod) => ({
-      default: mod.FeaturedProperties,
-    })),
-  { loading: () => <HomeSectionSkeleton variant="cards" /> },
-);
-
-const HotDeals = nextDynamic(
-  () =>
-    import("@/features/home/components/HotDeals").then((mod) => ({
-      default: mod.HotDeals,
-    })),
-  { loading: () => <HomeSectionSkeleton variant="cards" /> },
-);
-
-const WhyChooseUs = nextDynamic(
-  () =>
-    import("@/features/home/components/WhyChooseUs").then((mod) => ({
-      default: mod.WhyChooseUs,
-    })),
-  { loading: () => <HomeSectionSkeleton variant="plain" /> },
-);
-
-const NewsletterSection = nextDynamic(
-  () =>
-    import("@/features/home/components/NewsletterSection").then((mod) => ({
-      default: mod.NewsletterSection,
-    })),
-  { loading: () => <HomeSectionSkeleton variant="newsletter" /> },
-);
-
 async function FeaturedSection() {
   const initialPage = await getFeaturedPropertyListingsPage(
     1,
     HOME_LISTINGS_PAGE_SIZE,
   );
+  if (initialPage.items.length === 0) return null;
   return <FeaturedProperties initialPage={initialPage} />;
 }
 
@@ -55,6 +27,7 @@ async function HotDealsSection() {
     1,
     HOME_LISTINGS_PAGE_SIZE,
   );
+  if (initialPage.items.length === 0) return null;
   return <HotDeals initialPage={initialPage} />;
 }
 
