@@ -11,11 +11,6 @@ const SOCIAL_SELECT = SOCIAL_PLATFORMS.flatMap((platform) => [
   `${platform}_visible`,
 ]).join(",\n  ");
 
-const ADDRESS_MIGRATIONS = [
-  `ALTER TABLE site_settings ADD COLUMN address_name VARCHAR(100) NOT NULL DEFAULT 'EviMersin' AFTER whatsapp_message`,
-  `ALTER TABLE site_settings ADD COLUMN address VARCHAR(500) NOT NULL DEFAULT 'Palmiye, 2.Cadde, 33110 Yenişehir/Mersin' AFTER address_name`,
-];
-
 const SELECT_FIELDS = `
   id,
   email,
@@ -29,129 +24,47 @@ const SELECT_FIELDS = `
   updated_at
 `;
 
-const NEW_PLATFORM_MIGRATIONS = [
-  `ALTER TABLE site_settings ADD COLUMN x_url VARCHAR(500) NOT NULL DEFAULT '' AFTER facebook_visible`,
-  `ALTER TABLE site_settings ADD COLUMN x_handle VARCHAR(100) NOT NULL DEFAULT '' AFTER x_url`,
-  `ALTER TABLE site_settings ADD COLUMN x_visible TINYINT NOT NULL DEFAULT 0 AFTER x_handle`,
-  `ALTER TABLE site_settings ADD COLUMN telegram_url VARCHAR(500) NOT NULL DEFAULT '' AFTER x_visible`,
-  `ALTER TABLE site_settings ADD COLUMN telegram_handle VARCHAR(100) NOT NULL DEFAULT '' AFTER telegram_url`,
-  `ALTER TABLE site_settings ADD COLUMN telegram_visible TINYINT NOT NULL DEFAULT 0 AFTER telegram_handle`,
-  `ALTER TABLE site_settings ADD COLUMN youtube_url VARCHAR(500) NOT NULL DEFAULT '' AFTER telegram_visible`,
-  `ALTER TABLE site_settings ADD COLUMN youtube_handle VARCHAR(100) NOT NULL DEFAULT '' AFTER youtube_url`,
-  `ALTER TABLE site_settings ADD COLUMN youtube_visible TINYINT NOT NULL DEFAULT 0 AFTER youtube_handle`,
-  `ALTER TABLE site_settings ADD COLUMN tiktok_url VARCHAR(500) NOT NULL DEFAULT '' AFTER youtube_visible`,
-  `ALTER TABLE site_settings ADD COLUMN tiktok_handle VARCHAR(100) NOT NULL DEFAULT '' AFTER tiktok_url`,
-  `ALTER TABLE site_settings ADD COLUMN tiktok_visible TINYINT NOT NULL DEFAULT 0 AFTER tiktok_handle`,
-];
-
 let ensurePromise: Promise<void> | null = null;
 
-const SETTINGS_REQUIRED_COLUMNS = [
-  "address_name",
-  "address",
-  "instagram_visible",
-  "facebook_visible",
-  "x_url",
-  "x_handle",
-  "x_visible",
-  "telegram_url",
-  "telegram_handle",
-  "telegram_visible",
-  "youtube_url",
-  "youtube_handle",
-  "youtube_visible",
-  "tiktok_url",
-  "tiktok_handle",
-  "tiktok_visible",
-] as const;
-
+/** Create table if missing only — no runtime ALTER TABLE. */
 async function ensureTable() {
-  if (process.env.SKIP_RUNTIME_DB_MIGRATIONS === "1") {
-    return;
-  }
-
   if (!ensurePromise) {
-    ensurePromise = (async () => {
-      await execute(`
-        CREATE TABLE IF NOT EXISTS site_settings (
-          id INT NOT NULL PRIMARY KEY DEFAULT 1,
-          email VARCHAR(255) NOT NULL,
-          phone VARCHAR(50) NOT NULL,
-          phone_label VARCHAR(50) NOT NULL,
-          whatsapp_phone VARCHAR(30) NOT NULL,
-          whatsapp_message VARCHAR(500) NOT NULL,
-          address_name VARCHAR(100) NOT NULL DEFAULT 'EviMersin',
-          address VARCHAR(500) NOT NULL DEFAULT 'Palmiye, 2.Cadde, 33110 Yenişehir/Mersin',
-          instagram_url VARCHAR(500) NOT NULL,
-          instagram_handle VARCHAR(100) NOT NULL,
-          instagram_visible TINYINT NOT NULL DEFAULT 1,
-          facebook_url VARCHAR(500) NOT NULL,
-          facebook_handle VARCHAR(100) NOT NULL,
-          facebook_visible TINYINT NOT NULL DEFAULT 1,
-          x_url VARCHAR(500) NOT NULL DEFAULT '',
-          x_handle VARCHAR(100) NOT NULL DEFAULT '',
-          x_visible TINYINT NOT NULL DEFAULT 0,
-          telegram_url VARCHAR(500) NOT NULL DEFAULT '',
-          telegram_handle VARCHAR(100) NOT NULL DEFAULT '',
-          telegram_visible TINYINT NOT NULL DEFAULT 0,
-          youtube_url VARCHAR(500) NOT NULL DEFAULT '',
-          youtube_handle VARCHAR(100) NOT NULL DEFAULT '',
-          youtube_visible TINYINT NOT NULL DEFAULT 0,
-          tiktok_url VARCHAR(500) NOT NULL DEFAULT '',
-          tiktok_handle VARCHAR(100) NOT NULL DEFAULT '',
-          tiktok_visible TINYINT NOT NULL DEFAULT 0,
-          updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-      `);
-
-      const existing = await query<Array<{ column_name: string }>>(
-        `SELECT COLUMN_NAME AS column_name
-         FROM INFORMATION_SCHEMA.COLUMNS
-         WHERE TABLE_SCHEMA = DATABASE()
-           AND TABLE_NAME = 'site_settings'`,
-      );
-      const have = new Set(existing.map((row) => row.column_name));
-      const migrations = [
-        {
-          column: "instagram_visible",
-          sql: `ALTER TABLE site_settings ADD COLUMN instagram_visible TINYINT NOT NULL DEFAULT 1 AFTER instagram_handle`,
-        },
-        {
-          column: "facebook_visible",
-          sql: `ALTER TABLE site_settings ADD COLUMN facebook_visible TINYINT NOT NULL DEFAULT 1 AFTER facebook_handle`,
-        },
-        ...NEW_PLATFORM_MIGRATIONS.map((sql) => ({
-          column: sql.match(/ADD COLUMN (\w+)/)?.[1] ?? "",
-          sql,
-        })),
-        ...ADDRESS_MIGRATIONS.map((sql) => ({
-          column: sql.match(/ADD COLUMN (\w+)/)?.[1] ?? "",
-          sql,
-        })),
-      ].filter((item) => item.column && !have.has(item.column));
-
-      // Fast path: schema already complete.
-      if (
-        SETTINGS_REQUIRED_COLUMNS.every((column) => have.has(column)) ||
-        migrations.length === 0
-      ) {
-        return;
-      }
-
-      for (const statement of migrations) {
-        try {
-          await execute(statement.sql);
-        } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
-          if (!message.includes("Duplicate column name")) {
-            console.error("[db] site_settings migration failed:", message);
-          }
-        }
-      }
-    })().catch((error) => {
-      ensurePromise = null;
-      throw error;
-    });
+    ensurePromise = execute(`
+      CREATE TABLE IF NOT EXISTS site_settings (
+        id INT NOT NULL PRIMARY KEY DEFAULT 1,
+        email VARCHAR(255) NOT NULL,
+        phone VARCHAR(50) NOT NULL,
+        phone_label VARCHAR(50) NOT NULL,
+        whatsapp_phone VARCHAR(30) NOT NULL,
+        whatsapp_message VARCHAR(500) NOT NULL,
+        address_name VARCHAR(100) NOT NULL DEFAULT 'EviMersin',
+        address VARCHAR(500) NOT NULL DEFAULT 'Palmiye, 2.Cadde, 33110 Yenişehir/Mersin',
+        instagram_url VARCHAR(500) NOT NULL,
+        instagram_handle VARCHAR(100) NOT NULL,
+        instagram_visible TINYINT NOT NULL DEFAULT 1,
+        facebook_url VARCHAR(500) NOT NULL,
+        facebook_handle VARCHAR(100) NOT NULL,
+        facebook_visible TINYINT NOT NULL DEFAULT 1,
+        x_url VARCHAR(500) NOT NULL DEFAULT '',
+        x_handle VARCHAR(100) NOT NULL DEFAULT '',
+        x_visible TINYINT NOT NULL DEFAULT 0,
+        telegram_url VARCHAR(500) NOT NULL DEFAULT '',
+        telegram_handle VARCHAR(100) NOT NULL DEFAULT '',
+        telegram_visible TINYINT NOT NULL DEFAULT 0,
+        youtube_url VARCHAR(500) NOT NULL DEFAULT '',
+        youtube_handle VARCHAR(100) NOT NULL DEFAULT '',
+        youtube_visible TINYINT NOT NULL DEFAULT 0,
+        tiktok_url VARCHAR(500) NOT NULL DEFAULT '',
+        tiktok_handle VARCHAR(100) NOT NULL DEFAULT '',
+        tiktok_visible TINYINT NOT NULL DEFAULT 0,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `)
+      .then(() => undefined)
+      .catch((error) => {
+        ensurePromise = null;
+        throw error;
+      });
   }
 
   await ensurePromise;
