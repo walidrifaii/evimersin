@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import nextDynamic from "next/dynamic";
 import { config } from "@/constants/config";
+import { HomeSectionSkeleton } from "@/features/home/components/HomeSectionSkeleton";
 import {
   getPropertyFilterOptions,
   getPropertyListings,
@@ -22,21 +23,9 @@ const PropertiesPageContent = nextDynamic(
       (mod) => ({ default: mod.PropertiesPageContent }),
     ),
   {
-    loading: () => (
-      <div className="mx-auto w-full px-4 py-16 text-center text-[var(--muted)] sm:px-6 lg:px-[100px]">
-        Loading properties...
-      </div>
-    ),
+    loading: () => <HomeSectionSkeleton variant="properties" />,
   },
 );
-
-function PropertiesFallback() {
-  return (
-    <div className="mx-auto w-full px-4 py-16 text-center text-[var(--muted)] sm:px-6 lg:px-[100px]">
-      Loading properties...
-    </div>
-  );
-}
 
 async function PropertiesLoader() {
   const locale = await getLocale();
@@ -53,7 +42,7 @@ async function PropertiesLoader() {
 export default function ProductsPage() {
   return (
     <div className="flex flex-1 flex-col bg-[#f5f7fa]">
-      <Suspense fallback={<PropertiesFallback />}>
+      <Suspense fallback={<HomeSectionSkeleton variant="properties" />}>
         <PropertiesLoader />
       </Suspense>
     </div>

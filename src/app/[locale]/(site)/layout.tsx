@@ -9,15 +9,18 @@ import { getSiteSettings } from "@/lib/site-settings";
 
 export const revalidate = 60;
 
+async function SiteNavbar() {
+  const categories = await getPublicCategories();
+  return <Navbar categories={categories} />;
+}
+
 export default async function SiteLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [settings, categories] = await Promise.all([
-    getSiteSettings(),
-    getPublicCategories(),
-  ]);
+  // Settings are cached — do not block the page shell on categories.
+  const settings = await getSiteSettings();
 
   return (
     <SiteSettingsProvider settings={settings}>
@@ -27,7 +30,7 @@ export default async function SiteLayout({
             <div className="h-[5rem] w-full border-b border-black/5 bg-white" />
           }
         >
-          <Navbar categories={categories} />
+          <SiteNavbar />
         </Suspense>
         <main className="flex flex-1 flex-col">{children}</main>
         <Footer />

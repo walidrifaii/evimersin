@@ -5,10 +5,7 @@ import { HomeSectionSkeleton } from "@/features/home/components/HomeSectionSkele
 import {
   getFeaturedPropertyListings,
   getHotDealPropertyListings,
-  getPropertyFilterOptions,
-  getPublicCategories,
 } from "@/features/products/server-data";
-import { getLocale } from "next-intl/server";
 
 export const revalidate = 60;
 
@@ -54,17 +51,10 @@ async function HotDealsSection() {
   return <HotDeals listings={listings} />;
 }
 
-export default async function HomePage() {
-  const locale = await getLocale();
-  // Hero-critical data only — below-fold lists stream in Suspense.
-  const [filterOptions, categories] = await Promise.all([
-    getPropertyFilterOptions(locale),
-    getPublicCategories(),
-  ]);
-
+export default function HomePage() {
   return (
     <div className="flex flex-1 flex-col bg-white">
-      <HeroBanner filterOptions={filterOptions} categories={categories} />
+      <HeroBanner />
 
       <Suspense fallback={<HomeSectionSkeleton variant="cards" />}>
         <FeaturedSection />
