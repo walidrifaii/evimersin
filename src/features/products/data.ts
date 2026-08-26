@@ -293,7 +293,7 @@ export function getCityOptionsForCountry(
   countryId: number | null,
   listings?: Array<Pick<PropertyListing, "countryId" | "cityId">>,
 ): CityFilterOption[] {
-  // No country selected → clickable, but no city rows.
+  // No country, or country with no cities → empty list (UI shows "No cities found").
   if (countryId === null) {
     return [];
   }
@@ -301,6 +301,10 @@ export function getCityOptionsForCountry(
   const citiesInCountry = options.city.filter(
     (city) => city.id !== null && city.countryId === countryId,
   );
+
+  if (citiesInCountry.length === 0) {
+    return [];
+  }
 
   return [
     { id: null, label: "All Cities" },

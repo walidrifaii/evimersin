@@ -37,6 +37,7 @@ function FilterDropdown({
   onClose,
   translateLabel,
   emptyLabel = "All Cities",
+  emptyMessage,
 }: {
   label: string;
   options: FilterOption[];
@@ -47,6 +48,7 @@ function FilterDropdown({
   onClose: () => void;
   translateLabel: (label: string) => string;
   emptyLabel?: string;
+  emptyMessage?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const selectedOption =
@@ -104,7 +106,9 @@ function FilterDropdown({
           className="absolute inset-x-0 top-full z-[100] mt-2 max-h-64 overflow-y-auto rounded-xl border border-[#e5e7eb] bg-white shadow-[0_12px_32px_rgba(0,0,0,0.18)]"
         >
           {options.length === 0 ? (
-            <div className="px-6 py-3.5 text-[15px] text-[#9ca3af]" />
+            <div className="px-6 py-3.5 text-[15px] font-medium text-[#9ca3af]">
+              {emptyMessage ?? "No data"}
+            </div>
           ) : (
             options.map((opt) => (
               <button
@@ -241,6 +245,7 @@ export function PropertySearchBar({ filterOptions }: PropertySearchBarProps) {
             options={cityOptions}
             value={filters.cityId}
             emptyLabel="All Cities"
+            emptyMessage={t("noCitiesFound")}
             onChange={(cityId) => {
               const selectedCity = findOptionById(cityId, cityOptions);
               setFilters((prev) => ({

@@ -36,6 +36,7 @@ function FilterSelect({
   onChange,
   translateLabel,
   emptyLabel,
+  emptyMessage,
 }: {
   label: string;
   options: FilterOption[];
@@ -43,6 +44,7 @@ function FilterSelect({
   onChange: (value: number | null) => void;
   translateLabel: (label: string) => string;
   emptyLabel?: string;
+  emptyMessage?: string;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -84,7 +86,9 @@ function FilterSelect({
       {open ? (
         <div className="absolute left-0 right-0 top-full z-40 mt-2 max-h-64 overflow-y-auto rounded-xl border border-[#e5eaf2] bg-white shadow-[0_12px_32px_rgba(15,23,42,0.12)]">
           {options.length === 0 ? (
-            <div className="px-4 py-3 text-[14px] text-[#94a3b8]" />
+            <div className="px-4 py-3 text-[14px] font-medium text-[#94a3b8]">
+              {emptyMessage ?? "No data"}
+            </div>
           ) : (
             options.map((option) => (
               <button
@@ -219,6 +223,7 @@ export function PropertyFilters({
           onChange={updateCity}
           translateLabel={translateLabel}
           emptyLabel="All Cities"
+          emptyMessage={t("noCitiesFound")}
         />
         <FilterSelect
           label={t("region")}
