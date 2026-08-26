@@ -176,17 +176,23 @@ export function GuestFirebaseNotifications() {
   }, [locale]);
 
   useEffect(() => {
-    sendPresence();
-    const presenceTimer = window.setInterval(sendPresence, PRESENCE_HEARTBEAT_MS);
+    let presenceTimer: number | undefined;
+    let startTimer: number | undefined;
 
     function handlePageHide() {
       sendLeave();
     }
 
-    window.addEventListener("pagehide", handlePageHide);
+    // Defer first heartbeat — not needed for first paint.
+    startTimer = window.setTimeout(() => {
+      sendPresence();
+      presenceTimer = window.setInterval(sendPresence, PRESENCE_HEARTBEAT_MS);
+      window.addEventListener("pagehide", handlePageHide);
+    }, 2000);
 
     return () => {
-      window.clearInterval(presenceTimer);
+      window.clearTimeout(startTimer);
+      if (presenceTimer) window.clearInterval(presenceTimer);
       window.removeEventListener("pagehide", handlePageHide);
       sendLeave();
     };
@@ -194,11 +200,12 @@ export function GuestFirebaseNotifications() {
 
   useEffect(() => {
     let cancelled = false;
+    let startTimer: number | undefined;
 
     async function loadConfig() {
       try {
         const response = await fetch("/api/guest/fcm-tokens", {
-          cache: "no-store",
+          cache: "force-cache",
         });
         const payload = (await response.json()) as FcmConfigResponse;
 
@@ -230,10 +237,13 @@ export function GuestFirebaseNotifications() {
       }
     }
 
-    void loadConfig();
+    startTimer = window.setTimeout(() => {
+      void loadConfig();
+    }, 2500);
 
     return () => {
       cancelled = true;
+      window.clearTimeout(startTimer);
     };
   }, [registerGuestToken]);
 

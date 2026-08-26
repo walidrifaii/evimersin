@@ -20,6 +20,25 @@ function getOrCreateSessionId() {
   return next;
 }
 
+function postVisit(body: string) {
+  if (navigator.sendBeacon) {
+    navigator.sendBeacon(
+      "/api/visits",
+      new Blob([body], { type: "application/json" }),
+    );
+    return;
+  }
+
+  void fetch("/api/visits", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body,
+    keepalive: true,
+  }).catch(() => {
+    // Ignore tracking errors on the public site.
+  });
+}
+
 export function VisitTracker() {
   const pathname = usePathname();
   const locale = useLocale();
@@ -28,26 +47,20 @@ export function VisitTracker() {
     if (sessionStorage.getItem(REPORTED_KEY) === "1") return;
 
     const sessionId = getOrCreateSessionId();
+    const body = JSON.stringify({
+      sessionId,
+      path: pathname || "/",
+      locale,
+      referrer: document.referrer || "",
+    });
 
-    fetch("/api/visits", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sessionId,
-        path: pathname || "/",
-        locale,
-        referrer: document.referrer || "",
-      }),
-      keepalive: true,
-    })
-      .then((response) => {
-        if (response.ok) {
-          sessionStorage.setItem(REPORTED_KEY, "1");
-        }
-      })
-      .catch(() => {
-        // Ignore tracking errors on the public site.
-      });
+    // Fire-and-forget after a tick so it never blocks interaction.
+    const timer = window.setTimeout(() => {
+      postVisit(body);
+      sessionStorage.setItem(REPORTED_KEY, "1");
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [locale, pathname]);
 
   return null;
