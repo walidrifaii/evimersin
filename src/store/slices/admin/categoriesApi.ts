@@ -10,6 +10,7 @@ function toCategoryFormData(body: Partial<CategoryFormInput>) {
   formData.set("name", body.name ?? "");
   formData.set("name_ar", body.name_ar ?? "");
   formData.set("status", String(body.status ?? 1));
+  formData.set("is_visible", String(body.is_visible ?? 1));
   formData.set("position", String(body.position ?? 0));
 
   if ("icon" in body && body.icon instanceof File) {

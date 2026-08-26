@@ -13,7 +13,7 @@ import {
   StatusSelect,
   TextInput,
 } from "@/features/dashboard/components/lookups/LookupManager";
-import { FieldErrorText } from "@/features/dashboard/components/DashboardFormAlert";
+import { FieldErrorText, fieldControlClass } from "@/features/dashboard/components/DashboardFormAlert";
 import { prepareImageForUpload } from "@/lib/compress-image";
 import { toDisplayImageSrc } from "@/lib/image-url";
 import {
@@ -47,6 +47,9 @@ function CategoryFormFields({ id, initial }: { id?: number; initial?: Category }
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [compressing, setCompressing] = useState(false);
   const [status, setStatus] = useState<Status>(initial?.status ?? 1);
+  const [isVisible, setIsVisible] = useState<Status>(
+    initial?.is_visible ?? 1,
+  );
   const [previewUrl, setPreviewUrl] = useState(
     toDisplayImageSrc(initial?.icon),
   );
@@ -71,6 +74,7 @@ function CategoryFormFields({ id, initial }: { id?: number; initial?: Category }
       name,
       name_ar: nameAr.trim() || null,
       status,
+      is_visible: isVisible,
       position: Number(position) || 0,
       icon: iconFile,
     };
@@ -188,6 +192,28 @@ function CategoryFormFields({ id, initial }: { id?: number; initial?: Category }
             </div>
           </div>
         ) : null}
+      </label>
+      <label className="block min-w-0">
+        <span className="mb-1.5 block text-[12px] font-semibold text-[var(--brand-navy)]">
+          Show on home cards
+        </span>
+        <select
+          value={isVisible}
+          aria-invalid={Boolean(formErrors.field("is_visible"))}
+          onChange={(event) => {
+            setIsVisible(Number(event.target.value) as Status);
+            formErrors.clearField("is_visible");
+          }}
+          className={fieldControlClass(formErrors.field("is_visible"))}
+        >
+          <option value={1}>Yes — visible on hero cards</option>
+          <option value={0}>No — hide from hero cards</option>
+        </select>
+        <p className="mt-1.5 text-[12px] text-[var(--muted)]">
+          Only affects the home page category cards. Nav and filters still show
+          this category.
+        </p>
+        <FieldErrorText message={formErrors.field("is_visible")} />
       </label>
       <StatusSelect
         value={status}

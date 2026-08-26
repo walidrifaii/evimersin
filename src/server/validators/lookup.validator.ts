@@ -53,6 +53,7 @@ export const createCategorySchema = z.object({
     .optional()
     .transform((value) => (value ? value : null)),
   status: statusSchema.optional().default(1),
+  is_visible: statusSchema.optional().default(1),
   position: z.coerce.number().int().min(0).optional().default(0),
   icon: z.string().trim().max(500).nullable().optional().default(null),
 });
@@ -67,6 +68,7 @@ export const updateCategorySchema = requireOneField({
     .optional()
     .transform((value) => (value === undefined ? undefined : value ? value : null)),
   status: statusSchema.optional(),
+  is_visible: statusSchema.optional(),
   position: z.coerce.number().int().min(0).optional(),
   icon: z.string().trim().max(500).nullable().optional(),
 });

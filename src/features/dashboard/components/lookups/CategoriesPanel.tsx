@@ -62,7 +62,15 @@ export function CategoriesPanel() {
         </div>
       ) : (
         <LookupTable
-          headers={["ID", "Name", "Name (AR)", "Position", "Status", "Actions"]}
+          headers={[
+            "ID",
+            "Name",
+            "Name (AR)",
+            "Position",
+            "Cards",
+            "Status",
+            "Actions",
+          ]}
           rows={filtered.map((item) => (
             <tr key={item.id} className="border-t border-[#eef2f7]">
               <td className="px-5 py-3 text-[var(--muted)]">{item.id}</td>
@@ -71,6 +79,9 @@ export function CategoriesPanel() {
                 {item.name_ar || "—"}
               </td>
               <td className="px-5 py-3 text-[var(--brand-navy)]">{item.position}</td>
+              <td className="px-5 py-3 text-[var(--brand-navy)]">
+                {Number(item.is_visible) === 1 ? "Visible" : "Hidden"}
+              </td>
               <td className="px-5 py-3">
                 <StatusBadge status={item.status} />
               </td>

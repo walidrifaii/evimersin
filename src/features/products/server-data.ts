@@ -241,6 +241,7 @@ async function loadPublicCategories(): Promise<PublicCategoryItem[]> {
         nameAr: category.name_ar?.trim() || null,
         icon: toDisplayImageSrc(category.icon) || null,
         position: Number(category.position) || 0,
+        isVisible: Number(category.is_visible ?? 1) === 1,
       }));
   } catch (error) {
     console.error("[listings] Failed to load public categories:", error);

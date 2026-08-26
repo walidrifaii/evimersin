@@ -65,6 +65,8 @@ export type PublicCategoryItem = {
   nameAr: string | null;
   icon: string | null;
   position: number;
+  /** When false, hide from home hero cards only. */
+  isVisible: boolean;
 };
 
 /** English name for EN; Arabic name when locale is ar (falls back to English). */

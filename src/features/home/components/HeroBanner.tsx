@@ -30,9 +30,11 @@ export async function HeroBanner({
   const tTypes = await getTranslations("propertyTypes");
   const initialHeroSlides = await getHeroSlides();
 
+  const cardCategories = categories.filter((category) => category.isVisible);
+
   const sourceCards =
-    categories.length > 0
-      ? buildPropertyTypeCardsFromCategories(categories, {
+    cardCategories.length > 0
+      ? buildPropertyTypeCardsFromCategories(cardCategories, {
           includeMore: false,
           locale,
         })
@@ -44,7 +46,7 @@ export async function HeroBanner({
   const cards = sourceCards.map((item) => {
     // Prefer DB name_ar / name. Fall back to message keys only when no
     // Arabic name is stored for a known English category slug.
-    const category = categories.find((entry) => entry.id === item.categoryId);
+    const category = cardCategories.find((entry) => entry.id === item.categoryId);
     const hasArabicName = Boolean(category?.nameAr?.trim());
     const knownKey = resolvePropertyTypeCardKey(category?.name ?? item.title);
 

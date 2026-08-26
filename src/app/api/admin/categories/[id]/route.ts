@@ -40,6 +40,7 @@ const updateCategory = compose(withAuth, withHandler)(async (request, context: A
     name: formData.get("name"),
     name_ar: formData.get("name_ar"),
     status: Number(formData.get("status") ?? current.status),
+    is_visible: Number(formData.get("is_visible") ?? current.is_visible ?? 1),
     position: Number(formData.get("position") ?? current.position),
     icon: nextIcon,
   });

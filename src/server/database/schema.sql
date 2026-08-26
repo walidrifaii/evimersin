@@ -87,6 +87,7 @@ CREATE TABLE IF NOT EXISTS categories (
   name VARCHAR(150) NOT NULL,
   name_ar VARCHAR(150) NULL,
   status TINYINT NOT NULL DEFAULT 1 COMMENT '1 = active, 0 = inactive',
+  is_visible TINYINT NOT NULL DEFAULT 1 COMMENT '1 = show on home hero cards, 0 = hide from cards only',
   position INT NOT NULL DEFAULT 0,
   icon VARCHAR(500) NULL,
   PRIMARY KEY (id),

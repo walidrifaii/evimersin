@@ -19,6 +19,7 @@ export type Category = {
   name: string;
   name_ar: string | null;
   status: Status;
+  is_visible: Status;
   position: number;
   icon: string | null;
 };
@@ -65,6 +66,7 @@ export type CreateCategoryInput = {
   name: string;
   name_ar?: string | null;
   status?: Status;
+  is_visible?: Status;
   position?: number;
   icon?: string | null;
 };
@@ -75,6 +77,7 @@ export type CategoryFormInput = {
   name: string;
   name_ar?: string | null;
   status?: Status;
+  is_visible?: Status;
   position?: number;
   icon?: File | null;
 };

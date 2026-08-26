@@ -23,6 +23,7 @@ export const POST = compose(withAuth, withHandler)(async (request) => {
     name: formData.get("name"),
     name_ar: formData.get("name_ar"),
     status: Number(formData.get("status") ?? 1),
+    is_visible: Number(formData.get("is_visible") ?? 1),
     position: Number(formData.get("position") ?? 0),
     icon,
   });

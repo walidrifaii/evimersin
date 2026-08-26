@@ -49,6 +49,7 @@ const PRODUCT_COLUMN_MIGRATIONS = [
   "ALTER TABLE products ADD COLUMN rooms INT NULL AFTER mezzanine",
   "ALTER TABLE products ADD COLUMN payment_method VARCHAR(255) NULL AFTER discount_value",
   "ALTER TABLE categories ADD COLUMN name_ar VARCHAR(150) NULL AFTER name",
+  "ALTER TABLE categories ADD COLUMN is_visible TINYINT NOT NULL DEFAULT 1 AFTER status",
 ];
 
 async function ensureProductColumns(pool: Pool) {

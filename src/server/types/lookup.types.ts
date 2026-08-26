@@ -36,6 +36,7 @@ export type Category = {
   name: string;
   name_ar: string | null;
   status: Status;
+  is_visible: Status;
   position: number;
   icon: string | null;
 };
@@ -80,8 +81,9 @@ export type RegionWithCity = Region & {
 export type CreateRegionInput = Omit<Region, "id" | "city_name">;
 export type UpdateRegionInput = Partial<CreateRegionInput>;
 
-export type CreateCategoryInput = Omit<Category, "id" | "name_ar"> & {
+export type CreateCategoryInput = Omit<Category, "id" | "name_ar" | "is_visible"> & {
   name_ar?: string | null;
+  is_visible?: Status;
 };
 export type UpdateCategoryInput = Partial<CreateCategoryInput>;
 
