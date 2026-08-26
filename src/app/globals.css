@@ -201,7 +201,7 @@ body {
 
 .preloader-progress {
   transform: scaleX(0);
-  animation: preloaderProgress 2.6s cubic-bezier(0.22, 1, 0.36, 1) 0.35s forwards;
+  animation: preloaderProgress 1s cubic-bezier(0.22, 1, 0.36, 1) 0.15s forwards;
 }
 
 .preloader-shimmer {

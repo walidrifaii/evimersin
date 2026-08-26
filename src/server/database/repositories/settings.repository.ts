@@ -46,7 +46,30 @@ const NEW_PLATFORM_MIGRATIONS = [
 
 let ensurePromise: Promise<void> | null = null;
 
+const SETTINGS_REQUIRED_COLUMNS = [
+  "address_name",
+  "address",
+  "instagram_visible",
+  "facebook_visible",
+  "x_url",
+  "x_handle",
+  "x_visible",
+  "telegram_url",
+  "telegram_handle",
+  "telegram_visible",
+  "youtube_url",
+  "youtube_handle",
+  "youtube_visible",
+  "tiktok_url",
+  "tiktok_handle",
+  "tiktok_visible",
+] as const;
+
 async function ensureTable() {
+  if (process.env.SKIP_RUNTIME_DB_MIGRATIONS === "1") {
+    return;
+  }
+
   if (!ensurePromise) {
     ensurePromise = (async () => {
       await execute(`
@@ -81,17 +104,48 @@ async function ensureTable() {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
       `);
 
-      for (const statement of [
-        `ALTER TABLE site_settings ADD COLUMN instagram_visible TINYINT NOT NULL DEFAULT 1 AFTER instagram_handle`,
-        `ALTER TABLE site_settings ADD COLUMN facebook_visible TINYINT NOT NULL DEFAULT 1 AFTER facebook_handle`,
-        ...NEW_PLATFORM_MIGRATIONS,
-        ...ADDRESS_MIGRATIONS,
-      ]) {
+      const existing = await query<Array<{ column_name: string }>>(
+        `SELECT COLUMN_NAME AS column_name
+         FROM INFORMATION_SCHEMA.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE()
+           AND TABLE_NAME = 'site_settings'`,
+      );
+      const have = new Set(existing.map((row) => row.column_name));
+      const migrations = [
+        {
+          column: "instagram_visible",
+          sql: `ALTER TABLE site_settings ADD COLUMN instagram_visible TINYINT NOT NULL DEFAULT 1 AFTER instagram_handle`,
+        },
+        {
+          column: "facebook_visible",
+          sql: `ALTER TABLE site_settings ADD COLUMN facebook_visible TINYINT NOT NULL DEFAULT 1 AFTER facebook_handle`,
+        },
+        ...NEW_PLATFORM_MIGRATIONS.map((sql) => ({
+          column: sql.match(/ADD COLUMN (\w+)/)?.[1] ?? "",
+          sql,
+        })),
+        ...ADDRESS_MIGRATIONS.map((sql) => ({
+          column: sql.match(/ADD COLUMN (\w+)/)?.[1] ?? "",
+          sql,
+        })),
+      ].filter((item) => item.column && !have.has(item.column));
+
+      // Fast path: schema already complete.
+      if (
+        SETTINGS_REQUIRED_COLUMNS.every((column) => have.has(column)) ||
+        migrations.length === 0
+      ) {
+        return;
+      }
+
+      for (const statement of migrations) {
         try {
-          await execute(statement);
+          await execute(statement.sql);
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
-          if (!message.includes("Duplicate column name")) throw error;
+          if (!message.includes("Duplicate column name")) {
+            console.error("[db] site_settings migration failed:", message);
+          }
         }
       }
     })().catch((error) => {

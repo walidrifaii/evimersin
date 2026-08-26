@@ -4,7 +4,6 @@ import { Navbar } from "@/components/layout/Navbar";
 import { DeferredSiteClients } from "@/components/layout/DeferredSiteClients";
 import { SiteSettingsProvider } from "@/components/providers/SiteSettingsProvider";
 import { getPublicCategories } from "@/features/products/server-data";
-import { getSiteSettings } from "@/lib/site-settings";
 
 export const revalidate = 60;
 
@@ -13,17 +12,17 @@ async function SiteNavbar() {
   return <Navbar categories={categories} />;
 }
 
-export default async function SiteLayout({
+/**
+ * Do not await settings here — that blocked first HTML for seconds on cold start.
+ * Settings hydrate from /api/settings after paint.
+ */
+export default function SiteLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Await settings here — do not Suspense-swap the whole shell (that remounted
-  // children and made Featured/Hot Deals disappear until refresh).
-  const settings = await getSiteSettings();
-
   return (
-    <SiteSettingsProvider settings={settings}>
+    <SiteSettingsProvider settings={null}>
       <div className="flex min-h-full flex-col">
         <Suspense
           fallback={

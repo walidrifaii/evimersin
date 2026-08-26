@@ -6,8 +6,8 @@ import { images } from "@/constants/images";
 import { config } from "@/constants/config";
 
 const SESSION_KEY = "evimersin_preloader_done";
-const VISIBLE_MS = 3000;
-const EXIT_MS = 400;
+const VISIBLE_MS = 1200;
+const EXIT_MS = 300;
 const EXIT_EVENT = "evimersin-preloader-exit";
 
 declare global {
