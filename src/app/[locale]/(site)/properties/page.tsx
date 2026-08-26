@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { PropertiesPageContent } from "@/features/products/components/PropertiesPageContent";
+import nextDynamic from "next/dynamic";
 import { config } from "@/constants/config";
 import {
   getPropertyFilterOptions,
@@ -16,7 +16,29 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function ProductsPage() {
+const PropertiesPageContent = nextDynamic(
+  () =>
+    import("@/features/products/components/PropertiesPageContent").then(
+      (mod) => ({ default: mod.PropertiesPageContent }),
+    ),
+  {
+    loading: () => (
+      <div className="mx-auto w-full px-4 py-16 text-center text-[var(--muted)] sm:px-6 lg:px-[100px]">
+        Loading properties...
+      </div>
+    ),
+  },
+);
+
+function PropertiesFallback() {
+  return (
+    <div className="mx-auto w-full px-4 py-16 text-center text-[var(--muted)] sm:px-6 lg:px-[100px]">
+      Loading properties...
+    </div>
+  );
+}
+
+async function PropertiesLoader() {
   const locale = await getLocale();
   const [listings, filterOptions] = await Promise.all([
     getPropertyListings(),
@@ -24,15 +46,15 @@ export default async function ProductsPage() {
   ]);
 
   return (
+    <PropertiesPageContent listings={listings} filterOptions={filterOptions} />
+  );
+}
+
+export default function ProductsPage() {
+  return (
     <div className="flex flex-1 flex-col bg-[#f5f7fa]">
-      <Suspense
-        fallback={
-          <div className="mx-auto w-full px-4 py-16 text-center text-[var(--muted)] sm:px-6 lg:px-[100px]">
-            Loading properties...
-          </div>
-        }
-      >
-        <PropertiesPageContent listings={listings} filterOptions={filterOptions} />
+      <Suspense fallback={<PropertiesFallback />}>
+        <PropertiesLoader />
       </Suspense>
     </div>
   );
