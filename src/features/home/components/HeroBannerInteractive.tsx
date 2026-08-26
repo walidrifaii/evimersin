@@ -8,7 +8,6 @@ import {
   toDisplayImageSrc,
 } from "@/lib/image-url";
 import type { PublicHeroSlide } from "@/lib/hero-slides";
-import type { ApiResponse } from "@/store/api/types";
 
 type HeroBannerInteractiveProps = {
   initialSlides?: PublicHeroSlide[];
@@ -80,30 +79,7 @@ export function HeroBannerInteractive({
   fallbackAlt,
   children,
 }: HeroBannerInteractiveProps) {
-  const [slides, setSlides] = useState<PublicHeroSlide[]>(initialSlides);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadSlides() {
-      try {
-        const response = await fetch("/api/hero-slides", { cache: "no-store" });
-        if (!response.ok) return;
-
-        const json = (await response.json()) as ApiResponse<PublicHeroSlide[]>;
-        if (!cancelled && json.success && Array.isArray(json.data)) {
-          setSlides(json.data);
-        }
-      } catch {
-        // Keep SSR / fallback hero when the API is unavailable.
-      }
-    }
-
-    void loadSlides();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const [slides] = useState<PublicHeroSlide[]>(initialSlides);
 
   const items =
     slides.length > 0

@@ -150,8 +150,9 @@ const getCachedPropertyListingById = unstable_cache(
 );
 
 async function loadPropertyFilterOptions(locale = "en") {
+  // Lookups + one MAX(price) — do not load the full product catalog for filters.
   const settled = await Promise.allSettled([
-    productRepository.findActive(),
+    productRepository.findActiveMaxFinalPrice(),
     countryRepository.findAll(),
     cityRepository.findAll(),
     regionRepository.findAll(),
@@ -159,8 +160,8 @@ async function loadPropertyFilterOptions(locale = "en") {
     purposeRepository.findAll(),
   ]);
 
-  const products =
-    settled[0].status === "fulfilled" ? settled[0].value : [];
+  const maxFinalPrice =
+    settled[0].status === "fulfilled" ? settled[0].value : 0;
   const countries =
     settled[1].status === "fulfilled" ? settled[1].value : [];
   const cities =
@@ -191,43 +192,36 @@ async function loadPropertyFilterOptions(locale = "en") {
       ? category.name_ar.trim()
       : category.name;
 
-  return buildPropertyFilterOptions(
-    products.map((product) => ({
-      countryId: product.country_id,
-      country: product.country_name,
-      cityId: product.city_id,
-      city: product.city_name,
-      regionId: product.region_id,
-      region: product.region_name,
-      categoryId: product.category_id,
-      propertyType: product.category_name,
-      purposeId: product.purpose_id,
-      purpose: product.purpose_name,
-      priceValue: product.final_price,
-    })),
-    {
-      countries: countries
-        .filter((country) => Number(country.status) === 1)
-        .map((country) => ({ id: country.id, label: country.name })),
-      cities: cityNames,
-      regions: regions
-        .filter((region) => Number(region.status) === 1)
-        .map((region) => ({
-          id: region.id,
-          label: region.name,
-          cityId: region.city_id,
-        })),
-      propertyTypes: categories
-        .filter((category) => Number(category.status) === 1)
-        .map((category) => ({
-          id: category.id,
-          label: categoryLabel(category),
-        })),
-      purposes: purposes
-        .filter((purpose) => Number(purpose.status) === 1)
-        .map((purpose) => ({ id: purpose.id, label: purpose.name })),
-    },
-  );
+  const options = buildPropertyFilterOptions([], {
+    countries: countries
+      .filter((country) => Number(country.status) === 1)
+      .map((country) => ({ id: country.id, label: country.name })),
+    cities: cityNames,
+    regions: regions
+      .filter((region) => Number(region.status) === 1)
+      .map((region) => ({
+        id: region.id,
+        label: region.name,
+        cityId: region.city_id,
+      })),
+    propertyTypes: categories
+      .filter((category) => Number(category.status) === 1)
+      .map((category) => ({
+        id: category.id,
+        label: categoryLabel(category),
+      })),
+    purposes: purposes
+      .filter((purpose) => Number(purpose.status) === 1)
+      .map((purpose) => ({ id: purpose.id, label: purpose.name })),
+  });
+
+  return {
+    ...options,
+    priceMax: Math.max(
+      options.priceMax,
+      Math.ceil(maxFinalPrice / 10000) * 10000 || 0,
+    ),
+  };
 }
 
 async function loadPublicCategories(): Promise<PublicCategoryItem[]> {
@@ -249,14 +243,26 @@ async function loadPublicCategories(): Promise<PublicCategoryItem[]> {
   }
 }
 
-/** Fresh each request so city filters never stick on an empty build cache. */
+const getCachedPropertyFilterOptions = unstable_cache(
+  async (locale: string) => loadPropertyFilterOptions(locale),
+  ["property-filter-options"],
+  { revalidate: 60, tags: ["property-listings"] },
+);
+
+const getCachedPublicCategories = unstable_cache(
+  loadPublicCategories,
+  ["public-categories"],
+  { revalidate: 60, tags: ["property-listings"] },
+);
+
+/** Cached 60s; invalidated with property-listings on admin updates. */
 export const getPropertyFilterOptions = cache(async (locale = "en") => {
-  return loadPropertyFilterOptions(locale);
+  return getCachedPropertyFilterOptions(locale);
 });
 
 /** Active categories for hero cards and nav (ordered by position). */
 export const getPublicCategories = cache(async () => {
-  return loadPublicCategories();
+  return getCachedPublicCategories();
 });
 
 /** Per-request dedupe + cross-request ISR cache (60s). */

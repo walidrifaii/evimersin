@@ -116,6 +116,24 @@ export const productRepository = {
     return rows.map((row) => withProductPricing(row));
   },
 
+  /** Max final (discounted) price for active products — used by filter sliders. */
+  findActiveMaxFinalPrice: async () => {
+    const rows = await query<Array<{ max_final_price: number | null }>>(
+      `SELECT MAX(
+         CASE
+           WHEN discount_type = 'fixed' AND discount_value > 0
+             THEN GREATEST(0, price - discount_value)
+           WHEN discount_type = 'percentage' AND discount_value > 0
+             THEN GREATEST(0, price - (price * discount_value) / 100)
+           ELSE price
+         END
+       ) AS max_final_price
+       FROM products
+       WHERE status = 1`,
+    );
+    return Number(rows[0]?.max_final_price ?? 0);
+  },
+
   findFeatured: async (limit = 4) => {
     const safeLimit = Math.max(1, Math.min(50, Math.floor(limit)));
     const rows = await query<Array<Omit<Product, "final_price">>>(

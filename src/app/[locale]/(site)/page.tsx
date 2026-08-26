@@ -10,7 +10,7 @@ import {
 } from "@/features/products/server-data";
 import { getLocale } from "next-intl/server";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 const FeaturedProperties = nextDynamic(
   () =>

@@ -5,8 +5,10 @@ import { useEffect, useState } from "react";
 import { images } from "@/constants/images";
 import { config } from "@/constants/config";
 
-const MIN_VISIBLE_MS = 300;
-const EXIT_MS = 400;
+const MIN_VISIBLE_MS = 280;
+const EXIT_MS = 320;
+/** Cap wait — do not block on slow images / window.load. */
+const MAX_WAIT_MS = 700;
 
 export function SitePreloader() {
   const [visible, setVisible] = useState(true);
@@ -32,15 +34,17 @@ export function SitePreloader() {
       }, wait);
     }
 
-    if (document.readyState === "complete") {
+    // DOM ready is enough — waiting for window.load kept the preloader up
+    // while hero images and chunks finished downloading.
+    if (document.readyState === "interactive" || document.readyState === "complete") {
       finish();
     } else {
-      window.addEventListener("load", finish, { once: true });
-      fallbackTimer = setTimeout(finish, 1500);
+      document.addEventListener("DOMContentLoaded", finish, { once: true });
+      fallbackTimer = setTimeout(finish, MAX_WAIT_MS);
     }
 
     return () => {
-      window.removeEventListener("load", finish);
+      document.removeEventListener("DOMContentLoaded", finish);
       if (delayTimer) clearTimeout(delayTimer);
       if (hideTimer) clearTimeout(hideTimer);
       if (fallbackTimer) clearTimeout(fallbackTimer);
@@ -60,7 +64,7 @@ export function SitePreloader() {
 
   return (
     <div
-      className={`fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-[var(--brand-navy)] transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+      className={`fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-[var(--brand-navy)] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
         exiting ? "pointer-events-none opacity-0" : "opacity-100"
       }`}
       aria-busy="true"
@@ -74,7 +78,7 @@ export function SitePreloader() {
       </div>
 
       <div
-        className={`relative flex flex-col items-center px-6 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        className={`relative flex flex-col items-center px-6 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
           exiting ? "translate-y-4 scale-[0.97] opacity-0" : "translate-y-0 scale-100 opacity-100"
         }`}
       >

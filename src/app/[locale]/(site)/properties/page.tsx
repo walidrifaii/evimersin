@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     "Browse verified villas, apartments, studios, land, and commercial properties in Mersin with EviMersin.",
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 const PropertiesPageContent = nextDynamic(
   () =>

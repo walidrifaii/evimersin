@@ -187,21 +187,21 @@ body {
 
 .preloader-subtitle {
   opacity: 0;
-  animation: preloaderRiseIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) 1.35s forwards;
+  animation: preloaderRiseIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.35s forwards;
 }
 
 .preloader-underline {
-  animation: preloaderUnderline 0.7s cubic-bezier(0.22, 1, 0.36, 1) 1.15s forwards;
+  animation: preloaderUnderline 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.28s forwards;
 }
 
 .preloader-bar-wrap {
   opacity: 0;
-  animation: preloaderFadeIn 0.4s ease-out 0.55s forwards;
+  animation: preloaderFadeIn 0.3s ease-out 0.25s forwards;
 }
 
 .preloader-progress {
   transform: scaleX(0);
-  animation: preloaderProgress 1.9s cubic-bezier(0.22, 1, 0.36, 1) 0.45s forwards;
+  animation: preloaderProgress 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards;
 }
 
 .preloader-shimmer {

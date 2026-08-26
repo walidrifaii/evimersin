@@ -1,9 +1,9 @@
+import { unstable_cache } from "next/cache";
+import { cache } from "react";
 import { heroSlideRepository } from "@/server/database/repositories/hero-slide.repository";
-import { uploadExists } from "@/server/utils/upload";
 import {
   toDisplayImageSrc,
   toUploadServeSrc,
-  toUploadStoragePath,
 } from "@/lib/image-url";
 
 export type PublicHeroSlide = {
@@ -26,26 +26,25 @@ function toPublicSlide(slide: {
   };
 }
 
-async function slideImageExists(imagePath: string) {
-  const uploadPath = toUploadStoragePath(imagePath);
-  if (!uploadPath.startsWith("/uploads/")) return false;
-  return uploadExists(uploadPath);
-}
-
-/** Active hero slides whose image is still readable. */
-export async function getHeroSlides(): Promise<PublicHeroSlide[]> {
+async function loadHeroSlides(): Promise<PublicHeroSlide[]> {
   try {
     const slides = await heroSlideRepository.findActive();
-    const available: PublicHeroSlide[] = [];
-
-    for (const slide of slides) {
-      if (!(await slideImageExists(slide.image))) continue;
-      available.push(toPublicSlide(slide));
-    }
-
-    return available;
+    // Trust admin uploads — broken images fall back in the hero UI.
+    return slides
+      .map(toPublicSlide)
+      .filter((slide) => slide.image.length > 0);
   } catch (error) {
     console.error("[hero-slides] Failed to load active hero slides:", error);
     return [];
   }
 }
+
+const getCachedHeroSlides = unstable_cache(loadHeroSlides, ["hero-slides"], {
+  revalidate: 60,
+  tags: ["hero-slides"],
+});
+
+/** Active hero slides (cached 60s). */
+export const getHeroSlides = cache(async (): Promise<PublicHeroSlide[]> => {
+  return getCachedHeroSlides();
+});
